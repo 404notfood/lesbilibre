@@ -71,10 +71,16 @@ class VerificationController extends Controller
     {
         $this->authorize('viewAny', VerificationPhoto::class);
 
-        $verifications = VerificationPhoto::with('user')
+        $verifications = VerificationPhoto::with('user:id,name,pseudo,email,is_verified')
             ->where('status', 'pending')
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->through(fn (VerificationPhoto $verification) => [
+                'id' => $verification->id,
+                'image_url' => route('admin.verifications.image', $verification),
+                'created_at' => $verification->created_at->toISOString(),
+                'user' => $verification->user,
+            ]);
 
         return Inertia::render('Admin/Verification/Index', [
             'verifications' => $verifications,

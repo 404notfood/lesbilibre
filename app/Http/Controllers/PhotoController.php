@@ -118,11 +118,21 @@ class PhotoController extends Controller
      */
     public function pending(Request $request): Response
     {
-        $photos = Photo::with('user')
+        $photos = Photo::with('user:id,name,pseudo,email')
             ->where('is_approved', false)
             ->whereNull('rejection_reason')
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->through(fn (Photo $photo) => [
+                'id' => $photo->id,
+                'path' => asset('storage/'.$photo->path),
+                'thumbnail_path' => $photo->thumbnail_path
+                    ? asset('storage/'.$photo->thumbnail_path)
+                    : null,
+                'is_naughty' => $photo->is_naughty,
+                'created_at' => $photo->created_at->toISOString(),
+                'user' => $photo->user,
+            ]);
 
         return Inertia::render('Admin/Photos/Pending', [
             'photos' => $photos,

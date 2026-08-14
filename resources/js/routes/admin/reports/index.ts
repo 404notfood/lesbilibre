@@ -181,7 +181,7 @@ show.head = (args: { report: number | { id: number } } | [report: number | { id:
     show.form = showForm
 /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:133
+ * @see app/Http/Controllers/ReportController.php:149
  * @route '/admin/reports/{report}'
  */
 export const update = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -196,7 +196,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:133
+ * @see app/Http/Controllers/ReportController.php:149
  * @route '/admin/reports/{report}'
  */
 update.url = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -229,7 +229,7 @@ update.url = (args: { report: number | { id: number } } | [report: number | { id
 
 /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:133
+ * @see app/Http/Controllers/ReportController.php:149
  * @route '/admin/reports/{report}'
  */
 update.put = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -239,7 +239,7 @@ update.put = (args: { report: number | { id: number } } | [report: number | { id
 
     /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:133
+ * @see app/Http/Controllers/ReportController.php:149
  * @route '/admin/reports/{report}'
  */
     const updateForm = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -254,7 +254,7 @@ update.put = (args: { report: number | { id: number } } | [report: number | { id
 
             /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:133
+ * @see app/Http/Controllers/ReportController.php:149
  * @route '/admin/reports/{report}'
  */
         updateForm.put = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

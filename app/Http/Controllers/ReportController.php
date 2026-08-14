@@ -116,13 +116,29 @@ class ReportController extends Controller
         // Get other reports against the same user
         $relatedReports = Report::where('reported_user_id', $report->reported_user_id)
             ->where('id', '!=', $report->id)
-            ->with('reporter')
+            ->with('reporter:id,pseudo')
             ->latest()
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(fn (Report $related) => [
+                'id' => $related->id,
+                'reason' => $related->reason,
+                'status' => $related->status,
+                'created_at' => $related->created_at->toISOString(),
+                'reporter' => $related->reporter,
+            ]);
 
         return Inertia::render('Admin/Reports/Show', [
-            'report' => $report,
+            'report' => [
+                'id' => $report->id,
+                'reason' => $report->reason,
+                'description' => $report->description,
+                'status' => $report->status,
+                'admin_notes' => $report->admin_notes,
+                'created_at' => $report->created_at->toISOString(),
+                'reporter' => $report->reporter,
+                'reported_user' => $report->reportedUser,
+            ],
             'relatedReports' => $relatedReports,
         ]);
     }
