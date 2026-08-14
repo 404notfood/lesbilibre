@@ -1,8 +1,9 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
 import profile from './profile'
+import notifications from './notifications'
 /**
 * @see \App\Http\Controllers\DataPrivacyController::privacy
- * @see app/Http/Controllers/DataPrivacyController.php:27
+ * @see app/Http/Controllers/DataPrivacyController.php:28
  * @route '/settings/privacy'
  */
 export const privacy = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -17,7 +18,7 @@ privacy.definition = {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::privacy
- * @see app/Http/Controllers/DataPrivacyController.php:27
+ * @see app/Http/Controllers/DataPrivacyController.php:28
  * @route '/settings/privacy'
  */
 privacy.url = (options?: RouteQueryOptions) => {
@@ -26,7 +27,7 @@ privacy.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::privacy
- * @see app/Http/Controllers/DataPrivacyController.php:27
+ * @see app/Http/Controllers/DataPrivacyController.php:28
  * @route '/settings/privacy'
  */
 privacy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +36,7 @@ privacy.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\DataPrivacyController::privacy
- * @see app/Http/Controllers/DataPrivacyController.php:27
+ * @see app/Http/Controllers/DataPrivacyController.php:28
  * @route '/settings/privacy'
  */
 privacy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +46,7 @@ privacy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\DataPrivacyController::privacy
- * @see app/Http/Controllers/DataPrivacyController.php:27
+ * @see app/Http/Controllers/DataPrivacyController.php:28
  * @route '/settings/privacy'
  */
     const privacyForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -55,7 +56,7 @@ privacy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\DataPrivacyController::privacy
- * @see app/Http/Controllers/DataPrivacyController.php:27
+ * @see app/Http/Controllers/DataPrivacyController.php:28
  * @route '/settings/privacy'
  */
         privacyForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -64,7 +65,7 @@ privacy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\DataPrivacyController::privacy
- * @see app/Http/Controllers/DataPrivacyController.php:27
+ * @see app/Http/Controllers/DataPrivacyController.php:28
  * @route '/settings/privacy'
  */
         privacyForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -80,7 +81,7 @@ privacy.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     privacy.form = privacyForm
 /**
 * @see \App\Http\Controllers\DataPrivacyController::dataExport
- * @see app/Http/Controllers/DataPrivacyController.php:43
+ * @see app/Http/Controllers/DataPrivacyController.php:44
  * @route '/settings/data-export'
  */
 export const dataExport = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -95,7 +96,7 @@ dataExport.definition = {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::dataExport
- * @see app/Http/Controllers/DataPrivacyController.php:43
+ * @see app/Http/Controllers/DataPrivacyController.php:44
  * @route '/settings/data-export'
  */
 dataExport.url = (options?: RouteQueryOptions) => {
@@ -104,7 +105,7 @@ dataExport.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::dataExport
- * @see app/Http/Controllers/DataPrivacyController.php:43
+ * @see app/Http/Controllers/DataPrivacyController.php:44
  * @route '/settings/data-export'
  */
 dataExport.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -113,7 +114,7 @@ dataExport.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\DataPrivacyController::dataExport
- * @see app/Http/Controllers/DataPrivacyController.php:43
+ * @see app/Http/Controllers/DataPrivacyController.php:44
  * @route '/settings/data-export'
  */
 dataExport.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -123,7 +124,7 @@ dataExport.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\DataPrivacyController::dataExport
- * @see app/Http/Controllers/DataPrivacyController.php:43
+ * @see app/Http/Controllers/DataPrivacyController.php:44
  * @route '/settings/data-export'
  */
     const dataExportForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -133,7 +134,7 @@ dataExport.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\DataPrivacyController::dataExport
- * @see app/Http/Controllers/DataPrivacyController.php:43
+ * @see app/Http/Controllers/DataPrivacyController.php:44
  * @route '/settings/data-export'
  */
         dataExportForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -142,7 +143,7 @@ dataExport.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\DataPrivacyController::dataExport
- * @see app/Http/Controllers/DataPrivacyController.php:43
+ * @see app/Http/Controllers/DataPrivacyController.php:44
  * @route '/settings/data-export'
  */
         dataExportForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -158,7 +159,7 @@ dataExport.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     dataExport.form = dataExportForm
 /**
 * @see \App\Http\Controllers\DataPrivacyController::deleteAccount
- * @see app/Http/Controllers/DataPrivacyController.php:88
+ * @see app/Http/Controllers/DataPrivacyController.php:90
  * @route '/settings/delete-account'
  */
 export const deleteAccount = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -173,7 +174,7 @@ deleteAccount.definition = {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::deleteAccount
- * @see app/Http/Controllers/DataPrivacyController.php:88
+ * @see app/Http/Controllers/DataPrivacyController.php:90
  * @route '/settings/delete-account'
  */
 deleteAccount.url = (options?: RouteQueryOptions) => {
@@ -182,7 +183,7 @@ deleteAccount.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::deleteAccount
- * @see app/Http/Controllers/DataPrivacyController.php:88
+ * @see app/Http/Controllers/DataPrivacyController.php:90
  * @route '/settings/delete-account'
  */
 deleteAccount.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -192,7 +193,7 @@ deleteAccount.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> 
 
     /**
 * @see \App\Http\Controllers\DataPrivacyController::deleteAccount
- * @see app/Http/Controllers/DataPrivacyController.php:88
+ * @see app/Http/Controllers/DataPrivacyController.php:90
  * @route '/settings/delete-account'
  */
     const deleteAccountForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -207,7 +208,7 @@ deleteAccount.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> 
 
             /**
 * @see \App\Http\Controllers\DataPrivacyController::deleteAccount
- * @see app/Http/Controllers/DataPrivacyController.php:88
+ * @see app/Http/Controllers/DataPrivacyController.php:90
  * @route '/settings/delete-account'
  */
         deleteAccountForm.delete = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -223,7 +224,7 @@ deleteAccount.delete = (options?: RouteQueryOptions): RouteDefinition<'delete'> 
     deleteAccount.form = deleteAccountForm
 /**
 * @see \App\Http\Controllers\DataPrivacyController::updateConsent
- * @see app/Http/Controllers/DataPrivacyController.php:199
+ * @see app/Http/Controllers/DataPrivacyController.php:201
  * @route '/settings/consent'
  */
 export const updateConsent = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -238,7 +239,7 @@ updateConsent.definition = {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::updateConsent
- * @see app/Http/Controllers/DataPrivacyController.php:199
+ * @see app/Http/Controllers/DataPrivacyController.php:201
  * @route '/settings/consent'
  */
 updateConsent.url = (options?: RouteQueryOptions) => {
@@ -247,7 +248,7 @@ updateConsent.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\DataPrivacyController::updateConsent
- * @see app/Http/Controllers/DataPrivacyController.php:199
+ * @see app/Http/Controllers/DataPrivacyController.php:201
  * @route '/settings/consent'
  */
 updateConsent.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -257,7 +258,7 @@ updateConsent.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
     /**
 * @see \App\Http\Controllers\DataPrivacyController::updateConsent
- * @see app/Http/Controllers/DataPrivacyController.php:199
+ * @see app/Http/Controllers/DataPrivacyController.php:201
  * @route '/settings/consent'
  */
     const updateConsentForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -267,7 +268,7 @@ updateConsent.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
             /**
 * @see \App\Http\Controllers\DataPrivacyController::updateConsent
- * @see app/Http/Controllers/DataPrivacyController.php:199
+ * @see app/Http/Controllers/DataPrivacyController.php:201
  * @route '/settings/consent'
  */
         updateConsentForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -282,6 +283,7 @@ dataExport: Object.assign(dataExport, dataExport),
 deleteAccount: Object.assign(deleteAccount, deleteAccount),
 updateConsent: Object.assign(updateConsent, updateConsent),
 profile: Object.assign(profile, profile),
+notifications: Object.assign(notifications, notifications),
 }
 
 export default settings

@@ -12,6 +12,9 @@ import ConversationController from './ConversationController'
 import MessageController from './MessageController'
 import NotificationController from './NotificationController'
 import BadgeController from './BadgeController'
+import StatsController from './StatsController'
+import GemHistoryController from './GemHistoryController'
+import GalleryAccessController from './GalleryAccessController'
 import PhotoController from './PhotoController'
 import ReportController from './ReportController'
 import BlockController from './BlockController'
@@ -35,6 +38,9 @@ ConversationController: Object.assign(ConversationController, ConversationContro
 MessageController: Object.assign(MessageController, MessageController),
 NotificationController: Object.assign(NotificationController, NotificationController),
 BadgeController: Object.assign(BadgeController, BadgeController),
+StatsController: Object.assign(StatsController, StatsController),
+GemHistoryController: Object.assign(GemHistoryController, GemHistoryController),
+GalleryAccessController: Object.assign(GalleryAccessController, GalleryAccessController),
 PhotoController: Object.assign(PhotoController, PhotoController),
 ReportController: Object.assign(ReportController, ReportController),
 BlockController: Object.assign(BlockController, BlockController),

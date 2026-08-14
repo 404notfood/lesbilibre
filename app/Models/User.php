@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\NotificationFrequency;
+use App\Enums\NotificationType;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -99,6 +101,35 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's notification preferences.
+     */
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    /**
+     * Get the chosen frequency for a notification type, falling back to its
+     * default when the user has never set one.
+     */
+    public function notificationFrequency(NotificationType $type): NotificationFrequency
+    {
+        $preference = $this->relationLoaded('notificationPreferences')
+            ? $this->notificationPreferences->firstWhere('type', $type)
+            : $this->notificationPreferences()->where('type', $type->value)->first();
+
+        return $preference?->frequency ?? $type->defaultFrequency();
+    }
+
+    /**
+     * Determine whether the user wants a given notification at a given frequency.
+     */
+    public function wantsNotification(NotificationType $type, NotificationFrequency $frequency): bool
+    {
+        return $this->notificationFrequency($type) === $frequency;
+    }
+
+    /**
      * Get likes given by the user.
      */
     public function likesGiven(): HasMany
@@ -162,7 +193,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return UserMatch::query()
             ->where(function ($q) {
                 $q->where('user1_id', $this->id)
-                  ->orWhere('user2_id', $this->id);
+                    ->orWhere('user2_id', $this->id);
             });
     }
 

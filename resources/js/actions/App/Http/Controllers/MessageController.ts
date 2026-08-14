@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\MessageController::store
- * @see app/Http/Controllers/MessageController.php:17
+ * @see app/Http/Controllers/MessageController.php:18
  * @route '/conversations/{conversation}/messages'
  */
 export const store = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\MessageController::store
- * @see app/Http/Controllers/MessageController.php:17
+ * @see app/Http/Controllers/MessageController.php:18
  * @route '/conversations/{conversation}/messages'
  */
 store.url = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ store.url = (args: { conversation: number | { id: number } } | [conversation: nu
 
 /**
 * @see \App\Http\Controllers\MessageController::store
- * @see app/Http/Controllers/MessageController.php:17
+ * @see app/Http/Controllers/MessageController.php:18
  * @route '/conversations/{conversation}/messages'
  */
 store.post = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -59,7 +59,7 @@ store.post = (args: { conversation: number | { id: number } } | [conversation: n
 
     /**
 * @see \App\Http\Controllers\MessageController::store
- * @see app/Http/Controllers/MessageController.php:17
+ * @see app/Http/Controllers/MessageController.php:18
  * @route '/conversations/{conversation}/messages'
  */
     const storeForm = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -69,7 +69,7 @@ store.post = (args: { conversation: number | { id: number } } | [conversation: n
 
             /**
 * @see \App\Http\Controllers\MessageController::store
- * @see app/Http/Controllers/MessageController.php:17
+ * @see app/Http/Controllers/MessageController.php:18
  * @route '/conversations/{conversation}/messages'
  */
         storeForm.post = (args: { conversation: number | { id: number } } | [conversation: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -80,7 +80,7 @@ store.post = (args: { conversation: number | { id: number } } | [conversation: n
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\MessageController::markAsRead
- * @see app/Http/Controllers/MessageController.php:50
+ * @see app/Http/Controllers/MessageController.php:61
  * @route '/messages/{message}/read'
  */
 export const markAsRead = (args: { message: number | { id: number } } | [message: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -95,7 +95,7 @@ markAsRead.definition = {
 
 /**
 * @see \App\Http\Controllers\MessageController::markAsRead
- * @see app/Http/Controllers/MessageController.php:50
+ * @see app/Http/Controllers/MessageController.php:61
  * @route '/messages/{message}/read'
  */
 markAsRead.url = (args: { message: number | { id: number } } | [message: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -128,7 +128,7 @@ markAsRead.url = (args: { message: number | { id: number } } | [message: number 
 
 /**
 * @see \App\Http\Controllers\MessageController::markAsRead
- * @see app/Http/Controllers/MessageController.php:50
+ * @see app/Http/Controllers/MessageController.php:61
  * @route '/messages/{message}/read'
  */
 markAsRead.post = (args: { message: number | { id: number } } | [message: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -138,7 +138,7 @@ markAsRead.post = (args: { message: number | { id: number } } | [message: number
 
     /**
 * @see \App\Http\Controllers\MessageController::markAsRead
- * @see app/Http/Controllers/MessageController.php:50
+ * @see app/Http/Controllers/MessageController.php:61
  * @route '/messages/{message}/read'
  */
     const markAsReadForm = (args: { message: number | { id: number } } | [message: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -148,7 +148,7 @@ markAsRead.post = (args: { message: number | { id: number } } | [message: number
 
             /**
 * @see \App\Http\Controllers\MessageController::markAsRead
- * @see app/Http/Controllers/MessageController.php:50
+ * @see app/Http/Controllers/MessageController.php:61
  * @route '/messages/{message}/read'
  */
         markAsReadForm.post = (args: { message: number | { id: number } } | [message: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

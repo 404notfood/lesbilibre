@@ -134,7 +134,7 @@ subscribe.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     subscribe.form = subscribeForm
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutSuccess
- * @see app/Http/Controllers/PremiumController.php:169
+ * @see app/Http/Controllers/PremiumController.php:175
  * @route '/premium/checkout/success'
  */
 export const checkoutSuccess = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -149,7 +149,7 @@ checkoutSuccess.definition = {
 
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutSuccess
- * @see app/Http/Controllers/PremiumController.php:169
+ * @see app/Http/Controllers/PremiumController.php:175
  * @route '/premium/checkout/success'
  */
 checkoutSuccess.url = (options?: RouteQueryOptions) => {
@@ -158,7 +158,7 @@ checkoutSuccess.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutSuccess
- * @see app/Http/Controllers/PremiumController.php:169
+ * @see app/Http/Controllers/PremiumController.php:175
  * @route '/premium/checkout/success'
  */
 checkoutSuccess.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -167,7 +167,7 @@ checkoutSuccess.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => (
 })
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutSuccess
- * @see app/Http/Controllers/PremiumController.php:169
+ * @see app/Http/Controllers/PremiumController.php:175
  * @route '/premium/checkout/success'
  */
 checkoutSuccess.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -177,7 +177,7 @@ checkoutSuccess.head = (options?: RouteQueryOptions): RouteDefinition<'head'> =>
 
     /**
 * @see \App\Http\Controllers\PremiumController::checkoutSuccess
- * @see app/Http/Controllers/PremiumController.php:169
+ * @see app/Http/Controllers/PremiumController.php:175
  * @route '/premium/checkout/success'
  */
     const checkoutSuccessForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -187,7 +187,7 @@ checkoutSuccess.head = (options?: RouteQueryOptions): RouteDefinition<'head'> =>
 
             /**
 * @see \App\Http\Controllers\PremiumController::checkoutSuccess
- * @see app/Http/Controllers/PremiumController.php:169
+ * @see app/Http/Controllers/PremiumController.php:175
  * @route '/premium/checkout/success'
  */
         checkoutSuccessForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -196,7 +196,7 @@ checkoutSuccess.head = (options?: RouteQueryOptions): RouteDefinition<'head'> =>
         })
             /**
 * @see \App\Http\Controllers\PremiumController::checkoutSuccess
- * @see app/Http/Controllers/PremiumController.php:169
+ * @see app/Http/Controllers/PremiumController.php:175
  * @route '/premium/checkout/success'
  */
         checkoutSuccessForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -212,7 +212,7 @@ checkoutSuccess.head = (options?: RouteQueryOptions): RouteDefinition<'head'> =>
     checkoutSuccess.form = checkoutSuccessForm
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutCancel
- * @see app/Http/Controllers/PremiumController.php:190
+ * @see app/Http/Controllers/PremiumController.php:196
  * @route '/premium/checkout/cancel'
  */
 export const checkoutCancel = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -227,7 +227,7 @@ checkoutCancel.definition = {
 
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutCancel
- * @see app/Http/Controllers/PremiumController.php:190
+ * @see app/Http/Controllers/PremiumController.php:196
  * @route '/premium/checkout/cancel'
  */
 checkoutCancel.url = (options?: RouteQueryOptions) => {
@@ -236,7 +236,7 @@ checkoutCancel.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutCancel
- * @see app/Http/Controllers/PremiumController.php:190
+ * @see app/Http/Controllers/PremiumController.php:196
  * @route '/premium/checkout/cancel'
  */
 checkoutCancel.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -245,7 +245,7 @@ checkoutCancel.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\PremiumController::checkoutCancel
- * @see app/Http/Controllers/PremiumController.php:190
+ * @see app/Http/Controllers/PremiumController.php:196
  * @route '/premium/checkout/cancel'
  */
 checkoutCancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -255,7 +255,7 @@ checkoutCancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
 
     /**
 * @see \App\Http\Controllers\PremiumController::checkoutCancel
- * @see app/Http/Controllers/PremiumController.php:190
+ * @see app/Http/Controllers/PremiumController.php:196
  * @route '/premium/checkout/cancel'
  */
     const checkoutCancelForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -265,7 +265,7 @@ checkoutCancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
 
             /**
 * @see \App\Http\Controllers\PremiumController::checkoutCancel
- * @see app/Http/Controllers/PremiumController.php:190
+ * @see app/Http/Controllers/PremiumController.php:196
  * @route '/premium/checkout/cancel'
  */
         checkoutCancelForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -274,7 +274,7 @@ checkoutCancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
         })
             /**
 * @see \App\Http\Controllers\PremiumController::checkoutCancel
- * @see app/Http/Controllers/PremiumController.php:190
+ * @see app/Http/Controllers/PremiumController.php:196
  * @route '/premium/checkout/cancel'
  */
         checkoutCancelForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -288,6 +288,61 @@ checkoutCancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => 
         })
     
     checkoutCancel.form = checkoutCancelForm
-const PremiumController = { index, subscribe, checkoutSuccess, checkoutCancel }
+/**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+export const billingPortal = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: billingPortal.url(options),
+    method: 'post',
+})
+
+billingPortal.definition = {
+    methods: ["post"],
+    url: '/premium/billing-portal',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+billingPortal.url = (options?: RouteQueryOptions) => {
+    return billingPortal.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+billingPortal.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: billingPortal.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+    const billingPortalForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: billingPortal.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+        billingPortalForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: billingPortal.url(options),
+            method: 'post',
+        })
+    
+    billingPortal.form = billingPortalForm
+const PremiumController = { index, subscribe, checkoutSuccess, checkoutCancel, billingPortal }
 
 export default PremiumController

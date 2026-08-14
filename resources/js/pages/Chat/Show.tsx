@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import Echo from '@/echo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,12 +28,16 @@ interface Message {
 
 interface Conversation {
     id: number;
-    other_user: UserData;
-    messages: Message[];
+}
+
+interface PaginatedMessages {
+    data: Message[];
 }
 
 interface Props {
     conversation: Conversation;
+    otherUser: UserData;
+    messages: PaginatedMessages;
     canSendMessage?: boolean;
     auth: {
         user: {
@@ -41,9 +46,16 @@ interface Props {
     };
 }
 
-export default function Show({ conversation, canSendMessage = true, auth }: Props) {
+export default function Show({
+    conversation,
+    otherUser,
+    messages,
+    canSendMessage = true,
+    auth,
+}: Props) {
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [localMessages, setLocalMessages] = useState<Message[]>(messages.data);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -51,8 +63,29 @@ export default function Show({ conversation, canSendMessage = true, auth }: Prop
     };
 
     useEffect(() => {
+        setLocalMessages(messages.data);
+    }, [messages]);
+
+    useEffect(() => {
         scrollToBottom();
-    }, [conversation.messages]);
+    }, [localMessages]);
+
+    // Réception des messages en temps réel via le canal privé de la conversation
+    useEffect(() => {
+        const channelName = `conversation.${conversation.id}`;
+        const channel = Echo.private(channelName);
+
+        channel.listen('.MessageSent', (data: Message) => {
+            setLocalMessages((prev) =>
+                prev.some((msg) => msg.id === data.id) ? prev : [...prev, data],
+            );
+        });
+
+        return () => {
+            channel.stopListening('.MessageSent');
+            Echo.leave(channelName);
+        };
+    }, [conversation.id]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,7 +108,7 @@ export default function Show({ conversation, canSendMessage = true, auth }: Prop
 
     return (
         <>
-            <Head title={`Chat avec ${conversation.other_user.name}`} />
+            <Head title={`Chat avec ${otherUser.name}`} />
 
             <div className="flex h-screen flex-col bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
                 {/* En-tête */}
@@ -88,24 +121,24 @@ export default function Show({ conversation, canSendMessage = true, auth }: Prop
                         </Link>
 
                         <Link
-                            href={`/profile/${conversation.other_user.id}`}
+                            href={`/profile/${otherUser.id}`}
                             className="flex items-center gap-3 hover:opacity-80"
                         >
                             <div className="h-10 w-10 overflow-hidden rounded-full bg-gradient-to-br from-pink-100 to-purple-100">
-                                {conversation.other_user.photos?.[0] ? (
+                                {otherUser.photos?.[0] ? (
                                     <img
-                                        src={`/storage/${conversation.other_user.photos[0].path}`}
-                                        alt={conversation.other_user.name}
+                                        src={`/storage/${otherUser.photos[0].path}`}
+                                        alt={otherUser.name}
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
                                     <div className="flex h-full items-center justify-center text-lg font-bold text-pink-300">
-                                        {conversation.other_user.name.charAt(0)}
+                                        {otherUser.name.charAt(0)}
                                     </div>
                                 )}
                             </div>
                             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                {conversation.other_user.name}
+                                {otherUser.name}
                             </h1>
                         </Link>
                     </div>
@@ -115,8 +148,8 @@ export default function Show({ conversation, canSendMessage = true, auth }: Prop
                 <div className="flex-1 overflow-y-auto">
                     <div className="container mx-auto px-4 py-6">
                         <div className="mx-auto max-w-3xl space-y-4">
-                            {conversation.messages.length > 0 ? (
-                                conversation.messages.map((msg) => {
+                            {localMessages.length > 0 ? (
+                                localMessages.map((msg) => {
                                     const isOwn = msg.sender_id === auth.user.id;
                                     return (
                                         <div

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\StripeWebhookController::handle
- * @see app/Http/Controllers/StripeWebhookController.php:24
+ * @see app/Http/Controllers/StripeWebhookController.php:25
  * @route '/webhook/stripe'
  */
 export const handle = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ handle.definition = {
 
 /**
 * @see \App\Http\Controllers\StripeWebhookController::handle
- * @see app/Http/Controllers/StripeWebhookController.php:24
+ * @see app/Http/Controllers/StripeWebhookController.php:25
  * @route '/webhook/stripe'
  */
 handle.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ handle.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\StripeWebhookController::handle
- * @see app/Http/Controllers/StripeWebhookController.php:24
+ * @see app/Http/Controllers/StripeWebhookController.php:25
  * @route '/webhook/stripe'
  */
 handle.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ handle.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\StripeWebhookController::handle
- * @see app/Http/Controllers/StripeWebhookController.php:24
+ * @see app/Http/Controllers/StripeWebhookController.php:25
  * @route '/webhook/stripe'
  */
     const handleForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ handle.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\StripeWebhookController::handle
- * @see app/Http/Controllers/StripeWebhookController.php:24
+ * @see app/Http/Controllers/StripeWebhookController.php:25
  * @route '/webhook/stripe'
  */
         handleForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

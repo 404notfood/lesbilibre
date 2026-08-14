@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SessionController;
@@ -30,4 +31,9 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/sessions', [SessionController::class, 'index'])->name('sessions.index');
     Route::delete('settings/sessions', [SessionController::class, 'destroyOthers'])
         ->middleware('throttle:3,1')->name('sessions.destroy-others');
+
+    Route::get('settings/notifications', [NotificationPreferenceController::class, 'edit'])
+        ->name('settings.notifications.edit');
+    Route::put('settings/notifications', [NotificationPreferenceController::class, 'update'])
+        ->name('settings.notifications.update');
 });

@@ -64,6 +64,10 @@ class ConversationController extends Controller
 
         abort_unless($user->canInteractWith($otherUser), 403, 'Cette conversation n’est plus disponible.');
 
+        $otherUser->load(['photos' => function ($query) {
+            $query->where('is_approved', true)->orderBy('order')->limit(1);
+        }]);
+
         // Load messages with pagination
         $messages = $conversation->messages()
             ->with('sender')

@@ -54,19 +54,19 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
 
         const channel = Echo.private(`App.Models.User.${userId}`);
 
-        channel.listen('LikeReceived', (data: Notification) => {
+        channel.listen('.LikeReceived', (data: Notification) => {
             setNotifications((prev) => [data, ...prev].slice(0, 10));
             setUnreadCount((prev) => prev + 1);
         });
 
-        channel.listen('MatchCreated', (data: Notification) => {
+        channel.listen('.MatchCreated', (data: Notification) => {
             setNotifications((prev) => [data, ...prev].slice(0, 10));
             setUnreadCount((prev) => prev + 1);
         });
 
         return () => {
-            channel.stopListening('LikeReceived');
-            channel.stopListening('MatchCreated');
+            channel.stopListening('.LikeReceived');
+            channel.stopListening('.MatchCreated');
             Echo.leave(`App.Models.User.${userId}`);
         };
     }, [userId]);

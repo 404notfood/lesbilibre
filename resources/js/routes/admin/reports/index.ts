@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ReportController::index
- * @see app/Http/Controllers/ReportController.php:58
+ * @see app/Http/Controllers/ReportController.php:63
  * @route '/admin/reports'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\ReportController::index
- * @see app/Http/Controllers/ReportController.php:58
+ * @see app/Http/Controllers/ReportController.php:63
  * @route '/admin/reports'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ReportController::index
- * @see app/Http/Controllers/ReportController.php:58
+ * @see app/Http/Controllers/ReportController.php:63
  * @route '/admin/reports'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\ReportController::index
- * @see app/Http/Controllers/ReportController.php:58
+ * @see app/Http/Controllers/ReportController.php:63
  * @route '/admin/reports'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\ReportController::index
- * @see app/Http/Controllers/ReportController.php:58
+ * @see app/Http/Controllers/ReportController.php:63
  * @route '/admin/reports'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\ReportController::index
- * @see app/Http/Controllers/ReportController.php:58
+ * @see app/Http/Controllers/ReportController.php:63
  * @route '/admin/reports'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\ReportController::index
- * @see app/Http/Controllers/ReportController.php:58
+ * @see app/Http/Controllers/ReportController.php:63
  * @route '/admin/reports'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\ReportController::show
- * @see app/Http/Controllers/ReportController.php:76
+ * @see app/Http/Controllers/ReportController.php:81
  * @route '/admin/reports/{report}'
  */
 export const show = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\ReportController::show
- * @see app/Http/Controllers/ReportController.php:76
+ * @see app/Http/Controllers/ReportController.php:81
  * @route '/admin/reports/{report}'
  */
 show.url = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -127,7 +127,7 @@ show.url = (args: { report: number | { id: number } } | [report: number | { id: 
 
 /**
 * @see \App\Http\Controllers\ReportController::show
- * @see app/Http/Controllers/ReportController.php:76
+ * @see app/Http/Controllers/ReportController.php:81
  * @route '/admin/reports/{report}'
  */
 show.get = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -136,7 +136,7 @@ show.get = (args: { report: number | { id: number } } | [report: number | { id: 
 })
 /**
 * @see \App\Http\Controllers\ReportController::show
- * @see app/Http/Controllers/ReportController.php:76
+ * @see app/Http/Controllers/ReportController.php:81
  * @route '/admin/reports/{report}'
  */
 show.head = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -146,7 +146,7 @@ show.head = (args: { report: number | { id: number } } | [report: number | { id:
 
     /**
 * @see \App\Http\Controllers\ReportController::show
- * @see app/Http/Controllers/ReportController.php:76
+ * @see app/Http/Controllers/ReportController.php:81
  * @route '/admin/reports/{report}'
  */
     const showForm = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -156,7 +156,7 @@ show.head = (args: { report: number | { id: number } } | [report: number | { id:
 
             /**
 * @see \App\Http\Controllers\ReportController::show
- * @see app/Http/Controllers/ReportController.php:76
+ * @see app/Http/Controllers/ReportController.php:81
  * @route '/admin/reports/{report}'
  */
         showForm.get = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -165,7 +165,7 @@ show.head = (args: { report: number | { id: number } } | [report: number | { id:
         })
             /**
 * @see \App\Http\Controllers\ReportController::show
- * @see app/Http/Controllers/ReportController.php:76
+ * @see app/Http/Controllers/ReportController.php:81
  * @route '/admin/reports/{report}'
  */
         showForm.head = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -181,7 +181,7 @@ show.head = (args: { report: number | { id: number } } | [report: number | { id:
     show.form = showForm
 /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:99
+ * @see app/Http/Controllers/ReportController.php:104
  * @route '/admin/reports/{report}'
  */
 export const update = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -196,7 +196,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:99
+ * @see app/Http/Controllers/ReportController.php:104
  * @route '/admin/reports/{report}'
  */
 update.url = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -229,7 +229,7 @@ update.url = (args: { report: number | { id: number } } | [report: number | { id
 
 /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:99
+ * @see app/Http/Controllers/ReportController.php:104
  * @route '/admin/reports/{report}'
  */
 update.put = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -239,7 +239,7 @@ update.put = (args: { report: number | { id: number } } | [report: number | { id
 
     /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:99
+ * @see app/Http/Controllers/ReportController.php:104
  * @route '/admin/reports/{report}'
  */
     const updateForm = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -254,7 +254,7 @@ update.put = (args: { report: number | { id: number } } | [report: number | { id
 
             /**
 * @see \App\Http\Controllers\ReportController::update
- * @see app/Http/Controllers/ReportController.php:99
+ * @see app/Http/Controllers/ReportController.php:104
  * @route '/admin/reports/{report}'
  */
         updateForm.put = (args: { report: number | { id: number } } | [report: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

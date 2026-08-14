@@ -1,5 +1,167 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes'
+ */
+const received48c63a6c1cf2ccf66254d35c4c555b2d = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: received48c63a6c1cf2ccf66254d35c4c555b2d.url(options),
+    method: 'get',
+})
+
+received48c63a6c1cf2ccf66254d35c4c555b2d.definition = {
+    methods: ["get","head"],
+    url: '/likes',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes'
+ */
+received48c63a6c1cf2ccf66254d35c4c555b2d.url = (options?: RouteQueryOptions) => {
+    return received48c63a6c1cf2ccf66254d35c4c555b2d.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes'
+ */
+received48c63a6c1cf2ccf66254d35c4c555b2d.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: received48c63a6c1cf2ccf66254d35c4c555b2d.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes'
+ */
+received48c63a6c1cf2ccf66254d35c4c555b2d.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: received48c63a6c1cf2ccf66254d35c4c555b2d.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes'
+ */
+    const received48c63a6c1cf2ccf66254d35c4c555b2dForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: received48c63a6c1cf2ccf66254d35c4c555b2d.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes'
+ */
+        received48c63a6c1cf2ccf66254d35c4c555b2dForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: received48c63a6c1cf2ccf66254d35c4c555b2d.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes'
+ */
+        received48c63a6c1cf2ccf66254d35c4c555b2dForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: received48c63a6c1cf2ccf66254d35c4c555b2d.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    received48c63a6c1cf2ccf66254d35c4c555b2d.form = received48c63a6c1cf2ccf66254d35c4c555b2dForm
+    /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes/received'
+ */
+const received00b082b1ac797ec196f59dcca38aacac = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: received00b082b1ac797ec196f59dcca38aacac.url(options),
+    method: 'get',
+})
+
+received00b082b1ac797ec196f59dcca38aacac.definition = {
+    methods: ["get","head"],
+    url: '/likes/received',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes/received'
+ */
+received00b082b1ac797ec196f59dcca38aacac.url = (options?: RouteQueryOptions) => {
+    return received00b082b1ac797ec196f59dcca38aacac.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes/received'
+ */
+received00b082b1ac797ec196f59dcca38aacac.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: received00b082b1ac797ec196f59dcca38aacac.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes/received'
+ */
+received00b082b1ac797ec196f59dcca38aacac.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: received00b082b1ac797ec196f59dcca38aacac.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes/received'
+ */
+    const received00b082b1ac797ec196f59dcca38aacacForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: received00b082b1ac797ec196f59dcca38aacac.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes/received'
+ */
+        received00b082b1ac797ec196f59dcca38aacacForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: received00b082b1ac797ec196f59dcca38aacac.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\LikeController::received
+ * @see app/Http/Controllers/LikeController.php:109
+ * @route '/likes/received'
+ */
+        received00b082b1ac797ec196f59dcca38aacacForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: received00b082b1ac797ec196f59dcca38aacac.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    received00b082b1ac797ec196f59dcca38aacac.form = received00b082b1ac797ec196f59dcca38aacacForm
+
+export const received = {
+    '/likes': received48c63a6c1cf2ccf66254d35c4c555b2d,
+    '/likes/received': received00b082b1ac797ec196f59dcca38aacac,
+}
+
+/**
 * @see \App\Http\Controllers\LikeController::store
  * @see app/Http/Controllers/LikeController.php:20
  * @route '/likes/{userId}'
@@ -75,7 +237,7 @@ store.post = (args: { userId: string | number } | [userId: string | number ] | s
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:85
+ * @see app/Http/Controllers/LikeController.php:89
  * @route '/likes/{userId}'
  */
 export const destroy = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -90,7 +252,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:85
+ * @see app/Http/Controllers/LikeController.php:89
  * @route '/likes/{userId}'
  */
 destroy.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -118,7 +280,7 @@ destroy.url = (args: { userId: string | number } | [userId: string | number ] | 
 
 /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:85
+ * @see app/Http/Controllers/LikeController.php:89
  * @route '/likes/{userId}'
  */
 destroy.delete = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -128,7 +290,7 @@ destroy.delete = (args: { userId: string | number } | [userId: string | number ]
 
     /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:85
+ * @see app/Http/Controllers/LikeController.php:89
  * @route '/likes/{userId}'
  */
     const destroyForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -143,7 +305,7 @@ destroy.delete = (args: { userId: string | number } | [userId: string | number ]
 
             /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:85
+ * @see app/Http/Controllers/LikeController.php:89
  * @route '/likes/{userId}'
  */
         destroyForm.delete = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -157,84 +319,6 @@ destroy.delete = (args: { userId: string | number } | [userId: string | number ]
         })
     
     destroy.form = destroyForm
-/**
-* @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:105
- * @route '/likes/received'
- */
-export const received = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: received.url(options),
-    method: 'get',
-})
-
-received.definition = {
-    methods: ["get","head"],
-    url: '/likes/received',
-} satisfies RouteDefinition<["get","head"]>
-
-/**
-* @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:105
- * @route '/likes/received'
- */
-received.url = (options?: RouteQueryOptions) => {
-    return received.definition.url + queryParams(options)
-}
-
-/**
-* @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:105
- * @route '/likes/received'
- */
-received.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: received.url(options),
-    method: 'get',
-})
-/**
-* @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:105
- * @route '/likes/received'
- */
-received.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: received.url(options),
-    method: 'head',
-})
-
-    /**
-* @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:105
- * @route '/likes/received'
- */
-    const receivedForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-        action: received.url(options),
-        method: 'get',
-    })
-
-            /**
-* @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:105
- * @route '/likes/received'
- */
-        receivedForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: received.url(options),
-            method: 'get',
-        })
-            /**
-* @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:105
- * @route '/likes/received'
- */
-        receivedForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
-            action: received.url({
-                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
-                            _method: 'HEAD',
-                            ...(options?.query ?? options?.mergeQuery ?? {}),
-                        }
-                    }),
-            method: 'get',
-        })
-    
-    received.form = receivedForm
-const LikeController = { store, destroy, received }
+const LikeController = { received, store, destroy }
 
 export default LikeController

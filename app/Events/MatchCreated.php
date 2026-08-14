@@ -31,6 +31,14 @@ class MatchCreated implements ShouldBroadcast
     }
 
     /**
+     * The event name broadcast to clients.
+     */
+    public function broadcastAs(): string
+    {
+        return 'MatchCreated';
+    }
+
+    /**
      * Get the data to broadcast.
      */
     public function broadcastWith(): array

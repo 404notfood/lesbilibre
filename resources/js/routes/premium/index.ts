@@ -133,10 +133,66 @@ subscribe.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
         })
     
     subscribe.form = subscribeForm
+/**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+export const billingPortal = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: billingPortal.url(options),
+    method: 'post',
+})
+
+billingPortal.definition = {
+    methods: ["post"],
+    url: '/premium/billing-portal',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+billingPortal.url = (options?: RouteQueryOptions) => {
+    return billingPortal.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+billingPortal.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: billingPortal.url(options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+    const billingPortalForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: billingPortal.url(options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\PremiumController::billingPortal
+ * @see app/Http/Controllers/PremiumController.php:202
+ * @route '/premium/billing-portal'
+ */
+        billingPortalForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: billingPortal.url(options),
+            method: 'post',
+        })
+    
+    billingPortal.form = billingPortalForm
 const premium = {
     index: Object.assign(index, index),
 subscribe: Object.assign(subscribe, subscribe),
 checkout: Object.assign(checkout, checkout),
+billingPortal: Object.assign(billingPortal, billingPortal),
 }
 
 export default premium
