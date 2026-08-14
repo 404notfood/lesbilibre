@@ -24,7 +24,13 @@ interface VerificationStatus {
     rejected_reason?: string;
 }
 
-export default function Create({ status }: { status: VerificationStatus }): JSX.Element {
+export default function Create({
+    status,
+    challengeCode,
+}: {
+    status: VerificationStatus;
+    challengeCode: string;
+}): JSX.Element {
     const [uploading, setUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -157,24 +163,49 @@ export default function Create({ status }: { status: VerificationStatus }): JSX.
 
                         {!status.has_pending && !status.is_verified && (
                             <>
-                                {/* Principe de la vérification */}
-                                <Card>
+                                {/* Code à reproduire */}
+                                <Card className="border-primary/40">
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <Camera className="h-5 w-5" />
-                                            Comment ça marche
+                                            Votre code de vérification
                                         </CardTitle>
                                         <CardDescription>
-                                            Un selfie suffit : notre équipe le compare à vos
-                                            photos de profil, puis le supprime.
+                                            Écrivez ce code sur une feuille et tenez-la
+                                            visible sur votre selfie.
                                         </CardDescription>
                                     </CardHeader>
-                                    <CardContent>
-                                        <p className="text-sm text-muted-foreground">
-                                            Ce selfie n&apos;est jamais publié ni visible par
-                                            les autres membres. Il sert uniquement à confirmer
-                                            que vous êtes bien la personne sur vos photos, et
-                                            vous donne le badge vérifié.
+                                    <CardContent className="space-y-4">
+                                        <div
+                                            className="rounded-xl border-2 border-dashed py-6 text-center"
+                                            style={{ borderColor: 'var(--line)' }}
+                                        >
+                                            <p className="font-mono break-all px-3 text-3xl font-bold tracking-[0.25em] sm:text-4xl">
+                                                {challengeCode}
+                                            </p>
+                                        </div>
+
+                                        <ol className="space-y-1.5 text-sm text-muted-foreground">
+                                            <li>
+                                                1. Notez ce code à la main sur une feuille
+                                                de papier.
+                                            </li>
+                                            <li>
+                                                2. Prenez un selfie en tenant la feuille
+                                                bien lisible à côté de votre visage.
+                                            </li>
+                                            <li>
+                                                3. Envoyez la photo ci-dessous. Le code est
+                                                valable jusqu&apos;à votre envoi.
+                                            </li>
+                                        </ol>
+
+                                        <p className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
+                                            Ce code change à chaque demande : il prouve que
+                                            la photo a été prise pour cette vérification, et
+                                            n&apos;a pas été récupérée ailleurs. Votre selfie
+                                            n&apos;est jamais publié, il sert uniquement à
+                                            confirmer votre identité auprès de l&apos;équipe.
                                         </p>
                                     </CardContent>
                                 </Card>

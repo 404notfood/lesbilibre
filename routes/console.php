@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('privacy:prune-verification-photos --days=30')->dailyAt('03:30')->withoutOverlapping();
+Schedule::command('photos:prune-render-cache')->hourly()->withoutOverlapping();

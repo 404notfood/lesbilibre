@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Photo;
 use App\Models\User;
 use App\Services\ModerationAuditService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -117,12 +119,104 @@ class UserController extends Controller
                 'last_activity_at' => $user->last_activity_at,
                 'created_at' => $user->created_at,
                 'profile' => $user->profile,
-                'photos' => $user->photos,
+                'photos' => $user->photos
+                    ->sortBy('order')
+                    ->values()
+                    ->map(fn (Photo $photo) => [
+                        'id' => $photo->id,
+                        // Vue admin : image d'origine, sans floutage ni filigrane,
+                        // pour pouvoir juger réellement du contenu.
+                        'url' => asset('storage/'.$photo->path),
+                        'is_primary' => $photo->is_primary,
+                        'is_naughty' => $photo->is_naughty,
+                        'moderation_status' => $photo->moderation_status,
+                        'rejection_reason' => $photo->rejection_reason,
+                        'avatar_requested' => $photo->avatar_requested_at !== null,
+                        'created_at' => $photo->created_at->toISOString(),
+                    ]),
                 'badges' => $user->badges,
                 'subscriptions' => $user->subscriptions,
             ],
             'stats' => $stats,
         ]);
+    }
+
+    /**
+     * Flag or unflag one of the member's photos as sensitive.
+     *
+     * Members classify their own uploads, but they get it wrong — this is the
+     * lever that puts a nude behind the blur without deleting it.
+     */
+    public function togglePhotoSensitivity(Request $request, User $user, Photo $photo): RedirectResponse
+    {
+        abort_unless($photo->user_id === $user->id, 404);
+
+        $sensitive = ! $photo->is_naughty;
+
+        $photo->update([
+            'is_naughty' => $sensitive,
+            // Une photo sensible ne peut pas rester l'avatar du profil.
+            'is_primary' => $sensitive ? false : $photo->is_primary,
+            'avatar_requested_at' => $sensitive ? null : $photo->avatar_requested_at,
+        ]);
+
+        app(ModerationAuditService::class)->record(
+            $request->user(),
+            $photo,
+            $sensitive ? 'photo_marked_sensitive' : 'photo_unmarked_sensitive',
+            $user
+        );
+
+        return redirect()->back()->with(
+            'success',
+            $sensitive
+                ? 'Photo marquée comme sensible : elle est désormais floutée.'
+                : 'Photo marquée comme tout public.'
+        );
+    }
+
+    /**
+     * Strip the member's avatar without touching the rest of the gallery.
+     */
+    public function clearAvatar(Request $request, User $user): RedirectResponse
+    {
+        $user->photos()->update(['is_primary' => false]);
+
+        app(ModerationAuditService::class)->record(
+            $request->user(), $user, 'avatar_cleared', $user
+        );
+
+        return redirect()->back()->with('success', 'Photo de profil retirée.');
+    }
+
+    /**
+     * Delete one of the member's photos.
+     */
+    public function destroyPhoto(Request $request, User $user, Photo $photo): RedirectResponse
+    {
+        abort_unless($photo->user_id === $user->id, 404);
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        Storage::disk('public')->delete($photo->path);
+        if ($photo->thumbnail_path) {
+            Storage::disk('public')->delete($photo->thumbnail_path);
+        }
+
+        app(ModerationAuditService::class)->record(
+            $request->user(),
+            $photo,
+            'photo_deleted_by_admin',
+            $user,
+            'photo_deleted',
+            $validated['reason']
+        );
+
+        $photo->delete();
+
+        return redirect()->back()->with('success', 'Photo supprimée.');
     }
 
     /**
@@ -173,7 +267,7 @@ class UserController extends Controller
             $user->premium_expires_at = null;
             $user->save();
 
-            return redirect()->back()->with('success', "Le statut premium a été retiré.");
+            return redirect()->back()->with('success', 'Le statut premium a été retiré.');
         }
 
         $validated = $request->validate([

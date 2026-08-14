@@ -33,6 +33,9 @@ class VerificationController extends Controller
                     ? $latestVerification->rejection_reason
                     : null,
             ],
+            // Le code doit être connu avant la prise de vue et rester identique
+            // jusqu'à l'envoi, sinon la membre photographie un code périmé.
+            'challengeCode' => $this->currentChallengeCode($request),
         ]);
     }
 
@@ -62,11 +65,40 @@ class VerificationController extends Controller
         VerificationPhoto::create([
             'user_id' => $user->id,
             'path' => $path,
+            'challenge_code' => $this->currentChallengeCode($request),
             'status' => 'pending',
         ]);
 
+        // Le code est consommé : une nouvelle demande en exigera un nouveau.
+        $request->session()->forget('verification_challenge_code');
+
         return redirect()->route('verification.create')
             ->with('success', 'Votre photo de vérification a été envoyée. Elle sera examinée sous 48h.');
+    }
+
+    /**
+     * The code the member must write on a sheet of paper held in the selfie.
+     *
+     * Kept in the session so it survives the page reloads between reading the
+     * code, taking the photo and uploading it. Ambiguous characters are left
+     * out: a moderator comparing a handwritten O against a 0 would reject
+     * honest submissions.
+     */
+    private function currentChallengeCode(Request $request): string
+    {
+        return $request->session()->remember('verification_challenge_code', function (): string {
+            // Chiffres uniquement : rien à interpréter entre une lettre écrite
+            // à la main et son sosie typographique. Longueur variable pour
+            // qu'un code ne soit pas devinable à partir d'un autre.
+            $length = random_int(5, 9);
+            $code = '';
+
+            for ($i = 0; $i < $length; $i++) {
+                $code .= (string) random_int(0, 9);
+            }
+
+            return $code;
+        });
     }
 
     /**
@@ -83,6 +115,7 @@ class VerificationController extends Controller
             ->through(fn (VerificationPhoto $verification) => [
                 'id' => $verification->id,
                 'image_url' => route('admin.verifications.image', $verification),
+                'challenge_code' => $verification->challenge_code,
                 'created_at' => $verification->created_at->toISOString(),
                 'user' => $verification->user,
             ]);

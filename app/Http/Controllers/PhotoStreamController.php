@@ -6,7 +6,6 @@ use App\Models\Photo;
 use App\Services\PhotoProcessingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PhotoStreamController extends Controller
@@ -40,22 +39,22 @@ class PhotoStreamController extends Controller
 
         // Re-encoding on every request would be wasteful: the result only
         // depends on the photo, the viewer's label and the blur decision.
-        $cacheKey = sprintf(
-            'photo-render:%d:%d:%s:%s',
-            $photo->id,
-            $viewer->id,
-            $blur ? 'blur' : 'clear',
-            $thumb ? 'thumb' : 'full',
-        );
-
-        $rendered = Cache::remember(
-            $cacheKey,
-            now()->addHours(6),
-            fn () => $this->photos->renderForViewer(
-                storedPath: $thumb ? $photo->thumbnail_path : $photo->path,
-                viewerLabel: $isOwner ? 'Aperçu' : ($viewer->pseudo ?? "#{$viewer->id}"),
-                blur: $blur,
-            )
+        //
+        // The rendered bytes go to a private disk rather than the cache store:
+        // they are raw JPEG, which a text-based cache column cannot hold, and
+        // they carry the viewer's pseudo, so they must not sit in a table that
+        // is shared, dumped and restored alongside ordinary application data.
+        $rendered = $this->photos->cachedRenderForViewer(
+            storedPath: $thumb ? $photo->thumbnail_path : $photo->path,
+            viewerLabel: $isOwner ? 'Aperçu' : ($viewer->pseudo ?? "#{$viewer->id}"),
+            blur: $blur,
+            cacheKey: sprintf(
+                'photo-render:%d:%d:%s:%s',
+                $photo->id,
+                $viewer->id,
+                $blur ? 'blur' : 'clear',
+                $thumb ? 'thumb' : 'full',
+            ),
         );
 
         // Private, no-store: the rendered image is specific to this viewer and

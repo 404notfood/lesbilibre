@@ -14,6 +14,7 @@ class VerificationPhoto extends Model
     protected $fillable = [
         'user_id',
         'path',
+        'challenge_code',
         'status',
         'rejection_reason',
         'verified_at',

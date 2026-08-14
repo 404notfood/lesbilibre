@@ -45,9 +45,10 @@ class PhotoGalleryTest extends TestCase
             ])
             ->assertRedirect();
 
+        // Publiée d'emblée : la modération de galerie se fait a posteriori.
         $this->assertDatabaseHas('photos', [
             'user_id' => $user->id,
-            'is_approved' => false,
+            'is_approved' => true,
             'is_naughty' => false,
             'moderation_status' => 'pending',
         ]);

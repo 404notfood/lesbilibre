@@ -18,6 +18,7 @@ interface VerificationUser {
 interface Verification {
     id: number;
     image_url: string;
+    challenge_code: string | null;
     created_at: string;
     user: VerificationUser | null;
 }
@@ -56,6 +57,12 @@ export default function Index({ verifications }: Props) {
 
             <AdminCard className="mb-5">
                 <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
+                    Vérifiez que le code affiché sous chaque photo correspond bien à
+                    celui écrit sur la feuille tenue par la personne. Un code absent ou
+                    différent signale une photo qui n&apos;a pas été prise pour cette
+                    demande — refusez-la.
+                </p>
+                <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
                     Ces selfies sont des données d&apos;identité sensibles. Ils sont
                     servis uniquement à la modération, jamais publiés, et ne doivent pas
                     être téléchargés ni partagés hors de cette console.
@@ -189,6 +196,35 @@ function VerificationCard({ verification }: { verification: Verification }) {
                     >
                         {new Date(verification.created_at).toLocaleString('fr-FR')}
                     </p>
+                </div>
+
+                <div
+                    className="rounded-lg border px-3 py-2 text-center"
+                    style={{
+                        borderColor: verification.challenge_code
+                            ? 'var(--line)'
+                            : 'var(--desire)',
+                        background: 'var(--bg-soft)',
+                    }}
+                >
+                    <div
+                        className="editorial-caption mb-1"
+                        style={{ color: 'var(--ink-mute)' }}
+                    >
+                        Code attendu
+                    </div>
+                    {verification.challenge_code ? (
+                        <p className="font-mono break-all text-lg font-bold tracking-[0.2em]">
+                            {verification.challenge_code}
+                        </p>
+                    ) : (
+                        <p
+                            className="text-xs font-semibold"
+                            style={{ color: 'var(--desire-deep)' }}
+                        >
+                            Demande antérieure au dispositif
+                        </p>
+                    )}
                 </div>
 
                 {rejecting ? (

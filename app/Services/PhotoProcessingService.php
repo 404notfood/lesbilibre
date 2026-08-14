@@ -13,6 +13,11 @@ class PhotoProcessingService
 
     private const THUMBNAIL_SIZE = 600;
 
+    public const RENDER_CACHE_DIRECTORY = 'photo-cache';
+
+    /** Six hours, matching the lifetime the rendered images had in the cache store. */
+    public const RENDER_CACHE_TTL = 21600;
+
     /**
      * Re-encode uploads as JPEG. This removes EXIF metadata (including GPS)
      * and gives predictable, web-friendly image sizes.
@@ -63,6 +68,39 @@ class PhotoProcessingService
         }
 
         return $path;
+    }
+
+    /**
+     * Render a photo for a viewer, reusing a previously rendered copy.
+     *
+     * Rendered images are kept on the private disk instead of the cache store:
+     * they are raw JPEG bytes, which a utf8mb4 text column rejects outright,
+     * and each one is personalised with the viewer's pseudo, so it belongs on
+     * a disk the application controls rather than in shared cache storage.
+     *
+     * @return string Raw JPEG bytes
+     */
+    public function cachedRenderForViewer(
+        string $storedPath,
+        string $viewerLabel,
+        bool $blur,
+        string $cacheKey,
+    ): string {
+        $disk = Storage::disk('local');
+        $path = self::RENDER_CACHE_DIRECTORY.'/'.hash('sha256', $cacheKey).'.jpg';
+
+        if ($disk->exists($path) && $disk->lastModified($path) > now()->subSeconds(self::RENDER_CACHE_TTL)->getTimestamp()) {
+            $cached = $disk->get($path);
+
+            if ($cached !== null) {
+                return $cached;
+            }
+        }
+
+        $rendered = $this->renderForViewer($storedPath, $viewerLabel, $blur);
+        $disk->put($path, $rendered);
+
+        return $rendered;
     }
 
     /**
@@ -142,10 +180,74 @@ class PhotoProcessingService
     }
 
     /**
+     * Burn the viewer's identity into the pixels themselves.
+     *
+     * This is deliberately not a CSS overlay: an overlay is removed from the
+     * developer tools in seconds and survives no screenshot. Baking the label
+     * into the JPEG means any copy that circulates still names the account it
+     * was served to.
+     */
+    private function stampWatermark(\GdImage $image, string $label): void
+    {
+        $font = $this->watermarkFont();
+
+        if ($font !== null) {
+            $this->stampWithTrueType($image, $label, $font);
+
+            return;
+        }
+
+        $this->stampWithBitmapFont($image, $label);
+    }
+
+    /**
+     * Optional TrueType face, dropped in by an operator. Falls back to GD's
+     * built-in bitmap font when absent so the watermark never silently
+     * disappears just because the file is missing.
+     */
+    private function watermarkFont(): ?string
+    {
+        if (! function_exists('imagettftext')) {
+            return null;
+        }
+
+        $path = resource_path('fonts/watermark.ttf');
+
+        return is_readable($path) ? $path : null;
+    }
+
+    /**
+     * Diagonal repeated watermark, the shape people recognise as "protected".
+     */
+    private function stampWithTrueType(\GdImage $image, string $label, string $font): void
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        $size = max(11, (int) round(min($width, $height) / 22));
+        $white = imagecolorallocatealpha($image, 255, 255, 255, 95);
+        $shadow = imagecolorallocatealpha($image, 0, 0, 0, 105);
+
+        // Diagonal band spacing derived from the text box so rows never collide.
+        $box = imagettfbbox($size, 30, $font, $label);
+        $stepY = max(60, abs($box[1] - $box[7]) * 3);
+        $stepX = max(120, abs($box[2] - $box[0]) + 60);
+
+        for ($y = (int) ($stepY / 2); $y < $height + $stepY; $y += $stepY) {
+            $offset = (($y / $stepY) % 2 === 0) ? 0 : (int) ($stepX / 2);
+
+            for ($x = -$stepX + $offset; $x < $width + $stepX; $x += $stepX) {
+                imagettftext($image, $size, 30, $x + 1, $y + 1, $shadow, $font, $label);
+                imagettftext($image, $size, 30, $x, $y, $white, $font, $label);
+            }
+        }
+    }
+
+    /**
      * Tile the viewer's identity across the image, twice, so cropping one
      * corner out of a screenshot does not remove the trace.
      */
-    private function stampWatermark(\GdImage $image, string $label): void
+    private function stampWithBitmapFont(\GdImage $image, string $label): void
     {
         $width = imagesx($image);
         $height = imagesy($image);

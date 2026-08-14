@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\PhotoStreamController::show
- * @see app/Http/Controllers/PhotoStreamController.php:23
+ * @see app/Http/Controllers/PhotoStreamController.php:22
  * @route '/media/photos/{photo}'
  */
 export const show = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoStreamController::show
- * @see app/Http/Controllers/PhotoStreamController.php:23
+ * @see app/Http/Controllers/PhotoStreamController.php:22
  * @route '/media/photos/{photo}'
  */
 show.url = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ show.url = (args: { photo: number | { id: number } } | [photo: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\PhotoStreamController::show
- * @see app/Http/Controllers/PhotoStreamController.php:23
+ * @see app/Http/Controllers/PhotoStreamController.php:22
  * @route '/media/photos/{photo}'
  */
 show.get = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -58,7 +58,7 @@ show.get = (args: { photo: number | { id: number } } | [photo: number | { id: nu
 })
 /**
 * @see \App\Http\Controllers\PhotoStreamController::show
- * @see app/Http/Controllers/PhotoStreamController.php:23
+ * @see app/Http/Controllers/PhotoStreamController.php:22
  * @route '/media/photos/{photo}'
  */
 show.head = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -68,7 +68,7 @@ show.head = (args: { photo: number | { id: number } } | [photo: number | { id: n
 
     /**
 * @see \App\Http\Controllers\PhotoStreamController::show
- * @see app/Http/Controllers/PhotoStreamController.php:23
+ * @see app/Http/Controllers/PhotoStreamController.php:22
  * @route '/media/photos/{photo}'
  */
     const showForm = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -78,7 +78,7 @@ show.head = (args: { photo: number | { id: number } } | [photo: number | { id: n
 
             /**
 * @see \App\Http\Controllers\PhotoStreamController::show
- * @see app/Http/Controllers/PhotoStreamController.php:23
+ * @see app/Http/Controllers/PhotoStreamController.php:22
  * @route '/media/photos/{photo}'
  */
         showForm.get = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -87,7 +87,7 @@ show.head = (args: { photo: number | { id: number } } | [photo: number | { id: n
         })
             /**
 * @see \App\Http\Controllers\PhotoStreamController::show
- * @see app/Http/Controllers/PhotoStreamController.php:23
+ * @see app/Http/Controllers/PhotoStreamController.php:22
  * @route '/media/photos/{photo}'
  */
         showForm.head = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

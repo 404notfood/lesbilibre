@@ -33,6 +33,17 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
+interface AdminPhoto {
+    id: number;
+    url: string;
+    is_primary: boolean;
+    is_naughty: boolean;
+    moderation_status: 'pending' | 'approved' | 'rejected' | 'quarantined';
+    rejection_reason: string | null;
+    avatar_requested: boolean;
+    created_at: string;
+}
+
 interface User {
     id: number;
     name: string;
@@ -50,7 +61,7 @@ interface User {
     created_at: string;
     /* eslint-disable @typescript-eslint/no-explicit-any */
     profile: any;
-    photos: any[];
+    photos: AdminPhoto[];
     badges: any[];
     subscriptions: any[];
     /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -302,10 +313,72 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                     </AdminCard>
                 </section>
 
+                {/* Galerie */}
+                <section>
+                    <AdminSectionTitle
+                        eyebrow="03 · Contenu"
+                        title="Galerie photo"
+                        right={
+                            user.photos.some((p) => p.is_primary) ? (
+                                <AdminButton
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                        if (
+                                            confirm(
+                                                'Retirer la photo de profil de ce compte ?',
+                                            )
+                                        ) {
+                                            router.post(
+                                                `/admin/users/${user.id}/clear-avatar`,
+                                                {},
+                                                { preserveScroll: true },
+                                            );
+                                        }
+                                    }}
+                                >
+                                    Retirer l&apos;avatar
+                                </AdminButton>
+                            ) : undefined
+                        }
+                    />
+                    <AdminCard>
+                        {user.photos.length === 0 ? (
+                            <p
+                                className="py-8 text-center text-sm"
+                                style={{ color: 'var(--ink-mute)' }}
+                            >
+                                Aucune photo.
+                            </p>
+                        ) : (
+                            <>
+                                <p
+                                    className="mb-4 text-xs"
+                                    style={{ color: 'var(--ink-mute)' }}
+                                >
+                                    Images affichées telles qu&apos;envoyées, sans
+                                    floutage, pour permettre le jugement. Marquer une
+                                    photo comme sensible la floute côté membres et la
+                                    retire de la photo de profil.
+                                </p>
+                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                                    {user.photos.map((photo) => (
+                                        <AdminPhotoTile
+                                            key={photo.id}
+                                            photo={photo}
+                                            userId={user.id}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </AdminCard>
+                </section>
+
                 {/* Informations compte */}
                 <section>
                     <AdminSectionTitle
-                        eyebrow="03 · Métadonnées"
+                        eyebrow="04 · Métadonnées"
                         title="Informations du compte"
                     />
                     <AdminCard>
@@ -520,5 +593,98 @@ function InfoRow({
             </div>
             <div className="text-sm font-semibold">{value}</div>
         </div>
+    );
+}
+
+/* ---------------------------------------------------------------------------
+ * AdminPhotoTile — modération d'une photo depuis la fiche membre
+ * -------------------------------------------------------------------------*/
+function AdminPhotoTile({
+    photo,
+    userId,
+}: {
+    photo: AdminPhoto;
+    userId: number;
+}): JSX.Element {
+    const [busy, setBusy] = useState(false);
+
+    const toggleSensitivity = (): void => {
+        setBusy(true);
+        router.post(
+            `/admin/users/${userId}/photos/${photo.id}/sensitivity`,
+            {},
+            { preserveScroll: true, onFinish: () => setBusy(false) },
+        );
+    };
+
+    const remove = (): void => {
+        const reason = prompt('Motif de la suppression (conservé au journal) :');
+        if (!reason?.trim()) return;
+
+        setBusy(true);
+        router.delete(`/admin/users/${userId}/photos/${photo.id}`, {
+            data: { reason },
+            preserveScroll: true,
+            onFinish: () => setBusy(false),
+        });
+    };
+
+    return (
+        <figure
+            className="group relative overflow-hidden rounded-xl border"
+            style={{
+                borderColor: photo.is_primary ? 'var(--gold)' : 'var(--line)',
+                background: 'var(--bg-soft)',
+            }}
+        >
+            <div className="relative aspect-[4/5]">
+                <img
+                    src={photo.url}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                />
+
+                <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1">
+                    {photo.is_primary && <AdminBadge tone="gold">Profil</AdminBadge>}
+                    {photo.is_naughty && <AdminBadge tone="danger">Sensible</AdminBadge>}
+                    {photo.avatar_requested && (
+                        <AdminBadge tone="warning">Demande avatar</AdminBadge>
+                    )}
+                    {photo.moderation_status === 'rejected' && (
+                        <AdminBadge tone="neutral">Retirée</AdminBadge>
+                    )}
+                </div>
+            </div>
+
+            <figcaption className="flex flex-col gap-2 p-3">
+                <p
+                    className="font-mono text-[10px] uppercase tracking-wider"
+                    style={{ color: 'var(--ink-mute)' }}
+                >
+                    {new Date(photo.created_at).toLocaleDateString('fr-FR')}
+                </p>
+
+                <div className="flex flex-wrap gap-1.5">
+                    <AdminButton
+                        size="sm"
+                        variant={photo.is_naughty ? 'default' : 'wine'}
+                        disabled={busy}
+                        onClick={toggleSensitivity}
+                    >
+                        {photo.is_naughty ? 'Tout public' : 'Sensible'}
+                    </AdminButton>
+                    <AdminButton
+                        size="sm"
+                        variant="danger"
+                        icon={Trash2}
+                        disabled={busy}
+                        onClick={remove}
+                    >
+                        Supprimer
+                    </AdminButton>
+                </div>
+            </figcaption>
+        </figure>
     );
 }
