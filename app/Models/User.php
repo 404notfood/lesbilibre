@@ -1,0 +1,309 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+
+class User extends Authenticatable implements MustVerifyEmail
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'pseudo',
+        'email',
+        'password',
+        'last_login_at',
+        'data_processing_consent',
+        'data_processing_consented_at',
+        'marketing_consent',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'two_factor_confirmed_at' => 'datetime',
+            'is_admin' => 'boolean',
+            'is_verified' => 'boolean',
+            'is_banned' => 'boolean',
+            'is_premium' => 'boolean',
+            'premium_expires_at' => 'datetime',
+            'gems' => 'integer',
+            'last_login_at' => 'datetime',
+            'last_activity_at' => 'datetime',
+            'trust_score' => 'integer',
+            'trust_score_updated_at' => 'datetime',
+            'data_processing_consent' => 'boolean',
+            'data_processing_consented_at' => 'datetime',
+            'marketing_consent' => 'boolean',
+        ];
+    }
+
+    /**
+     * Get the user's profile.
+     */
+    public function profile(): HasOne
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    /**
+     * Get the user's photos.
+     */
+    public function photos(): HasMany
+    {
+        return $this->hasMany(Photo::class);
+    }
+
+    /**
+     * Get the user's verification photos.
+     */
+    public function verificationPhotos(): HasMany
+    {
+        return $this->hasMany(VerificationPhoto::class);
+    }
+
+    /**
+     * Get likes given by the user.
+     */
+    public function likesGiven(): HasMany
+    {
+        return $this->hasMany(Like::class, 'user_id');
+    }
+
+    /**
+     * Get likes received by the user.
+     */
+    public function likesReceived(): HasMany
+    {
+        return $this->hasMany(Like::class, 'liked_user_id');
+    }
+
+    /**
+     * Get messages sent by the user.
+     */
+    public function messagesSent(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    /**
+     * Get reports made by the user.
+     */
+    public function reportsMade(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
+    /**
+     * Get reports against the user.
+     */
+    public function reportsReceived(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reported_user_id');
+    }
+
+    /**
+     * Get matches where this user is user1.
+     */
+    public function matchesAsUser1(): HasMany
+    {
+        return $this->hasMany(UserMatch::class, 'user1_id');
+    }
+
+    /**
+     * Get matches where this user is user2.
+     */
+    public function matchesAsUser2(): HasMany
+    {
+        return $this->hasMany(UserMatch::class, 'user2_id');
+    }
+
+    /**
+     * Get all matches for the user (query builder scope, not a relationship).
+     */
+    public function matches(): Builder
+    {
+        return UserMatch::query()
+            ->where(function ($q) {
+                $q->where('user1_id', $this->id)
+                  ->orWhere('user2_id', $this->id);
+            });
+    }
+
+    /**
+     * Get users blocked by this user.
+     */
+    public function blockedUsers(): HasMany
+    {
+        return $this->hasMany(BlockedUser::class, 'blocker_id');
+    }
+
+    /**
+     * Get users who blocked this user.
+     */
+    public function blockedBy(): HasMany
+    {
+        return $this->hasMany(BlockedUser::class, 'blocked_id');
+    }
+
+    /**
+     * Check if this user has blocked another user.
+     */
+    public function hasBlocked(int $userId): bool
+    {
+        return $this->blockedUsers()->where('blocked_id', $userId)->exists();
+    }
+
+    /**
+     * Check if this user is blocked by another user.
+     */
+    public function isBlockedBy(int $userId): bool
+    {
+        return $this->blockedBy()->where('blocker_id', $userId)->exists();
+    }
+
+    /** Whether two users may see or contact each other. */
+    public function canInteractWith(User $other): bool
+    {
+        return $this->id !== $other->id
+            && ! $this->hasBlocked($other->id)
+            && ! $this->isBlockedBy($other->id)
+            && ! $other->is_banned;
+    }
+
+    /**
+     * Get the user's subscriptions.
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the user's gem transactions.
+     */
+    public function gemTransactions(): HasMany
+    {
+        return $this->hasMany(GemTransaction::class);
+    }
+
+    /**
+     * Get the user's app notifications (custom, not Laravel's Notifiable).
+     */
+    public function appNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * Check if user has active premium subscription.
+     * A null premium_expires_at means unlimited premium.
+     */
+    public function isPremium(): bool
+    {
+        return $this->is_premium &&
+               ($this->premium_expires_at === null || $this->premium_expires_at->isFuture());
+    }
+
+    /**
+     * Add gems to user balance.
+     *
+     * @deprecated Use GemService::addGems() instead for proper reason tracking.
+     */
+    public function addGems(int $amount, string $type, ?string $description = null, ?array $metadata = null): GemTransaction
+    {
+        return DB::transaction(function () use ($amount, $type, $description, $metadata) {
+            $this->increment('gems', $amount);
+            $this->refresh();
+
+            return $this->gemTransactions()->create([
+                'type' => $type,
+                'amount' => $amount,
+                'balance_after' => $this->gems,
+                'description' => $description,
+                'metadata' => $metadata,
+            ]);
+        });
+    }
+
+    /**
+     * Get badges earned by the user.
+     */
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'user_badges')
+            ->withPivot('progress', 'awarded_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get total badge points for the user.
+     */
+    public function getBadgePointsAttribute(): int
+    {
+        return $this->badges()
+            ->whereNotNull('user_badges.awarded_at')
+            ->sum('points');
+    }
+
+    /**
+     * Deduct gems from user balance.
+     *
+     * @deprecated Use GemService::deductGems() instead for proper reason tracking.
+     */
+    public function deductGems(int $amount, string $type, ?string $description = null, ?array $metadata = null): ?GemTransaction
+    {
+        return DB::transaction(function () use ($amount, $type, $description, $metadata) {
+            if ($this->gems < $amount) {
+                return null;
+            }
+
+            $this->decrement('gems', $amount);
+            $this->refresh();
+
+            return $this->gemTransactions()->create([
+                'type' => $type,
+                'amount' => -$amount,
+                'balance_after' => $this->gems,
+                'description' => $description,
+                'metadata' => $metadata,
+            ]);
+        });
+    }
+}

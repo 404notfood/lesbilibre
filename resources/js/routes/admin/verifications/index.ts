@@ -1,0 +1,244 @@
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../wayfinder'
+/**
+* @see \App\Http\Controllers\VerificationController::index
+ * @see app/Http/Controllers/VerificationController.php:61
+ * @route '/admin/verifications'
+ */
+export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index.url(options),
+    method: 'get',
+})
+
+index.definition = {
+    methods: ["get","head"],
+    url: '/admin/verifications',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\VerificationController::index
+ * @see app/Http/Controllers/VerificationController.php:61
+ * @route '/admin/verifications'
+ */
+index.url = (options?: RouteQueryOptions) => {
+    return index.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\VerificationController::index
+ * @see app/Http/Controllers/VerificationController.php:61
+ * @route '/admin/verifications'
+ */
+index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: index.url(options),
+    method: 'get',
+})
+/**
+* @see \App\Http\Controllers\VerificationController::index
+ * @see app/Http/Controllers/VerificationController.php:61
+ * @route '/admin/verifications'
+ */
+index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: index.url(options),
+    method: 'head',
+})
+
+    /**
+* @see \App\Http\Controllers\VerificationController::index
+ * @see app/Http/Controllers/VerificationController.php:61
+ * @route '/admin/verifications'
+ */
+    const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+        action: index.url(options),
+        method: 'get',
+    })
+
+            /**
+* @see \App\Http\Controllers\VerificationController::index
+ * @see app/Http/Controllers/VerificationController.php:61
+ * @route '/admin/verifications'
+ */
+        indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index.url(options),
+            method: 'get',
+        })
+            /**
+* @see \App\Http\Controllers\VerificationController::index
+ * @see app/Http/Controllers/VerificationController.php:61
+ * @route '/admin/verifications'
+ */
+        indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
+            action: index.url({
+                        [options?.mergeQuery ? 'mergeQuery' : 'query']: {
+                            _method: 'HEAD',
+                            ...(options?.query ?? options?.mergeQuery ?? {}),
+                        }
+                    }),
+            method: 'get',
+        })
+    
+    index.form = indexForm
+/**
+* @see \App\Http\Controllers\VerificationController::approve
+ * @see app/Http/Controllers/VerificationController.php:78
+ * @route '/admin/verifications/{verification}/approve'
+ */
+export const approve = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: approve.url(args, options),
+    method: 'post',
+})
+
+approve.definition = {
+    methods: ["post"],
+    url: '/admin/verifications/{verification}/approve',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\VerificationController::approve
+ * @see app/Http/Controllers/VerificationController.php:78
+ * @route '/admin/verifications/{verification}/approve'
+ */
+approve.url = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { verification: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { verification: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    verification: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        verification: typeof args.verification === 'object'
+                ? args.verification.id
+                : args.verification,
+                }
+
+    return approve.definition.url
+            .replace('{verification}', parsedArgs.verification.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\VerificationController::approve
+ * @see app/Http/Controllers/VerificationController.php:78
+ * @route '/admin/verifications/{verification}/approve'
+ */
+approve.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: approve.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\VerificationController::approve
+ * @see app/Http/Controllers/VerificationController.php:78
+ * @route '/admin/verifications/{verification}/approve'
+ */
+    const approveForm = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: approve.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\VerificationController::approve
+ * @see app/Http/Controllers/VerificationController.php:78
+ * @route '/admin/verifications/{verification}/approve'
+ */
+        approveForm.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: approve.url(args, options),
+            method: 'post',
+        })
+    
+    approve.form = approveForm
+/**
+* @see \App\Http\Controllers\VerificationController::reject
+ * @see app/Http/Controllers/VerificationController.php:99
+ * @route '/admin/verifications/{verification}/reject'
+ */
+export const reject = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: reject.url(args, options),
+    method: 'post',
+})
+
+reject.definition = {
+    methods: ["post"],
+    url: '/admin/verifications/{verification}/reject',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \App\Http\Controllers\VerificationController::reject
+ * @see app/Http/Controllers/VerificationController.php:99
+ * @route '/admin/verifications/{verification}/reject'
+ */
+reject.url = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { verification: args }
+    }
+
+            if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+            args = { verification: args.id }
+        }
+    
+    if (Array.isArray(args)) {
+        args = {
+                    verification: args[0],
+                }
+    }
+
+    args = applyUrlDefaults(args)
+
+    const parsedArgs = {
+                        verification: typeof args.verification === 'object'
+                ? args.verification.id
+                : args.verification,
+                }
+
+    return reject.definition.url
+            .replace('{verification}', parsedArgs.verification.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\VerificationController::reject
+ * @see app/Http/Controllers/VerificationController.php:99
+ * @route '/admin/verifications/{verification}/reject'
+ */
+reject.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: reject.url(args, options),
+    method: 'post',
+})
+
+    /**
+* @see \App\Http\Controllers\VerificationController::reject
+ * @see app/Http/Controllers/VerificationController.php:99
+ * @route '/admin/verifications/{verification}/reject'
+ */
+    const rejectForm = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+        action: reject.url(args, options),
+        method: 'post',
+    })
+
+            /**
+* @see \App\Http\Controllers\VerificationController::reject
+ * @see app/Http/Controllers/VerificationController.php:99
+ * @route '/admin/verifications/{verification}/reject'
+ */
+        rejectForm.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
+            action: reject.url(args, options),
+            method: 'post',
+        })
+    
+    reject.form = rejectForm
+const verifications = {
+    index: Object.assign(index, index),
+approve: Object.assign(approve, approve),
+reject: Object.assign(reject, reject),
+}
+
+export default verifications

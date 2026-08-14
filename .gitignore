@@ -1,0 +1,28 @@
+# Environment-specific configuration and secrets
+.env
+.env.*
+!.env.example
+
+# PHP and JavaScript dependencies
+/vendor/
+/node_modules/
+
+# Laravel generated files
+/bootstrap/cache/*.php
+/storage/*.key
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/logs/
+/public/storage
+
+# Front-end build artifacts
+/public/build/
+/public/hot
+
+# Local tooling and test output
+/.phpunit.result.cache
+/coverage/
+/tests-screenshots/
+.DS_Store
+Thumbs.db

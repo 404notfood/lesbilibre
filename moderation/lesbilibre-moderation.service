@@ -1,0 +1,20 @@
+[Unit]
+Description=LesbiLibre local image moderation
+After=network.target
+
+[Service]
+Type=simple
+User=CHANGE_ME_HESTIA_USER
+Group=CHANGE_ME_HESTIA_USER
+WorkingDirectory=/home/CHANGE_ME_HESTIA_USER/web/CHANGE_ME_DOMAIN/public_html/moderation
+EnvironmentFile=/etc/lesbilibre/moderation.env
+ExecStart=/home/CHANGE_ME_HESTIA_USER/web/CHANGE_ME_DOMAIN/public_html/moderation/.venv/bin/python -m uvicorn app:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/home/CHANGE_ME_HESTIA_USER/web/CHANGE_ME_DOMAIN/public_html/moderation/.models
+
+[Install]
+WantedBy=multi-user.target
