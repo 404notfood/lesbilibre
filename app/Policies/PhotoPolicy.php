@@ -40,6 +40,17 @@ class PhotoPolicy
     }
 
     /**
+     * Determine whether the user can access the moderation queue.
+     *
+     * Distinct from update(): this gate guards the queue itself, which has no
+     * single photo to authorize against.
+     */
+    public function moderate(User $user): bool
+    {
+        return $user->is_admin;
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Photo $photo): bool

@@ -118,8 +118,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('photos/{photo}', [\App\Http\Controllers\PhotoController::class, 'destroy'])->name('photos.destroy');
 
     // Admin photo routes
-    Route::middleware('can:update,App\Models\Photo')->group(function () {
-        Route::get('admin/photos/pending', [\App\Http\Controllers\PhotoController::class, 'pending'])->name('admin.photos.pending');
+    Route::get('admin/photos/pending', [\App\Http\Controllers\PhotoController::class, 'pending'])
+        ->middleware('can:moderate,App\Models\Photo')
+        ->name('admin.photos.pending');
+    Route::middleware('can:update,photo')->group(function () {
         Route::post('admin/photos/{photo}/approve', [\App\Http\Controllers\PhotoController::class, 'approve'])->name('admin.photos.approve');
         Route::post('admin/photos/{photo}/reject', [\App\Http\Controllers\PhotoController::class, 'reject'])->name('admin.photos.reject');
     });
