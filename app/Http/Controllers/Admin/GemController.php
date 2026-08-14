@@ -14,6 +14,81 @@ use Inertia\Response;
 class GemController extends Controller
 {
     /**
+     * Display the gem economy overview: circulation, flows and recent movements.
+     */
+    public function index(Request $request): Response
+    {
+        $type = $request->query('type');
+
+        $transactions = GemTransaction::with('user:id,name,pseudo')
+            ->when($type, fn ($query) => $query->where('type', $type))
+            ->when($request->query('search'), function ($query, $search) {
+                $query->whereHas('user', function ($inner) use ($search) {
+                    $inner->where('pseudo', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(30)
+            ->withQueryString()
+            ->through(fn (GemTransaction $transaction) => [
+                'id' => $transaction->id,
+                'type' => $transaction->type,
+                'amount' => $transaction->amount,
+                'balance_after' => $transaction->balance_after,
+                'description' => $transaction->description,
+                'user' => $transaction->user,
+                'created_at' => $transaction->created_at->toISOString(),
+            ]);
+
+        // Positive movements are gems entering circulation, negative ones are
+        // gems being spent. Summing the raw amount would cancel them out.
+        $issued = (int) GemTransaction::where('amount', '>', 0)->sum('amount');
+        $spent = (int) abs(GemTransaction::where('amount', '<', 0)->sum('amount'));
+
+        $stats = [
+            'in_circulation' => (int) User::sum('gems'),
+            'issued' => $issued,
+            'spent' => $spent,
+            'revenue' => round((float) GemTransaction::sum('price'), 2),
+        ];
+
+        $byType = GemTransaction::query()
+            ->selectRaw('type, count(*) as movements, sum(amount) as total')
+            ->groupBy('type')
+            ->orderByRaw('count(*) desc')
+            ->get()
+            ->map(fn ($row) => [
+                'type' => $row->type,
+                'movements' => (int) $row->movements,
+                'total' => (int) $row->total,
+            ]);
+
+        $topHolders = User::query()
+            ->where('gems', '>', 0)
+            ->orderByDesc('gems')
+            ->limit(10)
+            ->get(['id', 'pseudo', 'gems'])
+            ->map(fn (User $user) => [
+                'id' => $user->id,
+                'pseudo' => $user->pseudo,
+                'gems' => $user->gems,
+            ]);
+
+        return Inertia::render('Admin/Gems/Index', [
+            'transactions' => $transactions,
+            'stats' => $stats,
+            'byType' => $byType,
+            'topHolders' => $topHolders,
+            'filters' => [
+                'type' => $type,
+                'search' => $request->query('search'),
+            ],
+        ]);
+    }
+
+    /**
      * Display the gem management interface for a user.
      */
     public function show(User $user): Response
