@@ -162,6 +162,57 @@ class GemEconomyTest extends TestCase
         ]);
     }
 
+    public function test_credit_and_debit_answer_on_the_gems_routes(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $member = User::factory()->create(['gems' => 100]);
+
+        // La fiche postait vers /admin/users/{id}/gems/add, qui n'existe pas :
+        // les boutons ne faisaient rien.
+        $this->actingAs($admin)
+            ->post("/admin/gems/{$member->id}/add", [
+                'amount' => 10,
+                'description' => 'Test route',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($admin)
+            ->post("/admin/gems/{$member->id}/remove", [
+                'amount' => 10,
+                'description' => 'Test route',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(100, $member->fresh()->gems);
+    }
+
+    public function test_crediting_requires_a_description(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+        $member = User::factory()->create(['gems' => 0]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.gems.add', $member), ['amount' => 50])
+            ->assertSessionHasErrors('description');
+
+        $this->assertSame(0, $member->fresh()->gems);
+    }
+
+    public function test_non_admin_cannot_credit_gems(): void
+    {
+        $user = User::factory()->create(['is_admin' => false]);
+        $member = User::factory()->create(['gems' => 0]);
+
+        $this->actingAs($user)
+            ->post(route('admin.gems.add', $member), [
+                'amount' => 1000,
+                'description' => 'Tentative',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame(0, $member->fresh()->gems);
+    }
+
     public function test_removing_more_gems_than_owned_empties_the_balance(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);

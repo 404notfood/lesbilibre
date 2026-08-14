@@ -6,7 +6,7 @@ import AdminLayout, {
     AdminSectionTitle,
 } from '@/layouts/admin-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { Dialog } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Clock, Gem, Minus, Plus } from 'lucide-react';
@@ -50,7 +50,7 @@ export default function Show({
 
     const handleAdd = (e: FormEvent) => {
         e.preventDefault();
-        addForm.post(`/admin/users/${user.id}/gems/add`, {
+        addForm.post(`/admin/gems/${user.id}/add`, {
             onSuccess: () => {
                 addForm.reset();
                 setShowAddDialog(false);
@@ -60,7 +60,7 @@ export default function Show({
 
     const handleRemove = (e: FormEvent) => {
         e.preventDefault();
-        removeForm.post(`/admin/users/${user.id}/gems/remove`, {
+        removeForm.post(`/admin/gems/${user.id}/remove`, {
             onSuccess: () => {
                 removeForm.reset();
                 setShowRemoveDialog(false);
@@ -246,14 +246,14 @@ export default function Show({
 
             {/* Add Gems Dialog */}
             {showAddDialog && (
-                <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)}>
-                    <div className="p-6">
-                        <h2
+                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                    <DialogContent>
+                        <DialogTitle
                             className="font-display mb-4 text-2xl font-medium"
                             style={{ color: 'var(--ink)' }}
                         >
                             Ajouter des gemmes
-                        </h2>
+                        </DialogTitle>
                         <form onSubmit={handleAdd} className="space-y-4">
                             <DialogField
                                 label="Nombre de gemmes"
@@ -301,20 +301,20 @@ export default function Show({
                                 </AdminButton>
                             </div>
                         </form>
-                    </div>
+                    </DialogContent>
                 </Dialog>
             )}
 
             {/* Remove Gems Dialog */}
             {showRemoveDialog && (
-                <Dialog open={showRemoveDialog} onClose={() => setShowRemoveDialog(false)}>
-                    <div className="p-6">
-                        <h2
+                <Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+                    <DialogContent>
+                        <DialogTitle
                             className="font-display mb-4 text-2xl font-medium"
                             style={{ color: 'var(--ink)' }}
                         >
                             Retirer des gemmes
-                        </h2>
+                        </DialogTitle>
                         <form onSubmit={handleRemove} className="space-y-4">
                             <DialogField
                                 label="Nombre de gemmes"
@@ -362,7 +362,7 @@ export default function Show({
                                 </AdminButton>
                             </div>
                         </form>
-                    </div>
+                    </DialogContent>
                 </Dialog>
             )}
         </AdminLayout>
