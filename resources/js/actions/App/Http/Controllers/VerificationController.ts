@@ -79,7 +79,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     create.form = createForm
 /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\VerificationController::index
- * @see app/Http/Controllers/VerificationController.php:70
+ * @see app/Http/Controllers/VerificationController.php:75
  * @route '/admin/verifications'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -149,7 +149,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\VerificationController::index
- * @see app/Http/Controllers/VerificationController.php:70
+ * @see app/Http/Controllers/VerificationController.php:75
  * @route '/admin/verifications'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -158,7 +158,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\VerificationController::index
- * @see app/Http/Controllers/VerificationController.php:70
+ * @see app/Http/Controllers/VerificationController.php:75
  * @route '/admin/verifications'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -167,7 +167,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\VerificationController::index
- * @see app/Http/Controllers/VerificationController.php:70
+ * @see app/Http/Controllers/VerificationController.php:75
  * @route '/admin/verifications'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -177,7 +177,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\VerificationController::index
- * @see app/Http/Controllers/VerificationController.php:70
+ * @see app/Http/Controllers/VerificationController.php:75
  * @route '/admin/verifications'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -187,7 +187,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\VerificationController::index
- * @see app/Http/Controllers/VerificationController.php:70
+ * @see app/Http/Controllers/VerificationController.php:75
  * @route '/admin/verifications'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -196,7 +196,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\VerificationController::index
- * @see app/Http/Controllers/VerificationController.php:70
+ * @see app/Http/Controllers/VerificationController.php:75
  * @route '/admin/verifications'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -212,7 +212,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\VerificationController::image
- * @see app/Http/Controllers/VerificationController.php:93
+ * @see app/Http/Controllers/VerificationController.php:98
  * @route '/admin/verifications/{verification}/image'
  */
 export const image = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -227,7 +227,7 @@ image.definition = {
 
 /**
 * @see \App\Http\Controllers\VerificationController::image
- * @see app/Http/Controllers/VerificationController.php:93
+ * @see app/Http/Controllers/VerificationController.php:98
  * @route '/admin/verifications/{verification}/image'
  */
 image.url = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -260,7 +260,7 @@ image.url = (args: { verification: number | { id: number } } | [verification: nu
 
 /**
 * @see \App\Http\Controllers\VerificationController::image
- * @see app/Http/Controllers/VerificationController.php:93
+ * @see app/Http/Controllers/VerificationController.php:98
  * @route '/admin/verifications/{verification}/image'
  */
 image.get = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -269,7 +269,7 @@ image.get = (args: { verification: number | { id: number } } | [verification: nu
 })
 /**
 * @see \App\Http\Controllers\VerificationController::image
- * @see app/Http/Controllers/VerificationController.php:93
+ * @see app/Http/Controllers/VerificationController.php:98
  * @route '/admin/verifications/{verification}/image'
  */
 image.head = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -279,7 +279,7 @@ image.head = (args: { verification: number | { id: number } } | [verification: n
 
     /**
 * @see \App\Http\Controllers\VerificationController::image
- * @see app/Http/Controllers/VerificationController.php:93
+ * @see app/Http/Controllers/VerificationController.php:98
  * @route '/admin/verifications/{verification}/image'
  */
     const imageForm = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -289,7 +289,7 @@ image.head = (args: { verification: number | { id: number } } | [verification: n
 
             /**
 * @see \App\Http\Controllers\VerificationController::image
- * @see app/Http/Controllers/VerificationController.php:93
+ * @see app/Http/Controllers/VerificationController.php:98
  * @route '/admin/verifications/{verification}/image'
  */
         imageForm.get = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -298,7 +298,7 @@ image.head = (args: { verification: number | { id: number } } | [verification: n
         })
             /**
 * @see \App\Http\Controllers\VerificationController::image
- * @see app/Http/Controllers/VerificationController.php:93
+ * @see app/Http/Controllers/VerificationController.php:98
  * @route '/admin/verifications/{verification}/image'
  */
         imageForm.head = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -314,7 +314,7 @@ image.head = (args: { verification: number | { id: number } } | [verification: n
     image.form = imageForm
 /**
 * @see \App\Http\Controllers\VerificationController::approve
- * @see app/Http/Controllers/VerificationController.php:108
+ * @see app/Http/Controllers/VerificationController.php:113
  * @route '/admin/verifications/{verification}/approve'
  */
 export const approve = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -329,7 +329,7 @@ approve.definition = {
 
 /**
 * @see \App\Http\Controllers\VerificationController::approve
- * @see app/Http/Controllers/VerificationController.php:108
+ * @see app/Http/Controllers/VerificationController.php:113
  * @route '/admin/verifications/{verification}/approve'
  */
 approve.url = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -362,7 +362,7 @@ approve.url = (args: { verification: number | { id: number } } | [verification: 
 
 /**
 * @see \App\Http\Controllers\VerificationController::approve
- * @see app/Http/Controllers/VerificationController.php:108
+ * @see app/Http/Controllers/VerificationController.php:113
  * @route '/admin/verifications/{verification}/approve'
  */
 approve.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -372,7 +372,7 @@ approve.post = (args: { verification: number | { id: number } } | [verification:
 
     /**
 * @see \App\Http\Controllers\VerificationController::approve
- * @see app/Http/Controllers/VerificationController.php:108
+ * @see app/Http/Controllers/VerificationController.php:113
  * @route '/admin/verifications/{verification}/approve'
  */
     const approveForm = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -382,7 +382,7 @@ approve.post = (args: { verification: number | { id: number } } | [verification:
 
             /**
 * @see \App\Http\Controllers\VerificationController::approve
- * @see app/Http/Controllers/VerificationController.php:108
+ * @see app/Http/Controllers/VerificationController.php:113
  * @route '/admin/verifications/{verification}/approve'
  */
         approveForm.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -393,7 +393,7 @@ approve.post = (args: { verification: number | { id: number } } | [verification:
     approve.form = approveForm
 /**
 * @see \App\Http\Controllers\VerificationController::reject
- * @see app/Http/Controllers/VerificationController.php:136
+ * @see app/Http/Controllers/VerificationController.php:141
  * @route '/admin/verifications/{verification}/reject'
  */
 export const reject = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -408,7 +408,7 @@ reject.definition = {
 
 /**
 * @see \App\Http\Controllers\VerificationController::reject
- * @see app/Http/Controllers/VerificationController.php:136
+ * @see app/Http/Controllers/VerificationController.php:141
  * @route '/admin/verifications/{verification}/reject'
  */
 reject.url = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -441,7 +441,7 @@ reject.url = (args: { verification: number | { id: number } } | [verification: n
 
 /**
 * @see \App\Http\Controllers\VerificationController::reject
- * @see app/Http/Controllers/VerificationController.php:136
+ * @see app/Http/Controllers/VerificationController.php:141
  * @route '/admin/verifications/{verification}/reject'
  */
 reject.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -451,7 +451,7 @@ reject.post = (args: { verification: number | { id: number } } | [verification: 
 
     /**
 * @see \App\Http\Controllers\VerificationController::reject
- * @see app/Http/Controllers/VerificationController.php:136
+ * @see app/Http/Controllers/VerificationController.php:141
  * @route '/admin/verifications/{verification}/reject'
  */
     const rejectForm = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -461,7 +461,7 @@ reject.post = (args: { verification: number | { id: number } } | [verification: 
 
             /**
 * @see \App\Http\Controllers\VerificationController::reject
- * @see app/Http/Controllers/VerificationController.php:136
+ * @see app/Http/Controllers/VerificationController.php:141
  * @route '/admin/verifications/{verification}/reject'
  */
         rejectForm.post = (args: { verification: number | { id: number } } | [verification: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

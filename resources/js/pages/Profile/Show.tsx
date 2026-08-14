@@ -327,17 +327,23 @@ export default function Show({ user }: { user: UserData }) {
  * ==========================================================================*/
 function CompletionHint({ user }: { user: UserData }): JSX.Element | null {
     const checks = [
-        { ok: !!user.profile?.bio, label: 'Bio' },
-        { ok: user.photos.length >= 3, label: '3+ photos' },
-        { ok: !!user.profile?.occupation, label: 'Profession' },
+        { ok: !!user.profile?.bio, label: 'Bio', href: '/profile/edit' },
+        { ok: user.photos.length >= 3, label: '3+ photos', href: '/photos' },
+        {
+            ok: !!user.profile?.occupation,
+            label: 'Profession',
+            href: '/profile/edit',
+        },
         {
             ok: !!user.profile?.interests && user.profile.interests.length > 0,
             label: 'Intérêts',
+            href: '/profile/edit',
         },
-        { ok: user.is_verified, label: 'Vérification' },
+        { ok: user.is_verified, label: 'Vérification', href: '/verification' },
     ];
     const done = checks.filter((c) => c.ok).length;
     const pct = Math.round((done / checks.length) * 100);
+    const nextStep = checks.find((c) => !c.ok);
 
     if (pct === 100) return null;
 
@@ -364,26 +370,36 @@ function CompletionHint({ user }: { user: UserData }): JSX.Element | null {
                 </div>
             </div>
             <div className="flex flex-1 flex-wrap items-center gap-2">
-                {checks.map((c) => (
-                    <span
-                        key={c.label}
-                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
-                        style={{
-                            background: c.ok ? 'var(--desire)' : 'transparent',
-                            color: c.ok ? 'white' : 'var(--ink-mute)',
-                            border: c.ok ? 'none' : '1px solid var(--line)',
-                        }}
-                    >
-                        {c.ok ? '✓' : '○'} {c.label}
-                    </span>
-                ))}
+                {checks.map((c) =>
+                    c.ok ? (
+                        <span
+                            key={c.label}
+                            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
+                            style={{ background: 'var(--desire)', color: 'white' }}
+                        >
+                            ✓ {c.label}
+                        </span>
+                    ) : (
+                        <Link
+                            key={c.label}
+                            href={c.href}
+                            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors hover:border-[color:var(--desire)] hover:text-[color:var(--desire-deep)]"
+                            style={{
+                                color: 'var(--ink-mute)',
+                                border: '1px solid var(--line)',
+                            }}
+                        >
+                            ○ {c.label}
+                        </Link>
+                    ),
+                )}
             </div>
             <Link
-                href="/profile/edit"
+                href={nextStep?.href ?? '/profile/edit'}
                 className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
                 style={{ background: 'var(--ink)' }}
             >
-                Compléter
+                {nextStep ? `Compléter : ${nextStep.label}` : 'Compléter'}
             </Link>
         </div>
     );

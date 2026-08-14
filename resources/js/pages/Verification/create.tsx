@@ -9,7 +9,6 @@ import {
     CheckCircle,
     AlertCircle,
     Camera,
-    Video,
     FileImage,
     X,
     Sparkles,
@@ -25,10 +24,7 @@ interface VerificationStatus {
     rejected_reason?: string;
 }
 
-type UploadType = 'photo' | 'video';
-
 export default function Create({ status }: { status: VerificationStatus }): JSX.Element {
-    const [uploadType, setUploadType] = useState<UploadType>('photo');
     const [uploading, setUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -51,8 +47,7 @@ export default function Create({ status }: { status: VerificationStatus }): JSX.
         if (!selectedFile) return;
 
         const formData = new FormData();
-        formData.append(uploadType === 'photo' ? 'photo' : 'video', selectedFile);
-        formData.append('type', uploadType);
+        formData.append('photo', selectedFile);
 
         setUploading(true);
         router.post('/verification', formData, {
@@ -162,91 +157,25 @@ export default function Create({ status }: { status: VerificationStatus }): JSX.
 
                         {!status.has_pending && !status.is_verified && (
                             <>
-                                {/* Choix du type */}
+                                {/* Principe de la vérification */}
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Choisissez votre méthode de vérification</CardTitle>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Camera className="h-5 w-5" />
+                                            Comment ça marche
+                                        </CardTitle>
                                         <CardDescription>
-                                            Sélectionnez photo ou vidéo pour prouver votre identité
+                                            Un selfie suffit : notre équipe le compare à vos
+                                            photos de profil, puis le supprime.
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <button
-                                                onClick={() => setUploadType('photo')}
-                                                className={cn(
-                                                    'relative p-6 rounded-xl border-2 transition-all',
-                                                    'hover:shadow-md cursor-pointer group',
-                                                    uploadType === 'photo'
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-border hover:border-primary/50'
-                                                )}
-                                            >
-                                                <div className="flex flex-col items-center gap-3 text-center">
-                                                    <div
-                                                        className={cn(
-                                                            'w-14 h-14 rounded-full flex items-center justify-center transition-colors',
-                                                            uploadType === 'photo'
-                                                                ? 'bg-primary text-primary-foreground'
-                                                                : 'bg-muted group-hover:bg-primary/10'
-                                                        )}
-                                                    >
-                                                        <Camera className="h-7 w-7" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-lg">Photo selfie</h3>
-                                                        <p className="text-sm text-muted-foreground mt-1">
-                                                            Rapide et simple
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                {uploadType === 'photo' && (
-                                                    <div className="absolute top-4 right-4">
-                                                        <Check className="h-5 w-5 text-primary" />
-                                                    </div>
-                                                )}
-                                            </button>
-
-                                            <button
-                                                onClick={() => setUploadType('video')}
-                                                className={cn(
-                                                    'relative p-6 rounded-xl border-2 transition-all',
-                                                    'hover:shadow-md cursor-pointer group',
-                                                    uploadType === 'video'
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-border hover:border-primary/50'
-                                                )}
-                                            >
-                                                <div className="flex flex-col items-center gap-3 text-center">
-                                                    <div
-                                                        className={cn(
-                                                            'w-14 h-14 rounded-full flex items-center justify-center transition-colors',
-                                                            uploadType === 'video'
-                                                                ? 'bg-primary text-primary-foreground'
-                                                                : 'bg-muted group-hover:bg-primary/10'
-                                                        )}
-                                                    >
-                                                        <Video className="h-7 w-7" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-lg">
-                                                            Vidéo courte
-                                                        </h3>
-                                                        <p className="text-sm text-muted-foreground mt-1">
-                                                            Plus sécurisé (5-10 sec)
-                                                        </p>
-                                                    </div>
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        Recommandé
-                                                    </Badge>
-                                                </div>
-                                                {uploadType === 'video' && (
-                                                    <div className="absolute top-4 right-4">
-                                                        <Check className="h-5 w-5 text-primary" />
-                                                    </div>
-                                                )}
-                                            </button>
-                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Ce selfie n&apos;est jamais publié ni visible par
+                                            les autres membres. Il sert uniquement à confirmer
+                                            que vous êtes bien la personne sur vos photos, et
+                                            vous donne le badge vérifié.
+                                        </p>
                                     </CardContent>
                                 </Card>
 
@@ -254,41 +183,22 @@ export default function Create({ status }: { status: VerificationStatus }): JSX.
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            {uploadType === 'photo' ? (
-                                                <>
-                                                    <FileImage className="h-5 w-5" />
-                                                    Télécharger votre photo
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Video className="h-5 w-5" />
-                                                    Télécharger votre vidéo
-                                                </>
-                                            )}
+                                            <FileImage className="h-5 w-5" />
+                                            Télécharger votre selfie
                                         </CardTitle>
                                         <CardDescription>
-                                            {uploadType === 'photo'
-                                                ? 'Format JPG ou PNG, maximum 10 MB'
-                                                : 'Format MP4 ou MOV, durée 5-10 secondes, maximum 50 MB'}
+                                            Format JPG ou PNG, maximum 5 Mo
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         {previewUrl && selectedFile ? (
                                             <div className="space-y-4">
                                                 <div className="relative mx-auto max-w-md">
-                                                    {uploadType === 'photo' ? (
-                                                        <img
-                                                            src={previewUrl}
-                                                            alt="Preview"
-                                                            className="w-full rounded-xl border-2 border-border"
-                                                        />
-                                                    ) : (
-                                                        <video
-                                                            src={previewUrl}
-                                                            controls
-                                                            className="w-full rounded-xl border-2 border-border"
-                                                        />
-                                                    )}
+                                                    <img
+                                                        src={previewUrl}
+                                                        alt="Aperçu de votre selfie"
+                                                        className="w-full rounded-xl border-2 border-border"
+                                                    />
                                                     <Button
                                                         size="sm"
                                                         variant="destructive"
@@ -334,21 +244,15 @@ export default function Create({ status }: { status: VerificationStatus }): JSX.
                                                 <p className="text-center font-medium">
                                                     {uploading
                                                         ? 'Chargement en cours...'
-                                                        : `Cliquez pour sélectionner ${uploadType === 'photo' ? 'une photo' : 'une vidéo'}`}
+                                                        : 'Cliquez pour sélectionner votre selfie'}
                                                 </p>
                                                 <p className="mt-2 text-center text-sm text-muted-foreground">
-                                                    {uploadType === 'photo'
-                                                        ? 'JPG, PNG (max 10 MB)'
-                                                        : 'MP4, MOV - 5 à 10 secondes (max 50 MB)'}
+                                                    JPG, PNG (max 5 Mo)
                                                 </p>
                                                 <input
                                                     type="file"
                                                     className="hidden"
-                                                    accept={
-                                                        uploadType === 'photo'
-                                                            ? 'image/jpeg,image/png'
-                                                            : 'video/mp4,video/quicktime'
-                                                    }
+                                                    accept="image/jpeg,image/png"
                                                     onChange={handleFileSelect}
                                                     disabled={uploading}
                                                 />

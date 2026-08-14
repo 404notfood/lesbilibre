@@ -25,9 +25,14 @@ class VerificationController extends Controller
         $user = $request->user();
         $latestVerification = $user->verificationPhotos()->latest()->first();
 
-        return Inertia::render('Verification/Create', [
-            'latestVerification' => $latestVerification,
-            'isVerified' => $user->is_verified,
+        return Inertia::render('Verification/create', [
+            'status' => [
+                'is_verified' => (bool) $user->is_verified,
+                'has_pending' => $latestVerification?->status === 'pending',
+                'rejected_reason' => $latestVerification?->status === 'rejected'
+                    ? $latestVerification->rejection_reason
+                    : null,
+            ],
         ]);
     }
 

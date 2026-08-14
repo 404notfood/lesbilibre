@@ -3,6 +3,7 @@ import { PropsWithChildren } from 'react';
 import {
     Activity,
     ArrowRight,
+    BadgeCheck,
     BellRing,
     Compass,
     Crown,
@@ -58,6 +59,7 @@ export default function DatingLayout({
                 name: string;
                 email: string;
                 is_admin?: boolean;
+                is_verified?: boolean;
                 gems?: number;
             };
         };
@@ -104,6 +106,17 @@ export default function DatingLayout({
     ];
 
     const secondaryItems = [
+        // Tant que le compte n'est pas vérifié, on garde un accès direct au
+        // parcours : sans lui, la page /verification est introuvable.
+        ...(auth.user?.is_verified
+            ? []
+            : [
+                  {
+                      icon: BadgeCheck,
+                      label: 'Faire vérifier mon profil',
+                      href: '/verification',
+                  },
+              ]),
         { icon: Shield, label: 'Badges', href: '/badges' },
         { icon: ShoppingBag, label: 'Boutique', href: '/shop' },
     ];

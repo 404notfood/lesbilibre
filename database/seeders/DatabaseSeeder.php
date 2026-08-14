@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             BadgeSeeder::class,
             NaughtyInterestSeeder::class,
             SettingSeeder::class,
+            BillingSeeder::class,
         ]);
     }
 }

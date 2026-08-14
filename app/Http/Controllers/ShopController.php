@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GemPackage;
 use App\Services\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,13 +19,15 @@ class ShopController extends Controller
     {
         $user = $request->user();
 
-        $gemPackages = [
-            ['id' => 1, 'amount' => 100, 'price' => 4.99, 'bonus' => 0, 'popular' => false],
-            ['id' => 2, 'amount' => 250, 'price' => 9.99, 'bonus' => 25, 'popular' => false],
-            ['id' => 3, 'amount' => 500, 'price' => 19.99, 'bonus' => 75, 'popular' => true],
-            ['id' => 4, 'amount' => 1000, 'price' => 34.99, 'bonus' => 200, 'popular' => false],
-            ['id' => 5, 'amount' => 2500, 'price' => 79.99, 'bonus' => 600, 'popular' => false],
-        ];
+        // Gem packages — managed from the admin console (gem_packages table)
+        $gemPackages = GemPackage::offered()->get()->map(fn (GemPackage $package) => [
+            'id' => $package->id,
+            'name' => $package->name,
+            'amount' => $package->amount,
+            'price' => (float) $package->price,
+            'bonus' => $package->bonus,
+            'popular' => $package->is_featured,
+        ])->values();
 
         $gifts = [
             // Romantique
@@ -61,31 +64,21 @@ class ShopController extends Controller
     public function purchaseGems(Request $request): RedirectResponse|\Illuminate\Http\Response
     {
         $validated = $request->validate([
-            'package_id' => 'required|integer|between:1,5',
+            'package_id' => ['required', 'integer', 'exists:gem_packages,id'],
         ]);
 
         $user = $request->user();
 
-        $packages = [
-            1 => ['amount' => 100, 'price' => 4.99, 'bonus' => 0],
-            2 => ['amount' => 250, 'price' => 9.99, 'bonus' => 25],
-            3 => ['amount' => 500, 'price' => 19.99, 'bonus' => 75],
-            4 => ['amount' => 1000, 'price' => 34.99, 'bonus' => 200],
-            5 => ['amount' => 2500, 'price' => 79.99, 'bonus' => 600],
-        ];
+        $package = GemPackage::find($validated['package_id']);
 
-        $package = $packages[$validated['package_id']] ?? null;
-
-        if (! $package) {
-            return back()->with('error', 'Package invalide.');
+        if (! $package || ! $package->is_active) {
+            return back()->with('error', 'Ce pack n’est plus disponible.');
         }
-
-        $totalGems = $package['amount'] + $package['bonus'];
 
         // Create Stripe Checkout session
         $checkoutUrl = $this->stripeService->createGemCheckoutSession(
-            amount: (int) ($package['price'] * 100), // Convert to cents
-            gems: $totalGems,
+            amount: (int) round((float) $package->price * 100), // Convert to cents
+            gems: $package->totalGems(),
             userId: $user->id
         );
 

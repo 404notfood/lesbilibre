@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PremiumPlan;
 use App\Models\Subscription;
 use App\Services\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
@@ -66,33 +67,21 @@ class PremiumController extends Controller
             ],
         ];
 
-        // Premium plans
-        $plans = [
-            [
-                'id' => 1,
-                'duration' => '1 mois',
-                'price' => 19.99,
-                'pricePerMonth' => 19.99,
-                'savings' => 0,
-                'popular' => false,
-            ],
-            [
-                'id' => 2,
-                'duration' => '3 mois',
-                'price' => 44.99,
-                'pricePerMonth' => 14.99,
-                'savings' => 25,
-                'popular' => true,
-            ],
-            [
-                'id' => 3,
-                'duration' => '6 mois',
-                'price' => 69.99,
-                'pricePerMonth' => 11.66,
-                'savings' => 42,
-                'popular' => false,
-            ],
-        ];
+        // Premium plans — managed from the admin console (premium_plans table)
+        $offered = PremiumPlan::offered()->get();
+        $reference = (float) ($offered->sortBy('duration_months')->first()?->pricePerMonth() ?? 0);
+
+        $plans = $offered->map(fn (PremiumPlan $plan) => [
+            'id' => $plan->id,
+            'duration' => $plan->name,
+            'tagline' => $plan->tagline,
+            'price' => (float) $plan->price,
+            'pricePerMonth' => $plan->pricePerMonth(),
+            'savings' => $plan->savingsPercent($reference),
+            'popular' => $plan->is_featured,
+            'perks' => $plan->perks ?? [],
+            'available' => $plan->isPurchasable(),
+        ])->values();
 
         // Social proof
         $testimonials = [
@@ -132,32 +121,29 @@ class PremiumController extends Controller
     public function subscribe(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'plan_id' => 'required|integer|in:1,2,3',
+            'plan_id' => ['required', 'integer', 'exists:premium_plans,id'],
         ]);
 
         $user = $request->user();
 
-        $plans = [
-            1 => ['duration' => '1 mois', 'months' => 1, 'price' => 19.99, 'stripe_price_id' => config('services.stripe.price_1_month')],
-            2 => ['duration' => '3 mois', 'months' => 3, 'price' => 44.99, 'stripe_price_id' => config('services.stripe.price_3_months')],
-            3 => ['duration' => '6 mois', 'months' => 6, 'price' => 69.99, 'stripe_price_id' => config('services.stripe.price_6_months')],
-        ];
+        $plan = PremiumPlan::find($validated['plan_id']);
 
-        $plan = $plans[$validated['plan_id']] ?? null;
-
-        if (! $plan) {
-            return back()->with('error', 'Plan invalide.');
+        if (! $plan || ! $plan->is_active) {
+            return back()->with('error', 'Ce plan n’est plus disponible.');
         }
 
         // Create Stripe Checkout session for subscription
-        if (empty($plan['stripe_price_id'])) {
-            logger()->error('Stripe price ID missing for Premium plan', ['plan_id' => $validated['plan_id']]);
+        if (! $plan->isPurchasable()) {
+            logger()->error('Stripe price ID missing for Premium plan', [
+                'plan_id' => $plan->id,
+                'slug' => $plan->slug,
+            ]);
 
             return back()->with('error', 'Le paiement Premium est temporairement indisponible.');
         }
 
         $checkoutUrl = $this->stripeService->createPremiumSubscription(
-            priceId: $plan['stripe_price_id'],
+            priceId: $plan->stripe_price_id,
             userId: $user->id
         );
 

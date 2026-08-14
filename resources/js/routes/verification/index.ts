@@ -307,7 +307,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     create.form = createForm
 /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -322,7 +322,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -331,7 +331,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -341,7 +341,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -351,7 +351,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\VerificationController::store
- * @see app/Http/Controllers/VerificationController.php:37
+ * @see app/Http/Controllers/VerificationController.php:42
  * @route '/verification'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
