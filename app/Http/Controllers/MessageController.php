@@ -7,6 +7,7 @@ use App\Http\Requests\SendMessageRequest;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Services\AntiAbuseService;
+use App\Services\EntitlementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -33,6 +34,24 @@ class MessageController extends Controller
         }
 
         app(AntiAbuseService::class)->assertMessageAllowed($user, $request->string('content')->toString());
+
+        // Quota de premiers messages : ne s'applique qu'à l'ouverture d'une
+        // conversation. Répondre à quelqu'un n'est jamais rationné, sinon un
+        // compte gratuit pourrait se retrouver incapable de répondre.
+        $isOpeningConversation = ! $conversation->messages()
+            ->where('sender_id', '!=', $user->id)
+            ->exists();
+
+        if ($isOpeningConversation) {
+            $remaining = app(EntitlementService::class)->firstMessagesRemaining($user);
+
+            if ($remaining !== null && $remaining <= 0) {
+                return redirect()->back()->with(
+                    'error',
+                    'Vous avez atteint votre limite de nouvelles conversations pour aujourd’hui. Passez Premium pour en ouvrir davantage.'
+                );
+            }
+        }
 
         // Create the message
         $message = Message::create([

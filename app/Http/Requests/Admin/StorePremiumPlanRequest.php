@@ -39,12 +39,37 @@ class StorePremiumPlanRequest extends FormRequest
             'stripe_price_id' => ['nullable', 'string', 'max:120'],
             'perks' => ['nullable', 'array', 'max:12'],
             'perks.*' => ['required', 'string', 'max:120'],
+            // Seules les clés du catalogue sont acceptées : une clé inventée
+            // ne serait jamais lue par EntitlementService et donnerait
+            // l'illusion d'un avantage accordé.
+            'entitlements' => ['nullable', 'array'],
+            ...$this->entitlementRules(),
             'gems_on_signup' => ['required', 'integer', 'min:0', 'max:100000'],
             'gems_per_month' => ['required', 'integer', 'min:0', 'max:100000'],
             'is_active' => ['boolean'],
             'is_featured' => ['boolean'],
             'display_order' => ['required', 'integer', 'min:0', 'max:999'],
         ];
+    }
+
+    /**
+     * One rule per catalogued entitlement: numbers for quotas, booleans for
+     * the rest. Anything outside the catalogue is silently dropped by
+     * validated(), so a tampered payload cannot grant an unknown perk.
+     *
+     * @return array<string, array<int, string>>
+     */
+    private function entitlementRules(): array
+    {
+        $rules = [];
+
+        foreach (config('entitlements.catalog') as $entitlement) {
+            $rules["entitlements.{$entitlement['key']}"] = ($entitlement['quota'] ?? false)
+                ? ['nullable', 'integer', 'min:0', 'max:100000']
+                : ['nullable', 'boolean'];
+        }
+
+        return $rules;
     }
 
     /**

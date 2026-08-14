@@ -8,6 +8,17 @@ import { Head, router } from '@inertiajs/react';
 import { AlertTriangle, Gem, Plus, Sparkles, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 
+interface EntitlementDefinition {
+    key: string;
+    label: string;
+    hint: string;
+    quota: boolean;
+    unit?: string;
+    default?: number;
+}
+
+type Entitlements = Record<string, boolean | number | null>;
+
 interface Plan {
     id: number;
     slug: string;
@@ -18,6 +29,7 @@ interface Plan {
     price_per_month: number;
     stripe_price_id: string | null;
     perks: string[];
+    entitlements: Entitlements;
     gems_on_signup: number;
     gems_per_month: number;
     is_active: boolean;
@@ -53,6 +65,7 @@ const emptyPlan: PlanDraft = {
     price: 19.99,
     stripe_price_id: '',
     perks: [],
+    entitlements: {},
     gems_on_signup: 0,
     gems_per_month: 0,
     is_active: true,
@@ -73,9 +86,13 @@ const emptyPackage: PackageDraft = {
 export default function Index({
     plans,
     packages,
+    entitlementCatalog,
+    freeLimits,
 }: {
     plans: Plan[];
     packages: Package[];
+    entitlementCatalog: EntitlementDefinition[];
+    freeLimits: Record<string, boolean | number>;
 }) {
     const [editingPlan, setEditingPlan] = useState<Plan | 'new' | null>(null);
     const [editingPackage, setEditingPackage] = useState<Package | 'new' | null>(null);
@@ -120,6 +137,48 @@ export default function Index({
                     </div>
                 </div>
             )}
+
+            {/* ---- Rappel du palier gratuit --------------------------- */}
+            <AdminCard className="mb-6">
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
+                    <div>
+                        <div
+                            className="editorial-caption"
+                            style={{ color: 'var(--ink-mute)' }}
+                        >
+                            Compte gratuit
+                        </div>
+                        <p className="mt-1 text-xs" style={{ color: 'var(--ink-mute)' }}>
+                            Valeurs de référence, définies dans{' '}
+                            <code>config/entitlements.php</code>
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap gap-6">
+                        <div>
+                            <div className="font-display text-2xl font-medium">
+                                {String(freeLimits.likes_per_day ?? '—')}
+                            </div>
+                            <div
+                                className="text-[11px]"
+                                style={{ color: 'var(--ink-mute)' }}
+                            >
+                                likes / jour
+                            </div>
+                        </div>
+                        <div>
+                            <div className="font-display text-2xl font-medium">
+                                {String(freeLimits.first_messages_per_day ?? '—')}
+                            </div>
+                            <div
+                                className="text-[11px]"
+                                style={{ color: 'var(--ink-mute)' }}
+                            >
+                                nouvelles conversations / jour
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </AdminCard>
 
             {/* ---- Plans premium ------------------------------------- */}
             <section className="mb-8">
@@ -273,6 +332,7 @@ export default function Index({
             {editingPlan && (
                 <PlanDialog
                     plan={editingPlan === 'new' ? null : editingPlan}
+                    catalog={entitlementCatalog}
                     onClose={() => setEditingPlan(null)}
                 />
             )}
@@ -451,7 +511,15 @@ const inputStyle = {
 
 const inputClass = 'w-full rounded-lg border px-3 py-2 text-sm';
 
-function PlanDialog({ plan, onClose }: { plan: Plan | null; onClose: () => void }) {
+function PlanDialog({
+    plan,
+    catalog,
+    onClose,
+}: {
+    plan: Plan | null;
+    catalog: EntitlementDefinition[];
+    onClose: () => void;
+}) {
     const [form, setForm] = useState<PlanDraft>(
         plan
             ? {
@@ -462,6 +530,7 @@ function PlanDialog({ plan, onClose }: { plan: Plan | null; onClose: () => void 
                   price: plan.price,
                   stripe_price_id: plan.stripe_price_id ?? '',
                   perks: plan.perks,
+                  entitlements: plan.entitlements ?? {},
                   gems_on_signup: plan.gems_on_signup,
                   gems_per_month: plan.gems_per_month,
                   is_active: plan.is_active,
@@ -627,9 +696,106 @@ function PlanDialog({ plan, onClose }: { plan: Plan | null; onClose: () => void 
                     </Field>
                 </div>
 
-                {/* Avantages */}
+                {/* Droits réellement appliqués */}
                 <div className="flex flex-col gap-2">
-                    <span className="text-xs font-semibold">Avantages inclus</span>
+                    <span className="text-xs font-semibold">
+                        Ce que le plan débloque
+                    </span>
+                    <p className="text-[11px]" style={{ color: 'var(--ink-mute)' }}>
+                        Ces réglages sont appliqués par l’application, pas seulement
+                        affichés. Décoché = la membre retombe sur la limite du compte
+                        gratuit.
+                    </p>
+
+                    <div
+                        className="flex flex-col divide-y rounded-lg border"
+                        style={{ borderColor: 'var(--line)' }}
+                    >
+                        {catalog.map((item) => {
+                            const value = form.entitlements[item.key];
+
+                            return (
+                                <div
+                                    key={item.key}
+                                    className="flex flex-wrap items-center gap-3 p-3"
+                                    style={{ borderColor: 'var(--line)' }}
+                                >
+                                    <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2">
+                                        <input
+                                            type="checkbox"
+                                            className="mt-0.5"
+                                            checked={
+                                                item.quota
+                                                    ? value !== undefined &&
+                                                      value !== null
+                                                    : value === true
+                                            }
+                                            onChange={(e) => {
+                                                const next = { ...form.entitlements };
+                                                if (!e.target.checked) {
+                                                    delete next[item.key];
+                                                } else {
+                                                    next[item.key] = item.quota
+                                                        ? (item.default ?? 0)
+                                                        : true;
+                                                }
+                                                set('entitlements', next);
+                                            }}
+                                        />
+                                        <span className="min-w-0">
+                                            <span className="block text-sm font-medium">
+                                                {item.label}
+                                            </span>
+                                            <span
+                                                className="block text-[11px]"
+                                                style={{ color: 'var(--ink-mute)' }}
+                                            >
+                                                {item.hint}
+                                            </span>
+                                        </span>
+                                    </label>
+
+                                    {item.quota &&
+                                        value !== undefined &&
+                                        value !== null && (
+                                            <span className="flex shrink-0 items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={Number(value)}
+                                                    onChange={(e) =>
+                                                        set('entitlements', {
+                                                            ...form.entitlements,
+                                                            [item.key]: Number(
+                                                                e.target.value,
+                                                            ),
+                                                        })
+                                                    }
+                                                    className="w-24 rounded-lg border px-2 py-1 text-sm"
+                                                    style={inputStyle}
+                                                />
+                                                <span
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--ink-mute)' }}
+                                                >
+                                                    {item.unit}
+                                                </span>
+                                            </span>
+                                        )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Arguments commerciaux affichés sur la page premium */}
+                <div className="flex flex-col gap-2">
+                    <span className="text-xs font-semibold">
+                        Arguments affichés sur la page premium
+                    </span>
+                    <p className="text-[11px]" style={{ color: 'var(--ink-mute)' }}>
+                        Texte libre, purement commercial : n’accorde aucun droit.
+                    </p>
                     {form.perks.length > 0 && (
                         <ul className="flex flex-col gap-1.5">
                             {form.perks.map((perk, i) => (

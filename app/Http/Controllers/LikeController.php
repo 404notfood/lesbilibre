@@ -7,6 +7,7 @@ use App\Events\MatchCreated;
 use App\Models\Like;
 use App\Models\User;
 use App\Models\UserMatch;
+use App\Services\EntitlementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -39,6 +40,17 @@ class LikeController extends Controller
 
         if ($existingLike) {
             return redirect()->back()->with('info', 'Vous avez déjà aimé ce profil.');
+        }
+
+        // Quota quotidien : vérifié après le doublon pour qu'un re-like ne
+        // consomme pas de crédit.
+        $remaining = app(EntitlementService::class)->likesRemaining($currentUser);
+
+        if ($remaining !== null && $remaining <= 0) {
+            return redirect()->back()->with(
+                'error',
+                'Vous avez atteint votre limite de likes pour aujourd’hui. Passez Premium pour liker sans compter.'
+            );
         }
 
         // Create the like

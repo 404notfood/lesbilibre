@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes'
  */
 const received48c63a6c1cf2ccf66254d35c4c555b2d = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ received48c63a6c1cf2ccf66254d35c4c555b2d.definition = {
 
 /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes'
  */
 received48c63a6c1cf2ccf66254d35c4c555b2d.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ received48c63a6c1cf2ccf66254d35c4c555b2d.url = (options?: RouteQueryOptions) => 
 
 /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes'
  */
 received48c63a6c1cf2ccf66254d35c4c555b2d.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ received48c63a6c1cf2ccf66254d35c4c555b2d.get = (options?: RouteQueryOptions): Ro
 })
 /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes'
  */
 received48c63a6c1cf2ccf66254d35c4c555b2d.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ received48c63a6c1cf2ccf66254d35c4c555b2d.head = (options?: RouteQueryOptions): R
 
     /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes'
  */
     const received48c63a6c1cf2ccf66254d35c4c555b2dForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ received48c63a6c1cf2ccf66254d35c4c555b2d.head = (options?: RouteQueryOptions): R
 
             /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes'
  */
         received48c63a6c1cf2ccf66254d35c4c555b2dForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ received48c63a6c1cf2ccf66254d35c4c555b2d.head = (options?: RouteQueryOptions): R
         })
             /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes'
  */
         received48c63a6c1cf2ccf66254d35c4c555b2dForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ received48c63a6c1cf2ccf66254d35c4c555b2d.head = (options?: RouteQueryOptions): R
     received48c63a6c1cf2ccf66254d35c4c555b2d.form = received48c63a6c1cf2ccf66254d35c4c555b2dForm
     /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes/received'
  */
 const received00b082b1ac797ec196f59dcca38aacac = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ received00b082b1ac797ec196f59dcca38aacac.definition = {
 
 /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes/received'
  */
 received00b082b1ac797ec196f59dcca38aacac.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ received00b082b1ac797ec196f59dcca38aacac.url = (options?: RouteQueryOptions) => 
 
 /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes/received'
  */
 received00b082b1ac797ec196f59dcca38aacac.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ received00b082b1ac797ec196f59dcca38aacac.get = (options?: RouteQueryOptions): Ro
 })
 /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes/received'
  */
 received00b082b1ac797ec196f59dcca38aacac.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ received00b082b1ac797ec196f59dcca38aacac.head = (options?: RouteQueryOptions): R
 
     /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes/received'
  */
     const received00b082b1ac797ec196f59dcca38aacacForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ received00b082b1ac797ec196f59dcca38aacac.head = (options?: RouteQueryOptions): R
 
             /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes/received'
  */
         received00b082b1ac797ec196f59dcca38aacacForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ received00b082b1ac797ec196f59dcca38aacac.head = (options?: RouteQueryOptions): R
         })
             /**
 * @see \App\Http\Controllers\LikeController::received
- * @see app/Http/Controllers/LikeController.php:109
+ * @see app/Http/Controllers/LikeController.php:121
  * @route '/likes/received'
  */
         received00b082b1ac797ec196f59dcca38aacacForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -163,7 +163,7 @@ export const received = {
 
 /**
 * @see \App\Http\Controllers\LikeController::store
- * @see app/Http/Controllers/LikeController.php:20
+ * @see app/Http/Controllers/LikeController.php:21
  * @route '/likes/{userId}'
  */
 export const store = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -178,7 +178,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\LikeController::store
- * @see app/Http/Controllers/LikeController.php:20
+ * @see app/Http/Controllers/LikeController.php:21
  * @route '/likes/{userId}'
  */
 store.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -206,7 +206,7 @@ store.url = (args: { userId: string | number } | [userId: string | number ] | st
 
 /**
 * @see \App\Http\Controllers\LikeController::store
- * @see app/Http/Controllers/LikeController.php:20
+ * @see app/Http/Controllers/LikeController.php:21
  * @route '/likes/{userId}'
  */
 store.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -216,7 +216,7 @@ store.post = (args: { userId: string | number } | [userId: string | number ] | s
 
     /**
 * @see \App\Http\Controllers\LikeController::store
- * @see app/Http/Controllers/LikeController.php:20
+ * @see app/Http/Controllers/LikeController.php:21
  * @route '/likes/{userId}'
  */
     const storeForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -226,7 +226,7 @@ store.post = (args: { userId: string | number } | [userId: string | number ] | s
 
             /**
 * @see \App\Http\Controllers\LikeController::store
- * @see app/Http/Controllers/LikeController.php:20
+ * @see app/Http/Controllers/LikeController.php:21
  * @route '/likes/{userId}'
  */
         storeForm.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -237,7 +237,7 @@ store.post = (args: { userId: string | number } | [userId: string | number ] | s
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:89
+ * @see app/Http/Controllers/LikeController.php:101
  * @route '/likes/{userId}'
  */
 export const destroy = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -252,7 +252,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:89
+ * @see app/Http/Controllers/LikeController.php:101
  * @route '/likes/{userId}'
  */
 destroy.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -280,7 +280,7 @@ destroy.url = (args: { userId: string | number } | [userId: string | number ] | 
 
 /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:89
+ * @see app/Http/Controllers/LikeController.php:101
  * @route '/likes/{userId}'
  */
 destroy.delete = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -290,7 +290,7 @@ destroy.delete = (args: { userId: string | number } | [userId: string | number ]
 
     /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:89
+ * @see app/Http/Controllers/LikeController.php:101
  * @route '/likes/{userId}'
  */
     const destroyForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -305,7 +305,7 @@ destroy.delete = (args: { userId: string | number } | [userId: string | number ]
 
             /**
 * @see \App\Http\Controllers\LikeController::destroy
- * @see app/Http/Controllers/LikeController.php:89
+ * @see app/Http/Controllers/LikeController.php:101
  * @route '/likes/{userId}'
  */
         destroyForm.delete = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

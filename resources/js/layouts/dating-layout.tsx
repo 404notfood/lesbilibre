@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
 import {
     Activity,
@@ -11,6 +11,7 @@ import {
     HelpCircle,
     Images,
     Lock,
+    LogOut,
     MessageCircle,
     Shield,
     ShoppingBag,
@@ -67,6 +68,14 @@ export default function DatingLayout({
 
     // Gemmes : on prend l'override prop si fourni, sinon le vrai solde user.
     const gemsBalance = gems ?? auth.user?.gems ?? 0;
+
+    // En PWA, la fenêtre reste ouverte après la déconnexion : sans purge du
+    // cache Inertia les pages de l'ancienne session restent affichables via
+    // le bouton retour.
+    const handleLogout = (): void => {
+        router.flushAll();
+        navigator.serviceWorker?.controller?.postMessage({ type: 'LOGOUT' });
+    };
 
     const { permission, isSubscribed, subscribe } = usePushNotifications();
 
@@ -305,10 +314,13 @@ export default function DatingLayout({
                     <div className="flex-1" />
 
                     {/* Footer profile mini */}
-                    <Link
-                        href="/profile/edit"
+                    <div
                         className="mt-3 flex items-center gap-2.5 border-t pt-3.5"
                         style={{ borderColor: 'var(--line-soft)' }}
+                    >
+                    <Link
+                        href="/profile/edit"
+                        className="flex min-w-0 flex-1 items-center gap-2.5"
                     >
                         <Avatar className="h-[34px] w-[34px]">
                             <AvatarImage src="/images/logo.png" />
@@ -342,6 +354,19 @@ export default function DatingLayout({
                             </div>
                         </div>
                     </Link>
+                    <Link
+                        href="/logout"
+                        method="post"
+                        as="button"
+                        onClick={handleLogout}
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-foreground/50 transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
+                        title="Se déconnecter"
+                        aria-label="Se déconnecter"
+                        data-test="logout-button"
+                    >
+                        <LogOut className="h-4 w-4" />
+                    </Link>
+                    </div>
                 </aside>
 
                 {/* ============================================================
@@ -378,6 +403,18 @@ export default function DatingLayout({
                                     </button>
                                 )}
                             <NotificationBell userId={auth.user.id} />
+                            <Link
+                                href="/logout"
+                                method="post"
+                                as="button"
+                                onClick={handleLogout}
+                                className="grid h-9 w-9 place-items-center rounded-full border bg-card text-foreground/65 transition-colors hover:text-foreground lg:hidden"
+                                style={{ borderColor: 'var(--line)' }}
+                                title="Se déconnecter"
+                                aria-label="Se déconnecter"
+                            >
+                                <LogOut className="h-4 w-4" />
+                            </Link>
                         </div>
                     </header>
 

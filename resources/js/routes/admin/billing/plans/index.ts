@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:70
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:73
  * @route '/admin/billing/plans'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:70
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:73
  * @route '/admin/billing/plans'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:70
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:73
  * @route '/admin/billing/plans'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:70
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:73
  * @route '/admin/billing/plans'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:70
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:73
  * @route '/admin/billing/plans'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -56,7 +56,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:80
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:83
  * @route '/admin/billing/plans/{plan}'
  */
 export const update = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -71,7 +71,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:80
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:83
  * @route '/admin/billing/plans/{plan}'
  */
 update.url = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -104,7 +104,7 @@ update.url = (args: { plan: number | { id: number } } | [plan: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:80
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:83
  * @route '/admin/billing/plans/{plan}'
  */
 update.put = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -114,7 +114,7 @@ update.put = (args: { plan: number | { id: number } } | [plan: number | { id: nu
 
     /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:80
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:83
  * @route '/admin/billing/plans/{plan}'
  */
     const updateForm = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -129,7 +129,7 @@ update.put = (args: { plan: number | { id: number } } | [plan: number | { id: nu
 
             /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:80
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:83
  * @route '/admin/billing/plans/{plan}'
  */
         updateForm.put = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -145,7 +145,7 @@ update.put = (args: { plan: number | { id: number } } | [plan: number | { id: nu
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:90
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:93
  * @route '/admin/billing/plans/{plan}'
  */
 export const destroy = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -160,7 +160,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:90
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:93
  * @route '/admin/billing/plans/{plan}'
  */
 destroy.url = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -193,7 +193,7 @@ destroy.url = (args: { plan: number | { id: number } } | [plan: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:90
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:93
  * @route '/admin/billing/plans/{plan}'
  */
 destroy.delete = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -203,7 +203,7 @@ destroy.delete = (args: { plan: number | { id: number } } | [plan: number | { id
 
     /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:90
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:93
  * @route '/admin/billing/plans/{plan}'
  */
     const destroyForm = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -218,7 +218,7 @@ destroy.delete = (args: { plan: number | { id: number } } | [plan: number | { id
 
             /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:90
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:93
  * @route '/admin/billing/plans/{plan}'
  */
         destroyForm.delete = (args: { plan: number | { id: number } } | [plan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

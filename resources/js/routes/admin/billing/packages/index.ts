@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:111
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:114
  * @route '/admin/billing/packages'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:111
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:114
  * @route '/admin/billing/packages'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:111
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:114
  * @route '/admin/billing/packages'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:111
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:114
  * @route '/admin/billing/packages'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::store
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:111
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:114
  * @route '/admin/billing/packages'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -56,7 +56,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:121
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:124
  * @route '/admin/billing/packages/{package}'
  */
 export const update = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -71,7 +71,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:121
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:124
  * @route '/admin/billing/packages/{package}'
  */
 update.url = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -104,7 +104,7 @@ update.url = (args: { package: number | { id: number } } | [packageParam: number
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:121
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:124
  * @route '/admin/billing/packages/{package}'
  */
 update.put = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -114,7 +114,7 @@ update.put = (args: { package: number | { id: number } } | [packageParam: number
 
     /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:121
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:124
  * @route '/admin/billing/packages/{package}'
  */
     const updateForm = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -129,7 +129,7 @@ update.put = (args: { package: number | { id: number } } | [packageParam: number
 
             /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::update
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:121
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:124
  * @route '/admin/billing/packages/{package}'
  */
         updateForm.put = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -145,7 +145,7 @@ update.put = (args: { package: number | { id: number } } | [packageParam: number
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:131
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:134
  * @route '/admin/billing/packages/{package}'
  */
 export const destroy = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -160,7 +160,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:131
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:134
  * @route '/admin/billing/packages/{package}'
  */
 destroy.url = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -193,7 +193,7 @@ destroy.url = (args: { package: number | { id: number } } | [packageParam: numbe
 
 /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:131
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:134
  * @route '/admin/billing/packages/{package}'
  */
 destroy.delete = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -203,7 +203,7 @@ destroy.delete = (args: { package: number | { id: number } } | [packageParam: nu
 
     /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:131
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:134
  * @route '/admin/billing/packages/{package}'
  */
     const destroyForm = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -218,7 +218,7 @@ destroy.delete = (args: { package: number | { id: number } } | [packageParam: nu
 
             /**
 * @see \App\Http\Controllers\Admin\BillingCatalogController::destroy
- * @see app/Http/Controllers/Admin/BillingCatalogController.php:131
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:134
  * @route '/admin/billing/packages/{package}'
  */
         destroyForm.delete = (args: { package: number | { id: number } } | [packageParam: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

@@ -194,6 +194,92 @@ class BillingCatalogTest extends TestCase
             ->assertSessionHasErrors('price');
     }
 
+    public function test_catalogue_exposes_the_entitlement_definitions(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.billing.index'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('entitlementCatalog')
+                ->has('freeLimits.likes_per_day')
+                ->has('freeLimits.first_messages_per_day')
+            );
+    }
+
+    public function test_admin_can_grant_entitlements_on_a_plan(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.billing.plans.store'), [
+                'slug' => 'gold',
+                'name' => 'Gold',
+                'duration_months' => 1,
+                'price' => 29.99,
+                'gems_on_signup' => 0,
+                'gems_per_month' => 0,
+                'display_order' => 1,
+                'entitlements' => [
+                    'unlimited_likes' => true,
+                    'first_messages_per_day' => 50,
+                    'see_who_liked' => true,
+                ],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $plan = PremiumPlan::where('slug', 'gold')->first();
+
+        $this->assertTrue($plan->entitlements['unlimited_likes']);
+        $this->assertSame(50, $plan->entitlements['first_messages_per_day']);
+    }
+
+    public function test_unknown_entitlement_keys_are_discarded(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.billing.plans.store'), [
+                'slug' => 'forged',
+                'name' => 'Forgé',
+                'duration_months' => 1,
+                'price' => 9.99,
+                'gems_on_signup' => 0,
+                'gems_per_month' => 0,
+                'display_order' => 1,
+                'entitlements' => [
+                    'see_who_liked' => true,
+                    'become_admin' => true,
+                ],
+            ])
+            ->assertRedirect();
+
+        $plan = PremiumPlan::where('slug', 'forged')->first();
+
+        $this->assertArrayHasKey('see_who_liked', $plan->entitlements);
+        $this->assertArrayNotHasKey('become_admin', $plan->entitlements);
+    }
+
+    public function test_a_quota_entitlement_rejects_a_non_numeric_value(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.billing.plans.store'), [
+                'slug' => 'broken',
+                'name' => 'Cassé',
+                'duration_months' => 1,
+                'price' => 9.99,
+                'gems_on_signup' => 0,
+                'gems_per_month' => 0,
+                'display_order' => 1,
+                'entitlements' => ['likes_per_day' => 'beaucoup'],
+            ])
+            ->assertSessionHasErrors('entitlements.likes_per_day');
+    }
+
     public function test_non_admin_cannot_create_a_plan(): void
     {
         $user = User::factory()->create(['is_admin' => false]);

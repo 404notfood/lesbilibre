@@ -32,6 +32,7 @@ class BillingCatalogController extends Controller
                 'price_per_month' => $plan->pricePerMonth(),
                 'stripe_price_id' => $plan->stripe_price_id,
                 'perks' => $plan->perks ?? [],
+                'entitlements' => $plan->entitlements ?? [],
                 'gems_on_signup' => $plan->gems_on_signup,
                 'gems_per_month' => $plan->gems_per_month,
                 'is_active' => $plan->is_active,
@@ -61,6 +62,8 @@ class BillingCatalogController extends Controller
         return Inertia::render('Admin/Billing/Index', [
             'plans' => $plans,
             'packages' => $packages,
+            'entitlementCatalog' => config('entitlements.catalog'),
+            'freeLimits' => config('entitlements.free'),
         ]);
     }
 

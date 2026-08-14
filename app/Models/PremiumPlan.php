@@ -19,6 +19,7 @@ class PremiumPlan extends Model
         'price',
         'stripe_price_id',
         'perks',
+        'entitlements',
         'gems_on_signup',
         'gems_per_month',
         'is_active',
@@ -33,6 +34,7 @@ class PremiumPlan extends Model
     {
         return [
             'perks' => 'array',
+            'entitlements' => 'array',
             'price' => 'decimal:2',
             'duration_months' => 'integer',
             'gems_on_signup' => 'integer',
