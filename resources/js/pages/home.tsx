@@ -85,6 +85,31 @@ function NoiseOverlay(): JSX.Element {
     );
 }
 
+function BrandLockup({ size }: { size: 'header' | 'footer' }): JSX.Element {
+    const isFooter = size === 'footer';
+
+    return (
+        <span className="flex items-center gap-2.5">
+            <img
+                src="/images/branding/icon-192.png"
+                width="192"
+                height="192"
+                alt=""
+                aria-hidden="true"
+                className={isFooter ? 'size-10 shrink-0' : 'size-8 shrink-0'}
+            />
+            <span
+                className={`font-display leading-none tracking-[-0.06em] ${
+                    isFooter ? 'text-[2.15rem]' : 'text-[1.7rem]'
+                }`}
+            >
+                <span className="font-medium text-foreground">Lesbi</span>
+                <span className="ml-1.5 font-medium text-primary italic">Libre</span>
+            </span>
+        </span>
+    );
+}
+
 /* ============================================================================
  * Site header — minimal, editorial, anchored
  * ==========================================================================*/
@@ -106,14 +131,8 @@ function SiteHeader(): JSX.Element {
             }`}
         >
             <div className="container-editorial flex h-20 items-center justify-between">
-                <Link href="/" className="group flex items-baseline gap-2">
-                    <span className="font-display text-2xl font-light italic tracking-tight">
-                        Lesbi
-                    </span>
-                    <span className="font-display text-2xl font-light tracking-tight text-primary">
-                        Libre
-                    </span>
-                    <span className="ml-2 hidden h-1.5 w-1.5 rounded-full bg-primary sm:inline-block" />
+                <Link href="/" aria-label="LesbiLibre — accueil" className="group">
+                    <BrandLockup size="header" />
                 </Link>
 
                 <nav className="hidden items-center gap-10 md:flex">
@@ -864,11 +883,8 @@ function SiteFooter(): JSX.Element {
             <div className="container-editorial">
                 <div className="grid gap-12 md:grid-cols-12">
                     <div className="md:col-span-5">
-                        <Link href="/" className="flex items-baseline gap-2">
-                            <span className="font-display text-3xl font-light italic">Lesbi</span>
-                            <span className="font-display text-3xl font-light text-primary">
-                                Libre
-                            </span>
+                        <Link href="/" aria-label="LesbiLibre — accueil">
+                            <BrandLockup size="footer" />
                         </Link>
                         <p className="mt-6 max-w-sm text-sm text-foreground/55">
                             Édition Nº 01 · Volume Velours. Conçu et écrit en France, pour toutes
