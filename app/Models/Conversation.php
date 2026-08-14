@@ -50,6 +50,14 @@ class Conversation extends Model
     }
 
     /**
+     * Ephemeral photos and videos exchanged in this conversation.
+     */
+    public function ephemeralMedia(): HasMany
+    {
+        return $this->hasMany(EphemeralMedia::class);
+    }
+
+    /**
      * Determine whether the conversation is still awaiting a first reply from
      * the recipient of the opening message.
      */

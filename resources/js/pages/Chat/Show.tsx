@@ -5,6 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { ArrowLeft, Send } from 'lucide-react';
+import {
+    EphemeralBubble,
+    EphemeralComposer,
+    type EphemeralItem,
+    type EphemeralSettings,
+} from '@/components/chat/ephemeral-panel';
 import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -39,6 +45,8 @@ interface Props {
     otherUser: UserData;
     messages: PaginatedMessages;
     canSendMessage?: boolean;
+    ephemeral?: EphemeralItem[];
+    ephemeralSettings: EphemeralSettings;
     auth: {
         user: {
             id: number;
@@ -51,12 +59,32 @@ export default function Show({
     otherUser,
     messages,
     canSendMessage = true,
+    ephemeral = [],
+    ephemeralSettings,
     auth,
 }: Props) {
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [localMessages, setLocalMessages] = useState<Message[]>(messages.data);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Messages et contenus éphémères partagent un même fil chronologique.
+    type TimelineEntry =
+        | { kind: 'message'; at: number; message: Message }
+        | { kind: 'ephemeral'; at: number; item: EphemeralItem };
+
+    const timeline: TimelineEntry[] = [
+        ...localMessages.map((m) => ({
+            kind: 'message' as const,
+            at: new Date(m.created_at).getTime(),
+            message: m,
+        })),
+        ...ephemeral.map((e) => ({
+            kind: 'ephemeral' as const,
+            at: new Date(e.created_at).getTime(),
+            item: e,
+        })),
+    ].sort((a, b) => a.at - b.at);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -148,35 +176,52 @@ export default function Show({
                 <div className="flex-1 overflow-y-auto">
                     <div className="container mx-auto px-4 py-6">
                         <div className="mx-auto max-w-3xl space-y-4">
-                            {localMessages.length > 0 ? (
-                                localMessages.map((msg) => {
-                                    const isOwn = msg.sender_id === auth.user.id;
-                                    return (
-                                        <div
-                                            key={msg.id}
-                                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                                        >
-                                            <div
-                                                className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                                                    isOwn
-                                                        ? 'bg-pink-500 text-white'
-                                                        : 'bg-white text-gray-900 dark:bg-gray-800 dark:text-white'
-                                                }`}
-                                            >
-                                                <p className="break-words">{msg.content}</p>
-                                                <p
-                                                    className={`mt-1 text-xs ${
-                                                        isOwn ? 'text-pink-100' : 'text-gray-500'
-                                                    }`}
+                            {timeline.length > 0 ? (
+                                timeline.map((entry) =>
+                                    entry.kind === 'ephemeral' ? (
+                                        <EphemeralBubble
+                                            key={`e-${entry.item.id}`}
+                                            item={entry.item}
+                                            settings={ephemeralSettings}
+                                        />
+                                    ) : (
+                                        (() => {
+                                            const msg = entry.message;
+                                            const isOwn = msg.sender_id === auth.user.id;
+                                            return (
+                                                <div
+                                                    key={`m-${msg.id}`}
+                                                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                                                 >
-                                                    {format(new Date(msg.created_at), 'HH:mm', {
-                                                        locale: fr,
-                                                    })}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    );
-                                })
+                                                    <div
+                                                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                                                            isOwn
+                                                                ? 'bg-pink-500 text-white'
+                                                                : 'bg-white text-gray-900 dark:bg-gray-800 dark:text-white'
+                                                        }`}
+                                                    >
+                                                        <p className="break-words">
+                                                            {msg.content}
+                                                        </p>
+                                                        <p
+                                                            className={`mt-1 text-xs ${
+                                                                isOwn
+                                                                    ? 'text-pink-100'
+                                                                    : 'text-gray-500'
+                                                            }`}
+                                                        >
+                                                            {format(
+                                                                new Date(msg.created_at),
+                                                                'HH:mm',
+                                                                { locale: fr },
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()
+                                    ),
+                                )
                             ) : (
                                 <div className="py-12 text-center text-gray-500">
                                     Aucun message. Soyez la première à écrire !
@@ -192,6 +237,10 @@ export default function Show({
                     <div className="container mx-auto px-4 py-4">
                         {canSendMessage ? (
                             <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl gap-2">
+                                <EphemeralComposer
+                                    conversationId={conversation.id}
+                                    settings={ephemeralSettings}
+                                />
                                 <Input
                                     type="text"
                                     value={message}

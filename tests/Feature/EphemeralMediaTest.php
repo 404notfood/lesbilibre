@@ -314,6 +314,58 @@ class EphemeralMediaTest extends TestCase
             ->assertStatus(425);
     }
 
+    // --- Affichage dans la conversation ---
+
+    public function test_conversation_exposes_state_without_the_file(): void
+    {
+        Storage::fake('local');
+
+        $recipient = User::factory()->create();
+        $media = $this->mediaFor($recipient);
+
+        $response = $this->actingAs($recipient)
+            ->get(route('conversations.show', $media->conversation_id));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->has('ephemeral', 1)
+            ->where('ephemeral.0.can_open', true)
+            ->where('ephemeral.0.opened', false)
+        );
+
+        // Le chemin de stockage ne doit jamais transiter jusqu'au navigateur.
+        $response->assertDontSee($media->path);
+    }
+
+    public function test_sender_sees_their_own_media_as_unopenable(): void
+    {
+        Storage::fake('local');
+
+        $recipient = User::factory()->create();
+        $media = $this->mediaFor($recipient);
+
+        $this->actingAs($media->sender)
+            ->get(route('conversations.show', $media->conversation_id))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('ephemeral.0.is_mine', true)
+                ->where('ephemeral.0.can_open', false)
+            );
+    }
+
+    public function test_purged_media_disappear_from_the_conversation(): void
+    {
+        Storage::fake('local');
+
+        $recipient = User::factory()->create();
+        $media = $this->mediaFor($recipient, ['purged_at' => now()]);
+
+        $this->actingAs($recipient)
+            ->get(route('conversations.show', $media->conversation_id))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('ephemeral', 0));
+    }
+
     // --- Purge ---
 
     public function test_purge_deletes_files_past_retention_but_keeps_the_row(): void

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Conversation;
+use App\Models\EphemeralMedia;
 use App\Models\Like;
 use App\Models\User;
 use App\Models\UserMatch;
+use App\Services\EntitlementService;
+use App\Services\VideoProcessingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -83,11 +86,38 @@ class ConversationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
+        // Contenus éphémères du fil. On expose l'état, jamais le fichier :
+        // celui-ci ne s'obtient qu'en ouvrant explicitement le média.
+        $ephemeral = $conversation->ephemeralMedia()
+            ->stored()
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn (EphemeralMedia $medium) => [
+                'id' => $medium->id,
+                'type' => $medium->type,
+                'is_naughty' => $medium->is_naughty,
+                'is_mine' => $medium->sender_id === $user->id,
+                'processing' => $medium->processing_status === 'pending',
+                'failed' => $medium->processing_status === 'failed',
+                'opened' => ! $medium->isUnopened(),
+                'replayed' => $medium->replayed_at !== null,
+                'replay_open' => $medium->replayWindowIsOpen(),
+                'can_open' => $medium->canBeOpenedBy($user),
+                'created_at' => $medium->created_at->toISOString(),
+            ]);
+
         return Inertia::render('Chat/Show', [
             'conversation' => $conversation,
             'otherUser' => $otherUser,
             'messages' => $messages,
             'canSendMessage' => $conversation->canSendMessage($user),
+            'ephemeral' => $ephemeral,
+            'ephemeralSettings' => [
+                'replay_cost' => (int) config('media.ephemeral.replay_cost_gems'),
+                'free_replays' => app(EntitlementService::class)->allows($user, 'free_replays'),
+                'video_enabled' => app(VideoProcessingService::class)->isAvailable(),
+                'max_video_seconds' => (int) config('media.ephemeral.max_video_seconds'),
+            ],
         ]);
     }
 
