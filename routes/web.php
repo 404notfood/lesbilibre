@@ -178,6 +178,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('subscriptions/{subscription}/reactivate', [\App\Http\Controllers\Admin\SubscriptionController::class, 'reactivate'])->name('subscriptions.reactivate');
         Route::delete('subscriptions/{subscription}', [\App\Http\Controllers\Admin\SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
 
+        // Billing catalogue — premium plans & gem packages
+        Route::get('billing', [\App\Http\Controllers\Admin\BillingCatalogController::class, 'index'])->name('billing.index');
+        Route::post('billing/plans', [\App\Http\Controllers\Admin\BillingCatalogController::class, 'storePlan'])->name('billing.plans.store');
+        Route::put('billing/plans/{plan}', [\App\Http\Controllers\Admin\BillingCatalogController::class, 'updatePlan'])->name('billing.plans.update');
+        Route::delete('billing/plans/{plan}', [\App\Http\Controllers\Admin\BillingCatalogController::class, 'destroyPlan'])->name('billing.plans.destroy');
+        Route::post('billing/packages', [\App\Http\Controllers\Admin\BillingCatalogController::class, 'storePackage'])->name('billing.packages.store');
+        Route::put('billing/packages/{package}', [\App\Http\Controllers\Admin\BillingCatalogController::class, 'updatePackage'])->name('billing.packages.update');
+        Route::delete('billing/packages/{package}', [\App\Http\Controllers\Admin\BillingCatalogController::class, 'destroyPackage'])->name('billing.packages.destroy');
+
+        // Gem economy
+        Route::get('gems', [\App\Http\Controllers\Admin\GemController::class, 'index'])->name('gems.index');
+        Route::get('gems/{user}', [\App\Http\Controllers\Admin\GemController::class, 'show'])->name('gems.show');
+        Route::post('gems/{user}/add', [\App\Http\Controllers\Admin\GemController::class, 'add'])->name('gems.add');
+        Route::post('gems/{user}/remove', [\App\Http\Controllers\Admin\GemController::class, 'remove'])->name('gems.remove');
+
         // Moderation
         Route::get('moderation', [\App\Http\Controllers\Admin\ModerationController::class, 'index'])->name('moderation.index');
         Route::get('moderation/audit', [\App\Http\Controllers\Admin\ModerationController::class, 'audit'])->name('moderation.audit');

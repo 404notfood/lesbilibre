@@ -18,41 +18,30 @@ import {
     Gift
 } from 'lucide-react';
 
-export default function Index({ isPremium = false }: { isPremium?: boolean }) {
+interface Plan {
+    id: number;
+    duration: string;
+    tagline: string | null;
+    price: number;
+    pricePerMonth: number;
+    savings: number;
+    popular: boolean;
+    perks: string[];
+    available: boolean;
+}
+
+export default function Index({
+    isPremium = false,
+    plans = [],
+}: {
+    isPremium?: boolean;
+    plans?: Plan[];
+}) {
     const handleSubscribe = (planId: number) => {
         router.post('/premium/subscribe', {
             plan_id: planId,
         });
     };
-
-    const plans = [
-        {
-            id: 1,
-            name: 'Premium 1 Mois',
-            duration: '1 mois',
-            price: 19.99,
-            pricePerMonth: 19.99,
-            popular: false,
-        },
-        {
-            id: 2,
-            name: 'Premium 3 Mois',
-            duration: '3 mois',
-            price: 44.99,
-            pricePerMonth: 14.99,
-            popular: true,
-            discount: 25,
-        },
-        {
-            id: 3,
-            name: 'Premium 6 Mois',
-            duration: '6 mois',
-            price: 69.99,
-            pricePerMonth: 11.66,
-            popular: false,
-            discount: 42,
-        },
-    ];
 
     const features = [
         {
@@ -175,17 +164,19 @@ export default function Index({ isPremium = false }: { isPremium?: boolean }) {
                                     </div>
                                 )}
 
-                                {plan.discount && !plan.popular && (
+                                {plan.savings > 0 && !plan.popular && (
                                     <Badge className="absolute top-4 right-4 bg-green-500 text-white">
-                                        -{plan.discount}%
+                                        -{plan.savings}%
                                     </Badge>
                                 )}
 
                                 <CardHeader className={plan.popular ? 'pt-12' : 'pt-6'}>
                                     <div className="text-center space-y-2">
                                         <Crown className={`h-12 w-12 mx-auto ${plan.popular ? 'text-amber-500' : 'text-primary'}`} />
-                                        <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                                        <CardDescription>{plan.duration}</CardDescription>
+                                        <CardTitle className="text-2xl">{plan.duration}</CardTitle>
+                                        {plan.tagline && (
+                                            <CardDescription>{plan.tagline}</CardDescription>
+                                        )}
                                     </div>
                                 </CardHeader>
 
@@ -198,28 +189,25 @@ export default function Index({ isPremium = false }: { isPremium?: boolean }) {
                                         <div className="text-sm text-muted-foreground">
                                             Soit {plan.pricePerMonth.toFixed(2)}€/mois
                                         </div>
-                                        {plan.discount && (
+                                        {plan.savings > 0 && (
                                             <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
                                                 <Sparkles className="h-3 w-3 mr-1" />
-                                                Économise {plan.discount}%
+                                                Économise {plan.savings}%
                                             </Badge>
                                         )}
                                     </div>
 
-                                    {/* Features */}
+                                    {/* Avantages du plan */}
                                     <div className="space-y-2">
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                            <span>Toutes les fonctionnalités Premium</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                            <span>Support prioritaire</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                            <span>+{plan.id * 50} gemmes offertes</span>
-                                        </div>
+                                        {plan.perks.map((perk) => (
+                                            <div
+                                                key={perk}
+                                                className="flex items-center gap-2 text-sm"
+                                            >
+                                                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                                <span>{perk}</span>
+                                            </div>
+                                        ))}
                                         <div className="flex items-center gap-2 text-sm">
                                             <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                                             <span>Annulation à tout moment</span>
@@ -229,6 +217,7 @@ export default function Index({ isPremium = false }: { isPremium?: boolean }) {
                                     {/* CTA */}
                                     <Button
                                         onClick={() => handleSubscribe(plan.id)}
+                                        disabled={!plan.available}
                                         className={`w-full ${
                                             plan.popular
                                                 ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg'
@@ -237,7 +226,11 @@ export default function Index({ isPremium = false }: { isPremium?: boolean }) {
                                         size="lg"
                                     >
                                         <Crown className="h-5 w-5 mr-2" />
-                                        {plan.popular ? 'Choisir ce plan' : 'Souscrire'}
+                                        {!plan.available
+                                            ? 'Bientôt disponible'
+                                            : plan.popular
+                                              ? 'Choisir ce plan'
+                                              : 'Souscrire'}
                                     </Button>
                                 </CardContent>
                             </Card>

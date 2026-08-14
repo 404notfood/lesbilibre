@@ -11,6 +11,7 @@ import {
     Settings as SettingsIcon,
     ShieldAlert,
     Sparkles,
+    Tags,
     UserCog,
     Users,
 } from 'lucide-react';
@@ -121,8 +122,14 @@ export default function AdminLayout({
 
     const secondaryNav: NavItem[] = [
         {
+            href: '/admin/billing',
+            label: 'Abonnements & tarifs',
+            icon: Tags,
+            matchPrefix: '/admin/billing',
+        },
+        {
             href: '/admin/subscriptions',
-            label: 'Abonnements',
+            label: 'Abonnées',
             icon: Gem,
             matchPrefix: '/admin/subscriptions',
         },

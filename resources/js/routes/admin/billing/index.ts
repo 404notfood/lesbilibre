@@ -1,11 +1,10 @@
-import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../wayfinder'
-import gems from './gems'
-import gifts from './gifts'
-import checkout from './checkout'
+import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
+import plans from './plans'
+import packages from './packages'
 /**
-* @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
- * @route '/shop'
+* @see \App\Http\Controllers\Admin\BillingCatalogController::index
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:20
+ * @route '/admin/billing'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(options),
@@ -14,31 +13,31 @@ export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 index.definition = {
     methods: ["get","head"],
-    url: '/shop',
+    url: '/admin/billing',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
- * @route '/shop'
+* @see \App\Http\Controllers\Admin\BillingCatalogController::index
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:20
+ * @route '/admin/billing'
  */
 index.url = (options?: RouteQueryOptions) => {
     return index.definition.url + queryParams(options)
 }
 
 /**
-* @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
- * @route '/shop'
+* @see \App\Http\Controllers\Admin\BillingCatalogController::index
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:20
+ * @route '/admin/billing'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(options),
     method: 'get',
 })
 /**
-* @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
- * @route '/shop'
+* @see \App\Http\Controllers\Admin\BillingCatalogController::index
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:20
+ * @route '/admin/billing'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: index.url(options),
@@ -46,9 +45,9 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 })
 
     /**
-* @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
- * @route '/shop'
+* @see \App\Http\Controllers\Admin\BillingCatalogController::index
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:20
+ * @route '/admin/billing'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
         action: index.url(options),
@@ -56,18 +55,18 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     })
 
             /**
-* @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
- * @route '/shop'
+* @see \App\Http\Controllers\Admin\BillingCatalogController::index
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:20
+ * @route '/admin/billing'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: index.url(options),
             method: 'get',
         })
             /**
-* @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
- * @route '/shop'
+* @see \App\Http\Controllers\Admin\BillingCatalogController::index
+ * @see app/Http/Controllers/Admin/BillingCatalogController.php:20
+ * @route '/admin/billing'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
             action: index.url({
@@ -80,11 +79,10 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
     
     index.form = indexForm
-const shop = {
+const billing = {
     index: Object.assign(index, index),
-gems: Object.assign(gems, gems),
-gifts: Object.assign(gifts, gifts),
-checkout: Object.assign(checkout, checkout),
+plans: Object.assign(plans, plans),
+packages: Object.assign(packages, packages),
 }
 
-export default shop
+export default billing

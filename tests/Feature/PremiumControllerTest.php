@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\PremiumPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,6 +14,7 @@ class PremiumControllerTest extends TestCase
     public function test_premium_index_shows_plans(): void
     {
         $user = User::factory()->create();
+        PremiumPlan::factory()->count(3)->create();
 
         $response = $this->actingAs($user)->get(route('premium.index'));
 

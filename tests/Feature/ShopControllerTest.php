@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\GemPackage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,6 +14,7 @@ class ShopControllerTest extends TestCase
     public function test_shop_index_displays_gems_and_gifts(): void
     {
         $user = User::factory()->create();
+        GemPackage::factory()->count(5)->create();
 
         $response = $this->actingAs($user)->get(route('shop.index'));
 
@@ -28,9 +30,10 @@ class ShopControllerTest extends TestCase
     public function test_user_can_purchase_gems(): void
     {
         $user = User::factory()->create(['gems' => 0]);
+        $package = GemPackage::factory()->create(['amount' => 500, 'bonus' => 75]);
 
         $response = $this->actingAs($user)->post(route('shop.gems.purchase'), [
-            'package_id' => 3, // 500 + 75 bonus
+            'package_id' => $package->id,
             'payment_method' => 'card',
         ]);
 

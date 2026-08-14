@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ShopController::purchase
- * @see app/Http/Controllers/ShopController.php:61
+ * @see app/Http/Controllers/ShopController.php:64
  * @route '/shop/gems/purchase'
  */
 export const purchase = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ purchase.definition = {
 
 /**
 * @see \App\Http\Controllers\ShopController::purchase
- * @see app/Http/Controllers/ShopController.php:61
+ * @see app/Http/Controllers/ShopController.php:64
  * @route '/shop/gems/purchase'
  */
 purchase.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ purchase.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ShopController::purchase
- * @see app/Http/Controllers/ShopController.php:61
+ * @see app/Http/Controllers/ShopController.php:64
  * @route '/shop/gems/purchase'
  */
 purchase.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -35,7 +35,7 @@ purchase.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\ShopController::purchase
- * @see app/Http/Controllers/ShopController.php:61
+ * @see app/Http/Controllers/ShopController.php:64
  * @route '/shop/gems/purchase'
  */
     const purchaseForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -45,7 +45,7 @@ purchase.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\ShopController::purchase
- * @see app/Http/Controllers/ShopController.php:61
+ * @see app/Http/Controllers/ShopController.php:64
  * @route '/shop/gems/purchase'
  */
         purchaseForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
