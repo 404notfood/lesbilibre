@@ -91,7 +91,7 @@ class DashboardController extends Controller
         })->reverse()->values();
 
         // Recent reports
-        $recentReports = Report::with(['reporter', 'reported'])
+        $recentReports = Report::with(['reporter', 'reportedUser'])
             ->where('status', 'pending')
             ->latest()
             ->limit(5)
@@ -99,8 +99,8 @@ class DashboardController extends Controller
             ->map(fn ($report) => [
                 'id' => $report->id,
                 'reporter' => $report->reporter->name,
-                'reported' => $report->reported->name,
-                'reported_id' => $report->reported_id,
+                'reported' => $report->reportedUser->name,
+                'reported_id' => $report->reported_user_id,
                 'reason' => $report->reason,
                 'created_at' => $report->created_at->diffForHumans(),
             ]);

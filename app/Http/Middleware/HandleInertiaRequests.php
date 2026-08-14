@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Conversation;
+use App\Models\GalleryAccessRequest;
 use App\Models\Like;
 use App\Models\Photo;
 use App\Models\ProfileVisit;
@@ -48,6 +49,7 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $unreadConversationsCount = 0;
         $recentActivitiesCount = 0;
+        $pendingGalleryRequestsCount = 0;
 
         if ($user) {
             $user->loadMissing('profile');
@@ -73,6 +75,11 @@ class HandleInertiaRequests extends Middleware
                 })
                     ->where('created_at', '>=', now()->subDays(7))
                     ->count();
+
+            // Demandes d'accès à la galerie privée en attente de réponse
+            $pendingGalleryRequestsCount = GalleryAccessRequest::where('owner_user_id', $user->id)
+                ->where('status', 'pending')
+                ->count();
         }
 
         // Alertes admin — partagées uniquement si l'utilisateur est admin
@@ -98,6 +105,7 @@ class HandleInertiaRequests extends Middleware
             'counts' => [
                 'unreadConversations' => $unreadConversationsCount,
                 'recentActivities' => $recentActivitiesCount,
+                'pendingGalleryRequests' => $pendingGalleryRequestsCount,
             ],
             'onboarding' => $user ? [
                 'profile' => (bool) ($user->profile?->bio && $user->profile?->looking_for),

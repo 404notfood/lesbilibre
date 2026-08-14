@@ -8,6 +8,8 @@ import {
     Crown,
     Heart,
     HelpCircle,
+    Images,
+    Lock,
     MessageCircle,
     Shield,
     ShoppingBag,
@@ -46,6 +48,7 @@ export default function DatingLayout({
         counts: {
             unreadConversations: number;
             recentActivities: number;
+            pendingGalleryRequests: number;
         };
         presenceUsers?: PresenceUser[];
         onboarding?: { completed: number; total: number } | null;
@@ -88,6 +91,16 @@ export default function DatingLayout({
             badge: counts.recentActivities > 0 ? counts.recentActivities : undefined,
         },
         { icon: User, label: 'Mon profil', href: '/profile/edit' },
+        { icon: Images, label: 'Mes photos', href: '/photos' },
+        {
+            icon: Lock,
+            label: 'Galerie privée',
+            href: '/gallery-access',
+            badge:
+                counts.pendingGalleryRequests > 0
+                    ? counts.pendingGalleryRequests
+                    : undefined,
+        },
     ];
 
     const secondaryItems = [

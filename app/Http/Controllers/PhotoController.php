@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UploadPhotoRequest;
 use App\Jobs\ModeratePhoto;
 use App\Models\Photo;
-use App\Services\PhotoProcessingService;
 use App\Services\ModerationAuditService;
+use App\Services\PhotoProcessingService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class PhotoController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display user's photo gallery.
      */

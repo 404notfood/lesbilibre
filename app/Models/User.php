@@ -63,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_admin' => 'boolean',
             'is_verified' => 'boolean',
             'is_banned' => 'boolean',
+            'banned_at' => 'datetime',
             'is_premium' => 'boolean',
             'premium_expires_at' => 'datetime',
             'gems' => 'integer',
@@ -236,6 +237,22 @@ class User extends Authenticatable implements MustVerifyEmail
             && ! $this->hasBlocked($other->id)
             && ! $this->isBlockedBy($other->id)
             && ! $other->is_banned;
+    }
+
+    /**
+     * Get the private gallery access requests this user received.
+     */
+    public function galleryAccessRequestsReceived(): HasMany
+    {
+        return $this->hasMany(GalleryAccessRequest::class, 'owner_user_id');
+    }
+
+    /**
+     * Get the private gallery access requests this user sent.
+     */
+    public function galleryAccessRequestsSent(): HasMany
+    {
+        return $this->hasMany(GalleryAccessRequest::class, 'requester_user_id');
     }
 
     /**

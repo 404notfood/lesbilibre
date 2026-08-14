@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\ReportController::create
- * @see app/Http/Controllers/ReportController.php:19
+ * @see app/Http/Controllers/ReportController.php:22
  * @route '/reports/create/{userId}'
  */
 export const create = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ create.definition = {
 
 /**
 * @see \App\Http\Controllers\ReportController::create
- * @see app/Http/Controllers/ReportController.php:19
+ * @see app/Http/Controllers/ReportController.php:22
  * @route '/reports/create/{userId}'
  */
 create.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -44,7 +44,7 @@ create.url = (args: { userId: string | number } | [userId: string | number ] | s
 
 /**
 * @see \App\Http\Controllers\ReportController::create
- * @see app/Http/Controllers/ReportController.php:19
+ * @see app/Http/Controllers/ReportController.php:22
  * @route '/reports/create/{userId}'
  */
 create.get = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -53,7 +53,7 @@ create.get = (args: { userId: string | number } | [userId: string | number ] | s
 })
 /**
 * @see \App\Http\Controllers\ReportController::create
- * @see app/Http/Controllers/ReportController.php:19
+ * @see app/Http/Controllers/ReportController.php:22
  * @route '/reports/create/{userId}'
  */
 create.head = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -63,7 +63,7 @@ create.head = (args: { userId: string | number } | [userId: string | number ] | 
 
     /**
 * @see \App\Http\Controllers\ReportController::create
- * @see app/Http/Controllers/ReportController.php:19
+ * @see app/Http/Controllers/ReportController.php:22
  * @route '/reports/create/{userId}'
  */
     const createForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -73,7 +73,7 @@ create.head = (args: { userId: string | number } | [userId: string | number ] | 
 
             /**
 * @see \App\Http\Controllers\ReportController::create
- * @see app/Http/Controllers/ReportController.php:19
+ * @see app/Http/Controllers/ReportController.php:22
  * @route '/reports/create/{userId}'
  */
         createForm.get = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -82,7 +82,7 @@ create.head = (args: { userId: string | number } | [userId: string | number ] | 
         })
             /**
 * @see \App\Http\Controllers\ReportController::create
- * @see app/Http/Controllers/ReportController.php:19
+ * @see app/Http/Controllers/ReportController.php:22
  * @route '/reports/create/{userId}'
  */
         createForm.head = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -98,7 +98,7 @@ create.head = (args: { userId: string | number } | [userId: string | number ] | 
     create.form = createForm
 /**
 * @see \App\Http\Controllers\ReportController::store
- * @see app/Http/Controllers/ReportController.php:31
+ * @see app/Http/Controllers/ReportController.php:34
  * @route '/reports'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\ReportController::store
- * @see app/Http/Controllers/ReportController.php:31
+ * @see app/Http/Controllers/ReportController.php:34
  * @route '/reports'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -122,7 +122,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ReportController::store
- * @see app/Http/Controllers/ReportController.php:31
+ * @see app/Http/Controllers/ReportController.php:34
  * @route '/reports'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -132,7 +132,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\ReportController::store
- * @see app/Http/Controllers/ReportController.php:31
+ * @see app/Http/Controllers/ReportController.php:34
  * @route '/reports'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -142,7 +142,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\ReportController::store
- * @see app/Http/Controllers/ReportController.php:31
+ * @see app/Http/Controllers/ReportController.php:34
  * @route '/reports'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

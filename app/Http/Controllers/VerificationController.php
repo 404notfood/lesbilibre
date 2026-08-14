@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UploadVerificationPhotoRequest;
 use App\Models\VerificationPhoto;
-use App\Services\PhotoProcessingService;
 use App\Services\ModerationAuditService;
+use App\Services\PhotoProcessingService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,8 @@ use Inertia\Response;
 
 class VerificationController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Show the verification upload form.
      */

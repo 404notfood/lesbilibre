@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Photo;
 use App\Models\ModerationAction;
+use App\Models\Photo;
 use App\Models\Report;
 use App\Models\VerificationPhoto;
 use Illuminate\Http\Request;
@@ -55,7 +55,7 @@ class ModerationController extends Controller
             ]);
 
         // Open reports
-        $openReports = Report::with(['reporter', 'reported'])
+        $openReports = Report::with(['reporter', 'reportedUser'])
             ->where('status', 'pending')
             ->latest()
             ->limit(10)
@@ -67,8 +67,8 @@ class ModerationController extends Controller
                     'name' => $report->reporter->name,
                 ],
                 'reported' => [
-                    'id' => $report->reported->id,
-                    'name' => $report->reported->name,
+                    'id' => $report->reportedUser->id,
+                    'name' => $report->reportedUser->name,
                 ],
                 'reason' => $report->reason,
                 'description' => $report->description,

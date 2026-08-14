@@ -57,7 +57,7 @@ class BadgeController extends Controller
             'message' => count($newlyAwarded) > 0
                 ? 'Nouveaux badges obtenus !'
                 : 'Aucun nouveau badge pour le moment',
-            'newly_awarded' => $newlyAwarded->map(fn ($badge) => [
+            'newly_awarded' => collect($newlyAwarded)->map(fn ($badge) => [
                 'id' => $badge->id,
                 'name' => $badge->name,
                 'icon' => $badge->icon,

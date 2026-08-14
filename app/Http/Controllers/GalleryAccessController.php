@@ -20,7 +20,7 @@ class GalleryAccessController extends Controller
     {
         $requests = $request->user()
             ->galleryAccessRequestsReceived()
-            ->with('requester')
+            ->with(['requester.photos' => fn ($query) => $query->where('is_primary', true)])
             ->where('status', 'pending')
             ->latest()
             ->get();

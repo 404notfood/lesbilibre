@@ -6,6 +6,7 @@ use App\Http\Requests\CreateReportRequest;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\ModerationAuditService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class ReportController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Show the form to report a user.
      */
@@ -64,14 +67,40 @@ class ReportController extends Controller
     {
         $status = $request->query('status', 'pending');
 
-        $reports = Report::with(['reporter', 'reportedUser'])
+        if (! in_array($status, ['pending', 'reviewed', 'actioned', 'dismissed'], true)) {
+            $status = 'pending';
+        }
+
+        $reports = Report::with(['reporter:id,name,pseudo', 'reportedUser:id,name,pseudo,is_banned'])
             ->where('status', $status)
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn (Report $report) => [
+                'id' => $report->id,
+                'reason' => $report->reason,
+                'description' => $report->description,
+                'status' => $report->status,
+                'admin_notes' => $report->admin_notes,
+                'reporter' => $report->reporter,
+                'reported_user' => $report->reportedUser,
+                'created_at' => $report->created_at->toISOString(),
+            ]);
+
+        $counts = Report::query()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
         return Inertia::render('Admin/Reports/Index', [
             'reports' => $reports,
             'status' => $status,
+            'counts' => [
+                'pending' => (int) ($counts['pending'] ?? 0),
+                'reviewed' => (int) ($counts['reviewed'] ?? 0),
+                'actioned' => (int) ($counts['actioned'] ?? 0),
+                'dismissed' => (int) ($counts['dismissed'] ?? 0),
+            ],
         ]);
     }
 
