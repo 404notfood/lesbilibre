@@ -115,6 +115,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('photos', [\App\Http\Controllers\PhotoController::class, 'index'])->name('photos.index');
     Route::post('photos', [\App\Http\Controllers\PhotoController::class, 'store'])->name('photos.store')->middleware('throttle:10,1');
     Route::post('photos/{photo}/primary', [\App\Http\Controllers\PhotoController::class, 'setPrimary'])->name('photos.primary');
+    // Sert les photos via l'application pour appliquer consentement et filigrane.
+    Route::get('media/photos/{photo}', [\App\Http\Controllers\PhotoStreamController::class, 'show'])->name('media.photo');
+    Route::post('photos/{photo}/request-avatar', [\App\Http\Controllers\PhotoController::class, 'requestAvatar'])->name('photos.request-avatar');
     Route::delete('photos/{photo}', [\App\Http\Controllers\PhotoController::class, 'destroy'])->name('photos.destroy');
 
     // Admin photo routes

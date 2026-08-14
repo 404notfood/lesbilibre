@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 260" role="img" aria-labelledby="title description">
+  <title id="title">LesbiLibre</title>
+  <desc id="description">Deux symboles de Vénus entrelacés pour représenter les rencontres entre femmes.</desc>
+  <rect width="920" height="260" rx="24" fill="#170b10"/>
+  <g fill="none" stroke="#e94676" stroke-linecap="round" stroke-linejoin="round" stroke-width="12">
+    <circle cx="90" cy="86" r="47"/>
+    <circle cx="146" cy="86" r="47"/>
+    <path d="M90 133v54m-25-27h50"/>
+    <path d="M146 133v54m-25-27h50"/>
+  </g>
+  <path d="M118 59c9 10 16 20 16 31 0 14-11 25-25 25s-25-11-25-25c0-11 8-21 17-31 6-6 11-11 17-18 6 7 12 12 17 18Z" fill="#f7efe6"/>
+  <text x="245" y="145" fill="#f7efe6" font-family="Cormorant Garamond, Georgia, serif" font-size="115" letter-spacing="-5">Lesbi</text>
+  <text x="520" y="145" fill="#e94676" font-family="Cormorant Garamond, Georgia, serif" font-size="115" font-style="italic" letter-spacing="-5">Libre</text>
+  <text x="252" y="188" fill="#d9bdc8" font-family="Arial, sans-serif" font-size="19" letter-spacing="5">RENCONTRES ENTRE FEMMES</text>
+</svg>

@@ -25,7 +25,19 @@ class PhotoController extends Controller
     {
         $user = $request->user();
 
-        $photos = $user->photos()->orderBy('order')->get();
+        $photos = $user->photos()
+            ->orderBy('order')
+            ->get()
+            ->map(fn (Photo $photo) => [
+                'id' => $photo->id,
+                'url' => $photo->viewUrl(),
+                'is_primary' => $photo->is_primary,
+                'is_naughty' => $photo->is_naughty,
+                'moderation_status' => $photo->moderation_status,
+                'rejection_reason' => $photo->rejection_reason,
+                'avatar_requested' => $photo->avatar_requested_at !== null,
+                'order' => $photo->order,
+            ]);
 
         return Inertia::render('Photos/Index', [
             'photos' => $photos,
@@ -50,20 +62,23 @@ class PhotoController extends Controller
             return redirect()->back()->with('error', 'Cette image a déjà été ajoutée à votre profil.');
         }
 
-        // Create photo record
+        // Les photos de galerie sont publiées immédiatement : la modération se
+        // fait a posteriori (file admin + signalements). Seule la photo de
+        // profil exige une validation préalable, via setPrimary().
         $photo = Photo::create([
             'user_id' => $user->id,
             'path' => $processed['path'],
             'content_hash' => $processed['content_hash'],
             'thumbnail_path' => $processed['thumbnail_path'],
             'moderation_status' => 'pending',
+            'is_approved' => true,
             'is_naughty' => $request->boolean('is_naughty'),
             'order' => $user->photos()->max('order') + 1,
         ]);
 
         ModeratePhoto::dispatch($photo->id);
 
-        return redirect()->back()->with('success', 'Photo uploadée. Elle sera visible après approbation.');
+        return redirect()->back()->with('success', 'Photo ajoutée à votre galerie.');
     }
 
     /**
@@ -77,8 +92,25 @@ class PhotoController extends Controller
             abort(403, 'Cette photo ne vous appartient pas.');
         }
 
-        if (! $photo->is_approved) {
-            return redirect()->back()->with('error', 'Cette photo doit être approuvée avant de devenir la photo principale.');
+        // Une photo sensible ne peut jamais servir d'avatar : elle s'afficherait
+        // dans la découverte et les conversations, hors de tout consentement.
+        if ($photo->is_naughty) {
+            return redirect()->back()->with(
+                'error',
+                'Une photo sensible ne peut pas devenir votre photo de profil.'
+            );
+        }
+
+        if ($photo->moderation_status === 'rejected') {
+            return redirect()->back()->with('error', 'Cette photo a été refusée par la modération.');
+        }
+
+        // La photo de profil est le seul contenu soumis à validation préalable.
+        if ($photo->moderation_status !== 'approved') {
+            return redirect()->back()->with(
+                'error',
+                'Cette photo doit être validée par la modération avant de devenir votre photo de profil.'
+            );
         }
 
         // Remove primary from other photos
@@ -88,6 +120,39 @@ class PhotoController extends Controller
         $photo->update(['is_primary' => true]);
 
         return redirect()->back()->with('success', 'Photo principale mise à jour.');
+    }
+
+    /**
+     * Ask a moderator to approve this photo as the member's avatar.
+     */
+    public function requestAvatar(Request $request, Photo $photo): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($photo->user_id !== $user->id) {
+            abort(403, 'Cette photo ne vous appartient pas.');
+        }
+
+        if ($photo->is_naughty) {
+            return redirect()->back()->with(
+                'error',
+                'Une photo sensible ne peut pas devenir votre photo de profil.'
+            );
+        }
+
+        if ($photo->moderation_status === 'approved') {
+            return redirect()->back()->with(
+                'info',
+                'Cette photo est déjà validée : vous pouvez la définir comme photo de profil.'
+            );
+        }
+
+        $photo->update(['avatar_requested_at' => now()]);
+
+        return redirect()->back()->with(
+            'success',
+            'Demande envoyée. Votre photo de profil sera validée sous 48 h.'
+        );
     }
 
     /**
@@ -114,13 +179,18 @@ class PhotoController extends Controller
     }
 
     /**
-     * Admin: List pending photos.
+     * Admin: List photos awaiting a moderation decision.
+     *
+     * Gallery photos are already visible to members; this queue exists so a
+     * moderator can review them after the fact and retire anything unwanted.
+     * Photos a member wants as their avatar are shown first, since those are
+     * blocked until approved.
      */
     public function pending(Request $request): Response
     {
         $photos = Photo::with('user:id,name,pseudo,email')
-            ->where('is_approved', false)
-            ->whereNull('rejection_reason')
+            ->where('moderation_status', 'pending')
+            ->orderByDesc('avatar_requested_at')
             ->latest()
             ->paginate(20)
             ->through(fn (Photo $photo) => [
@@ -130,6 +200,7 @@ class PhotoController extends Controller
                     ? asset('storage/'.$photo->thumbnail_path)
                     : null,
                 'is_naughty' => $photo->is_naughty,
+                'awaiting_avatar' => $photo->avatar_requested_at !== null,
                 'created_at' => $photo->created_at->toISOString(),
                 'user' => $photo->user,
             ]);
@@ -147,6 +218,13 @@ class PhotoController extends Controller
         $this->authorize('update', $photo);
 
         $photo->update(['is_approved' => true, 'moderation_status' => 'approved']);
+
+        // La membre attendait cette validation pour en faire son avatar :
+        // on la promeut directement plutôt que de lui demander de revenir.
+        if ($photo->avatar_requested_at && ! $photo->is_naughty) {
+            Photo::where('user_id', $photo->user_id)->update(['is_primary' => false]);
+            $photo->update(['is_primary' => true, 'avatar_requested_at' => null]);
+        }
 
         // Trigger badge check
         $photo->load('user');
@@ -172,9 +250,13 @@ class PhotoController extends Controller
             'rejection_reason' => ['required', 'string', 'max:500'],
         ]);
 
+        // Un refus retire la photo de la galerie et annule toute demande d'avatar.
         $photo->update([
             'rejection_reason' => $request->rejection_reason,
             'moderation_status' => 'rejected',
+            'is_approved' => false,
+            'is_primary' => false,
+            'avatar_requested_at' => null,
         ]);
 
         app(ModerationAuditService::class)->record(

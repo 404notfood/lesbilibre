@@ -22,7 +22,16 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Show', [
             'user' => $user,
             'profile' => $user->profile,
-            'photos' => $user->photos()->where('is_approved', true)->orderBy('order')->get(),
+            'photos' => $user->photos()
+                ->where('is_approved', true)
+                ->orderBy('order')
+                ->get()
+                ->map(fn (\App\Models\Photo $photo) => [
+                    'id' => $photo->id,
+                    'url' => $photo->viewUrl(),
+                    'is_primary' => $photo->is_primary,
+                    'is_naughty' => $photo->is_naughty,
+                ]),
         ]);
     }
 
@@ -80,17 +89,15 @@ class ProfileController extends Controller
      */
     public function view(Request $request, int $userId): Response
     {
+        // Le contenu sensible dépend du consentement de CELLE QUI REGARDE,
+        // pas de celle qui a publié la photo.
+        $viewerAcceptsNaughty = (bool) $request->user()->profile?->is_naughty_mode;
+
+        // Les photos sensibles restent dans la liste : la route média les sert
+        // floutées si la visiteuse n'a pas consenti, plutôt que de les masquer.
         $user = \App\Models\User::with(['profile', 'photos' => function ($query) {
             $query->where('is_approved', true)
-                ->where(function ($q) {
-                    $q->where('is_naughty', false)
-                        ->orWhere(function ($q2) {
-                            $q2->where('is_naughty', true)
-                                ->whereHas('user.profile', function ($q3) {
-                                    $q3->where('is_naughty_mode', true);
-                                });
-                        });
-                })
+                ->where('moderation_status', '!=', 'rejected')
                 ->orderBy('order');
         }])->findOrFail($userId);
 
@@ -143,7 +150,14 @@ class ProfileController extends Controller
                 'is_premium' => $user->is_premium,
                 'profile' => $profile,
             ],
-            'photos' => $user->photos,
+            'photos' => $user->photos->map(fn (\App\Models\Photo $photo) => [
+                'id' => $photo->id,
+                'url' => $photo->viewUrl(),
+                'is_primary' => $photo->is_primary,
+                'is_naughty' => $photo->is_naughty,
+                'is_blurred' => $photo->is_naughty && ! $viewerAcceptsNaughty,
+            ]),
+            'viewerAcceptsNaughty' => $viewerAcceptsNaughty,
             'hasLiked' => $hasLiked,
             'hasMatched' => $hasMatched,
             'hasBlocked' => $hasBlocked,

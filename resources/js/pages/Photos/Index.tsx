@@ -14,10 +14,12 @@ import { cn } from '@/lib/utils';
 
 interface Photo {
     id: number;
-    path: string;
+    url: string;
     is_primary: boolean;
-    is_approved: boolean;
     is_naughty: boolean;
+    moderation_status: 'pending' | 'approved' | 'rejected' | 'quarantined';
+    rejection_reason: string | null;
+    avatar_requested: boolean;
     order: number;
 }
 
@@ -30,8 +32,8 @@ export default function Index({ photos }: { photos: Photo[] }) {
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const approved = photos.filter((p) => p.is_approved);
-    const pending = photos.filter((p) => !p.is_approved);
+    const published = photos.filter((p) => p.moderation_status !== 'rejected');
+    const rejected = photos.filter((p) => p.moderation_status === 'rejected');
     const remaining = MAX_PHOTOS - photos.length;
     const isFull = remaining <= 0;
 
@@ -84,8 +86,7 @@ export default function Index({ photos }: { photos: Photo[] }) {
                         className="editorial-eyebrow"
                         style={{ color: 'var(--ink-mute)' }}
                     >
-                        {photos.length} sur {MAX_PHOTOS} · {approved.length} publiée
-                        {approved.length > 1 ? 's' : ''}
+                        {photos.length} sur {MAX_PHOTOS} · {published.length} en ligne
                     </p>
                     <h1 className="font-display mt-2 text-4xl font-medium">
                         Mes photos
@@ -94,9 +95,9 @@ export default function Index({ photos }: { photos: Photo[] }) {
                         className="mt-2 max-w-xl text-sm"
                         style={{ color: 'var(--ink-mute)' }}
                     >
-                        Votre première photo approuvée devient votre portrait principal.
-                        Chaque ajout passe par la modération avant d’apparaître sur
-                        votre profil.
+                        Vos photos sont visibles dès l’ajout. Seule la photo de profil
+                        passe par une validation. Les photos marquées sensibles restent
+                        floutées pour celles qui n’ont pas activé le mode coquin.
                     </p>
 
                     <div
@@ -266,25 +267,25 @@ export default function Index({ photos }: { photos: Photo[] }) {
                     </section>
                 )}
 
-                {/* ---- Photos publiées ------------------------------------ */}
-                {approved.length > 0 && (
+                {/* ---- Photos en ligne ------------------------------------ */}
+                {published.length > 0 && (
                     <PhotoSection
-                        eyebrow={`${approved.length} visible${approved.length > 1 ? 's' : ''} sur votre profil`}
-                        title="Publiées"
+                        eyebrow={`${published.length} visible${published.length > 1 ? 's' : ''} sur votre profil`}
+                        title="Ma galerie"
                     >
-                        {approved.map((photo) => (
+                        {published.map((photo) => (
                             <PhotoTile key={photo.id} photo={photo} />
                         ))}
                     </PhotoSection>
                 )}
 
-                {/* ---- Photos en attente ---------------------------------- */}
-                {pending.length > 0 && (
+                {/* ---- Photos retirées par la modération ------------------ */}
+                {rejected.length > 0 && (
                     <PhotoSection
-                        eyebrow="Validation sous 48 h en général"
-                        title="En attente de modération"
+                        eyebrow="Retirées par la modération"
+                        title="Non conformes"
                     >
-                        {pending.map((photo) => (
+                        {rejected.map((photo) => (
                             <PhotoTile key={photo.id} photo={photo} />
                         ))}
                     </PhotoSection>
@@ -364,13 +365,12 @@ function PhotoSection({
 function PhotoTile({ photo }: { photo: Photo }) {
     const [busy, setBusy] = useState(false);
 
-    const setPrimary = () => {
+    const isRejected = photo.moderation_status === 'rejected';
+    const isApproved = photo.moderation_status === 'approved';
+
+    const act = (url: string) => {
         setBusy(true);
-        router.post(
-            `/photos/${photo.id}/primary`,
-            {},
-            { preserveScroll: true, onFinish: () => setBusy(false) },
-        );
+        router.post(url, {}, { preserveScroll: true, onFinish: () => setBusy(false) });
     };
 
     const remove = () => {
@@ -391,17 +391,26 @@ function PhotoTile({ photo }: { photo: Photo }) {
             }}
         >
             <img
-                src={`/storage/${photo.path}`}
+                src={photo.url}
                 alt=""
                 loading="lazy"
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
                 className={cn(
-                    'h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]',
-                    !photo.is_approved && 'opacity-70 grayscale',
+                    'h-full w-full select-none object-cover transition-transform duration-300 group-hover:scale-[1.03]',
+                    isRejected && 'opacity-50 grayscale',
                 )}
             />
 
+            {/* Calque anti-copie : intercepte clic droit et glisser-déposer */}
+            <span
+                aria-hidden
+                className="absolute inset-0"
+                onContextMenu={(e) => e.preventDefault()}
+            />
+
             {/* Badges */}
-            <div className="absolute inset-x-2 top-2 flex flex-wrap items-start justify-between gap-1">
+            <div className="pointer-events-none absolute inset-x-2 top-2 flex flex-wrap items-start justify-between gap-1">
                 <div className="flex flex-wrap gap-1">
                     {photo.is_primary && (
                         <span
@@ -412,10 +421,10 @@ function PhotoTile({ photo }: { photo: Photo }) {
                             }}
                         >
                             <Star className="h-2.5 w-2.5" />
-                            Principale
+                            Profil
                         </span>
                     )}
-                    {!photo.is_approved && (
+                    {photo.avatar_requested && (
                         <span
                             className="font-mono inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                             style={{
@@ -424,18 +433,23 @@ function PhotoTile({ photo }: { photo: Photo }) {
                             }}
                         >
                             <Clock className="h-2.5 w-2.5" />
-                            En attente
+                            En validation
+                        </span>
+                    )}
+                    {isRejected && (
+                        <span
+                            className="font-mono inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                            style={{ background: 'var(--desire)', color: 'white' }}
+                        >
+                            Retirée
                         </span>
                     )}
                 </div>
                 {photo.is_naughty && (
                     <span
                         className="grid h-5 w-5 place-items-center rounded"
-                        style={{
-                            background: 'var(--desire)',
-                            color: 'white',
-                        }}
-                        title="Photo sensible"
+                        style={{ background: 'var(--desire)', color: 'white' }}
+                        title="Photo sensible — floutée pour les profils non consentants"
                     >
                         <EyeOff className="h-3 w-3" />
                     </span>
@@ -445,44 +459,70 @@ function PhotoTile({ photo }: { photo: Photo }) {
             {/* Actions au survol */}
             <figcaption
                 className={cn(
-                    'absolute inset-x-0 bottom-0 flex items-center justify-end gap-1.5 p-2 opacity-0 transition-opacity',
+                    'absolute inset-x-0 bottom-0 flex flex-col gap-1 p-2 opacity-0 transition-opacity',
                     'group-hover:opacity-100 group-focus-within:opacity-100',
                 )}
                 style={{
                     background:
-                        'linear-gradient(to top, oklch(0% 0 0 / 0.75), transparent)',
+                        'linear-gradient(to top, oklch(0% 0 0 / 0.8), transparent)',
                 }}
             >
-                {photo.is_approved && !photo.is_primary && (
+                {isRejected && photo.rejection_reason && (
+                    <p className="text-[10px] leading-tight text-white/90">
+                        {photo.rejection_reason}
+                    </p>
+                )}
+
+                <div className="flex items-center justify-end gap-1.5">
+                    {!isRejected &&
+                        !photo.is_primary &&
+                        !photo.is_naughty &&
+                        (isApproved ? (
+                            <button
+                                type="button"
+                                onClick={() => act(`/photos/${photo.id}/primary`)}
+                                disabled={busy}
+                                title="Définir comme photo de profil"
+                                aria-label="Définir comme photo de profil"
+                                className="grid h-8 w-8 place-items-center rounded-lg backdrop-blur disabled:opacity-50"
+                                style={{
+                                    background: 'oklch(100% 0 0 / 0.9)',
+                                    color: 'var(--ink)',
+                                }}
+                            >
+                                <Star className="h-4 w-4" />
+                            </button>
+                        ) : (
+                            !photo.avatar_requested && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        act(`/photos/${photo.id}/request-avatar`)
+                                    }
+                                    disabled={busy}
+                                    className="rounded-lg px-2 py-1.5 text-[11px] font-semibold backdrop-blur disabled:opacity-50"
+                                    style={{
+                                        background: 'oklch(100% 0 0 / 0.9)',
+                                        color: 'var(--ink)',
+                                    }}
+                                >
+                                    En photo de profil
+                                </button>
+                            )
+                        ))}
+
                     <button
                         type="button"
-                        onClick={setPrimary}
+                        onClick={remove}
                         disabled={busy}
-                        title="Définir comme photo principale"
-                        aria-label="Définir comme photo principale"
-                        className="grid h-8 w-8 place-items-center rounded-lg backdrop-blur transition-colors disabled:opacity-50"
-                        style={{
-                            background: 'oklch(100% 0 0 / 0.9)',
-                            color: 'var(--ink)',
-                        }}
+                        title="Supprimer cette photo"
+                        aria-label="Supprimer cette photo"
+                        className="grid h-8 w-8 place-items-center rounded-lg backdrop-blur disabled:opacity-50"
+                        style={{ background: 'var(--desire)', color: 'white' }}
                     >
-                        <Star className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                     </button>
-                )}
-                <button
-                    type="button"
-                    onClick={remove}
-                    disabled={busy}
-                    title="Supprimer cette photo"
-                    aria-label="Supprimer cette photo"
-                    className="grid h-8 w-8 place-items-center rounded-lg backdrop-blur transition-colors disabled:opacity-50"
-                    style={{
-                        background: 'var(--desire)',
-                        color: 'white',
-                    }}
-                >
-                    <Trash2 className="h-4 w-4" />
-                </button>
+                </div>
             </figcaption>
         </figure>
     );

@@ -65,6 +65,120 @@ class PhotoProcessingService
         return $path;
     }
 
+    /**
+     * Render a stored photo for one specific viewer.
+     *
+     * Sensitive photos are blurred beyond recognition when the viewer has not
+     * opted into adult content. Whatever the viewer sees carries their own
+     * pseudo as a watermark: a screenshot cannot be stripped of its origin,
+     * which is the only real deterrent against redistribution.
+     *
+     * @return string Raw JPEG bytes
+     */
+    public function renderForViewer(
+        string $storedPath,
+        string $viewerLabel,
+        bool $blur = false,
+    ): string {
+        $contents = Storage::disk('public')->get($storedPath);
+
+        if ($contents === null) {
+            throw new RuntimeException('Image introuvable.');
+        }
+
+        $image = imagecreatefromstring($contents);
+
+        if ($image === false) {
+            throw new RuntimeException('Impossible de lire cette image.');
+        }
+
+        try {
+            if ($blur) {
+                $image = $this->obscure($image);
+            }
+
+            $this->stampWatermark($image, $viewerLabel);
+
+            return $this->encode($image, $blur ? 60 : 82);
+        } finally {
+            imagedestroy($image);
+        }
+    }
+
+    /**
+     * Blur an image past the point of reconstruction.
+     *
+     * Repeated gaussian passes alone stay reversible on small images, so the
+     * picture is first downscaled to destroy detail, then scaled back up.
+     */
+    private function obscure(\GdImage $image): \GdImage
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $shrunk = imagescale($image, max(1, (int) round($width / 24)));
+
+        if ($shrunk === false) {
+            // Fall back to repeated blurring rather than serving a sharp image.
+            for ($i = 0; $i < 40; $i++) {
+                imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR);
+            }
+
+            return $image;
+        }
+
+        imagedestroy($image);
+        $restored = imagescale($shrunk, $width, $height, IMG_BILINEAR_FIXED);
+        imagedestroy($shrunk);
+
+        if ($restored === false) {
+            throw new RuntimeException('Impossible de flouter cette image.');
+        }
+
+        for ($i = 0; $i < 3; $i++) {
+            imagefilter($restored, IMG_FILTER_GAUSSIAN_BLUR);
+        }
+
+        return $restored;
+    }
+
+    /**
+     * Tile the viewer's identity across the image, twice, so cropping one
+     * corner out of a screenshot does not remove the trace.
+     */
+    private function stampWatermark(\GdImage $image, string $label): void
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        $white = imagecolorallocatealpha($image, 255, 255, 255, 88);
+        $shadow = imagecolorallocatealpha($image, 0, 0, 0, 100);
+
+        $font = 5;
+        $textWidth = imagefontwidth($font) * strlen($label);
+        $textHeight = imagefontheight($font);
+
+        $positions = [
+            [(int) (($width - $textWidth) / 2), (int) ($height * 0.35)],
+            [(int) (($width - $textWidth) / 2), (int) ($height * 0.68)],
+        ];
+
+        foreach ($positions as [$x, $y]) {
+            $x = max(4, $x);
+            imagestring($image, $font, $x + 1, $y + 1, $label, $shadow);
+            imagestring($image, $font, $x, $y, $label, $white);
+        }
+
+        // Discreet corner stamp, harder to notice and therefore to crop out.
+        imagestring(
+            $image,
+            2,
+            max(4, $width - imagefontwidth(2) * strlen($label) - 8),
+            max(4, $height - $textHeight - 6),
+            $label,
+            $white
+        );
+    }
+
     private function openImage(string $path, ?string $mimeType): \GdImage
     {
         $image = match ($mimeType) {

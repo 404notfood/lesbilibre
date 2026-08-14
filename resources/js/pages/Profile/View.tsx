@@ -27,8 +27,10 @@ import { useState } from 'react';
 
 interface Photo {
     id: number;
-    path: string;
+    url: string;
     is_primary: boolean;
+    is_naughty: boolean;
+    is_blurred: boolean;
 }
 
 interface Profile {
@@ -220,7 +222,7 @@ export default function View({
                         >
                             {primaryPhoto ? (
                                 <img
-                                    src={`/storage/${primaryPhoto.path}`}
+                                    src={primaryPhoto.url}
                                     alt={user.name}
                                     className="h-full w-full object-cover"
                                 />
@@ -353,12 +355,26 @@ export default function View({
                                             key={photo.id}
                                             className="reveal-tile relative aspect-square overflow-hidden rounded-lg border"
                                             style={{ borderColor: 'var(--line)' }}
+                                            onContextMenu={(e) => e.preventDefault()}
                                         >
                                             <img
-                                                src={`/storage/${photo.path}`}
+                                                src={photo.url}
                                                 alt=""
-                                                className="reveal-bg h-full w-full object-cover"
+                                                draggable={false}
+                                                onContextMenu={(e) => e.preventDefault()}
+                                                className="reveal-bg h-full w-full select-none object-cover"
                                             />
+                                            {photo.is_blurred && (
+                                                <span
+                                                    className="absolute inset-x-0 bottom-0 px-2 py-1 text-center text-[10px] font-semibold text-white"
+                                                    style={{
+                                                        background:
+                                                            'oklch(0% 0 0 / 0.55)',
+                                                    }}
+                                                >
+                                                    Contenu sensible
+                                                </span>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

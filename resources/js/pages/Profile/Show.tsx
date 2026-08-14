@@ -14,9 +14,8 @@ import {
 
 interface Photo {
     id: number;
-    path: string;
+    url: string;
     is_primary: boolean;
-    is_approved: boolean;
     is_naughty: boolean;
 }
 
@@ -141,7 +140,7 @@ export default function Show({ user }: { user: UserData }) {
                         >
                             {primaryPhoto ? (
                                 <img
-                                    src={`/storage/${primaryPhoto.path}`}
+                                    src={primaryPhoto.url}
                                     alt={user.name}
                                     className="h-full w-full object-cover"
                                 />
@@ -252,7 +251,7 @@ export default function Show({ user }: { user: UserData }) {
                                                 style={{ borderColor: 'var(--line)' }}
                                             >
                                                 <img
-                                                    src={`/storage/${photo.path}`}
+                                                    src={photo.url}
                                                     alt=""
                                                     className="reveal-bg h-full w-full object-cover"
                                                 />

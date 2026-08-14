@@ -16,6 +16,7 @@ import StatsController from './StatsController'
 import GemHistoryController from './GemHistoryController'
 import GalleryAccessController from './GalleryAccessController'
 import PhotoController from './PhotoController'
+import PhotoStreamController from './PhotoStreamController'
 import ReportController from './ReportController'
 import BlockController from './BlockController'
 import PushSubscriptionController from './PushSubscriptionController'
@@ -42,6 +43,7 @@ StatsController: Object.assign(StatsController, StatsController),
 GemHistoryController: Object.assign(GemHistoryController, GemHistoryController),
 GalleryAccessController: Object.assign(GalleryAccessController, GalleryAccessController),
 PhotoController: Object.assign(PhotoController, PhotoController),
+PhotoStreamController: Object.assign(PhotoStreamController, PhotoStreamController),
 ReportController: Object.assign(ReportController, ReportController),
 BlockController: Object.assign(BlockController, BlockController),
 PushSubscriptionController: Object.assign(PushSubscriptionController, PushSubscriptionController),

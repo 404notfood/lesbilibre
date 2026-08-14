@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" role="img" aria-labelledby="title">
+  <title id="title">LesbiLibre</title>
+  <rect width="720" height="180" rx="20" fill="#170b10"/>
+  <g fill="none" stroke="#e94676" stroke-linecap="round" stroke-width="20">
+    <path d="M76 48c-42 36-42 76 0 92 42-16 42-56 0-92Z"/>
+    <path d="M106 48c42 36 42 76 0 92-42-16-42-56 0-92Z"/>
+  </g>
+  <text x="160" y="113" fill="#f7efe6" font-family="Georgia, serif" font-size="75">Lesbi</text>
+  <text x="360" y="113" fill="#e94676" font-family="Georgia, serif" font-size="75" font-style="italic">Libre</text>
+</svg>

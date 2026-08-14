@@ -79,7 +79,7 @@ show.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     show.form = showForm
 /**
 * @see \App\Http\Controllers\ProfileController::edit
- * @see app/Http/Controllers/ProfileController.php:32
+ * @see app/Http/Controllers/ProfileController.php:41
  * @route '/profile/edit'
  */
 export const edit = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\ProfileController::edit
- * @see app/Http/Controllers/ProfileController.php:32
+ * @see app/Http/Controllers/ProfileController.php:41
  * @route '/profile/edit'
  */
 edit.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ edit.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ProfileController::edit
- * @see app/Http/Controllers/ProfileController.php:32
+ * @see app/Http/Controllers/ProfileController.php:41
  * @route '/profile/edit'
  */
 edit.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ edit.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\ProfileController::edit
- * @see app/Http/Controllers/ProfileController.php:32
+ * @see app/Http/Controllers/ProfileController.php:41
  * @route '/profile/edit'
  */
 edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\ProfileController::edit
- * @see app/Http/Controllers/ProfileController.php:32
+ * @see app/Http/Controllers/ProfileController.php:41
  * @route '/profile/edit'
  */
     const editForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\ProfileController::edit
- * @see app/Http/Controllers/ProfileController.php:32
+ * @see app/Http/Controllers/ProfileController.php:41
  * @route '/profile/edit'
  */
         editForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\ProfileController::edit
- * @see app/Http/Controllers/ProfileController.php:32
+ * @see app/Http/Controllers/ProfileController.php:41
  * @route '/profile/edit'
  */
         editForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\ProfileController::update
- * @see app/Http/Controllers/ProfileController.php:54
+ * @see app/Http/Controllers/ProfileController.php:63
  * @route '/profile'
  */
 export const update = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -172,7 +172,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\ProfileController::update
- * @see app/Http/Controllers/ProfileController.php:54
+ * @see app/Http/Controllers/ProfileController.php:63
  * @route '/profile'
  */
 update.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ update.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ProfileController::update
- * @see app/Http/Controllers/ProfileController.php:54
+ * @see app/Http/Controllers/ProfileController.php:63
  * @route '/profile'
  */
 update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -191,7 +191,7 @@ update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
 
     /**
 * @see \App\Http\Controllers\ProfileController::update
- * @see app/Http/Controllers/ProfileController.php:54
+ * @see app/Http/Controllers/ProfileController.php:63
  * @route '/profile'
  */
     const updateForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -206,7 +206,7 @@ update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
 
             /**
 * @see \App\Http\Controllers\ProfileController::update
- * @see app/Http/Controllers/ProfileController.php:54
+ * @see app/Http/Controllers/ProfileController.php:63
  * @route '/profile'
  */
         updateForm.put = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -222,7 +222,7 @@ update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\ProfileController::view
- * @see app/Http/Controllers/ProfileController.php:81
+ * @see app/Http/Controllers/ProfileController.php:90
  * @route '/profile/{userId}'
  */
 export const view = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -237,7 +237,7 @@ view.definition = {
 
 /**
 * @see \App\Http\Controllers\ProfileController::view
- * @see app/Http/Controllers/ProfileController.php:81
+ * @see app/Http/Controllers/ProfileController.php:90
  * @route '/profile/{userId}'
  */
 view.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -265,7 +265,7 @@ view.url = (args: { userId: string | number } | [userId: string | number ] | str
 
 /**
 * @see \App\Http\Controllers\ProfileController::view
- * @see app/Http/Controllers/ProfileController.php:81
+ * @see app/Http/Controllers/ProfileController.php:90
  * @route '/profile/{userId}'
  */
 view.get = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -274,7 +274,7 @@ view.get = (args: { userId: string | number } | [userId: string | number ] | str
 })
 /**
 * @see \App\Http\Controllers\ProfileController::view
- * @see app/Http/Controllers/ProfileController.php:81
+ * @see app/Http/Controllers/ProfileController.php:90
  * @route '/profile/{userId}'
  */
 view.head = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -284,7 +284,7 @@ view.head = (args: { userId: string | number } | [userId: string | number ] | st
 
     /**
 * @see \App\Http\Controllers\ProfileController::view
- * @see app/Http/Controllers/ProfileController.php:81
+ * @see app/Http/Controllers/ProfileController.php:90
  * @route '/profile/{userId}'
  */
     const viewForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -294,7 +294,7 @@ view.head = (args: { userId: string | number } | [userId: string | number ] | st
 
             /**
 * @see \App\Http\Controllers\ProfileController::view
- * @see app/Http/Controllers/ProfileController.php:81
+ * @see app/Http/Controllers/ProfileController.php:90
  * @route '/profile/{userId}'
  */
         viewForm.get = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -303,7 +303,7 @@ view.head = (args: { userId: string | number } | [userId: string | number ] | st
         })
             /**
 * @see \App\Http\Controllers\ProfileController::view
- * @see app/Http/Controllers/ProfileController.php:81
+ * @see app/Http/Controllers/ProfileController.php:90
  * @route '/profile/{userId}'
  */
         viewForm.head = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

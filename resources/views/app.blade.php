@@ -31,13 +31,51 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'LesbiLibre') }}</title>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        @php
+            $siteUrl = rtrim(config('app.url', 'https://steff.404notfood.fr'), '/');
+            $brandDescription = 'LesbiLibre, la plateforme de rencontres sincères pensée pour les femmes qui aiment les femmes.';
+            $socialImage = $siteUrl . '/images/branding/lesbilibre-social-1200x630.png';
+        @endphp
+
+        <meta name="description" content="{{ $brandDescription }}">
+        <link rel="canonical" href="{{ $siteUrl . request()->getPathInfo() }}">
+        <meta property="og:locale" content="fr_FR">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="LesbiLibre">
+        <meta property="og:title" content="LesbiLibre — Aimer une femme, sans détour.">
+        <meta property="og:description" content="{{ $brandDescription }}">
+        <meta property="og:url" content="{{ $siteUrl . request()->getPathInfo() }}">
+        <meta property="og:image" content="{{ $socialImage }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="LesbiLibre — Aimer une femme, sans détour.">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="LesbiLibre — Aimer une femme, sans détour.">
+        <meta name="twitter:description" content="{{ $brandDescription }}">
+        <meta name="twitter:image" content="{{ $socialImage }}">
+
+        <link rel="icon" href="/favicon-lesbilibre.ico" sizes="any">
+        <link rel="icon" href="/images/branding/icon-32.png" type="image/png" sizes="32x32">
+        <link rel="icon" href="/images/branding/icon-16.png" type="image/png" sizes="16x16">
+        <link rel="apple-touch-icon" href="/apple-touch-icon-lesbilibre.png" sizes="180x180">
         <link rel="manifest" href="/manifest.json">
-        <meta name="theme-color" content="#ec4899">
+        <meta name="theme-color" content="#170b10">
+
+        <script type="application/ld+json">
+            {!! json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'Organization',
+                'name' => 'LesbiLibre',
+                'url' => $siteUrl,
+                'logo' => $siteUrl . '/images/branding/icon-512.png',
+                'image' => $socialImage,
+                'description' => $brandDescription,
+                'areaServed' => 'FR',
+                'inLanguage' => 'fr-FR',
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+        </script>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
