@@ -119,8 +119,8 @@ export default function View({
 
     const handleMessage = () => {
         router.post(
-            `/conversations`,
-            { user_id: user.id },
+            `/conversations/${user.id}`,
+            {},
             {
                 onStart: () => setProcessingMessage(true),
                 onFinish: () => setProcessingMessage(false),
@@ -681,8 +681,8 @@ function ActionsBar({
                 {hasLiked ? 'Like envoyé' : "J'aime"}
             </button>
 
-            {/* Message (if matched) */}
-            {hasMatched && (
+            {/* Message (after a like, or once matched) */}
+            {(hasMatched || hasLiked) && (
                 <button
                     type="button"
                     onClick={onMessage}
@@ -698,7 +698,7 @@ function ActionsBar({
                     ) : (
                         <MessageCircle className="h-4 w-4" />
                     )}
-                    Écrire
+                    {hasMatched ? 'Écrire' : 'Envoyer un mot'}
                 </button>
             )}
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Conversation;
+use App\Models\Like;
 use App\Models\User;
 use App\Models\UserMatch;
 use Illuminate\Http\Request;
@@ -19,9 +20,9 @@ class ConversationController extends Controller
         $user = $request->user();
 
         $conversations = Conversation::where(function ($q) use ($user) {
-                $q->where('user1_id', $user->id)
-                  ->orWhere('user2_id', $user->id);
-            })
+            $q->where('user1_id', $user->id)
+                ->orWhere('user2_id', $user->id);
+        })
             ->with(['user1.profile', 'user2.profile', 'messages' => function ($query) {
                 $query->latest()->limit(1);
             }])
@@ -82,6 +83,7 @@ class ConversationController extends Controller
             'conversation' => $conversation,
             'otherUser' => $otherUser,
             'messages' => $messages,
+            'canSendMessage' => $conversation->canSendMessage($user),
         ]);
     }
 
@@ -110,8 +112,13 @@ class ConversationController extends Controller
                 ->where('user2_id', $currentUser->id);
         })->exists();
 
-        if (! $isMatched) {
-            return redirect()->back()->with('error', 'Vous devez avoir un match pour commencer une conversation.');
+        // Without a match, a like is enough to send a single introduction message.
+        $hasLiked = Like::where('user_id', $currentUser->id)
+            ->where('liked_user_id', $userId)
+            ->exists();
+
+        if (! $isMatched && ! $hasLiked) {
+            return redirect()->back()->with('error', 'Vous devez d’abord liker cette personne pour lui écrire.');
         }
 
         // Check if conversation already exists

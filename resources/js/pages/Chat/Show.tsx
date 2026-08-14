@@ -33,6 +33,7 @@ interface Conversation {
 
 interface Props {
     conversation: Conversation;
+    canSendMessage?: boolean;
     auth: {
         user: {
             id: number;
@@ -40,7 +41,7 @@ interface Props {
     };
 }
 
-export default function Show({ conversation, auth }: Props) {
+export default function Show({ conversation, canSendMessage = true, auth }: Props) {
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -156,27 +157,34 @@ export default function Show({ conversation, auth }: Props) {
                 {/* Zone de saisie */}
                 <div className="border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
                     <div className="container mx-auto px-4 py-4">
-                        <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl gap-2">
-                            <Input
-                                type="text"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Écrivez votre message..."
-                                className="flex-1"
-                                autoFocus
-                            />
-                            <Button
-                                type="submit"
-                                disabled={!message.trim() || sending}
-                                className="bg-pink-500 hover:bg-pink-600"
-                            >
-                                {sending ? (
-                                    <Spinner className="h-5 w-5" />
-                                ) : (
-                                    <Send className="h-5 w-5" />
-                                )}
-                            </Button>
-                        </form>
+                        {canSendMessage ? (
+                            <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl gap-2">
+                                <Input
+                                    type="text"
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    placeholder="Écrivez votre message..."
+                                    className="flex-1"
+                                    autoFocus
+                                />
+                                <Button
+                                    type="submit"
+                                    disabled={!message.trim() || sending}
+                                    className="bg-pink-500 hover:bg-pink-600"
+                                >
+                                    {sending ? (
+                                        <Spinner className="h-5 w-5" />
+                                    ) : (
+                                        <Send className="h-5 w-5" />
+                                    )}
+                                </Button>
+                            </form>
+                        ) : (
+                            <p className="mx-auto max-w-3xl rounded-lg bg-gray-100 px-4 py-3 text-center text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                                Votre message a bien été envoyé. Attendez sa réponse pour
+                                continuer la conversation.
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

@@ -49,9 +49,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Like routes
+    Route::get('likes', [\App\Http\Controllers\LikeController::class, 'received'])->name('likes.index');
+    Route::get('likes/received', [\App\Http\Controllers\LikeController::class, 'received'])->name('likes.received');
     Route::post('likes/{userId}', [\App\Http\Controllers\LikeController::class, 'store'])->name('likes.store')->middleware('throttle:30,1');
     Route::delete('likes/{userId}', [\App\Http\Controllers\LikeController::class, 'destroy'])->name('likes.destroy');
-    Route::get('likes/received', [\App\Http\Controllers\LikeController::class, 'received'])->name('likes.received');
 
     // Match routes
     Route::get('matches', [\App\Http\Controllers\MatchController::class, 'index'])->name('matches.index');

@@ -90,14 +90,14 @@ export default function Edit({
         date_of_birth: user.profile?.date_of_birth?.substring(0, 10) || '',
         sexual_orientation: user.profile?.sexual_orientation || 'lesbian',
         interested_in: user.profile?.interested_in || '',
-        looking_for: user.profile?.looking_for || undefined,
+        looking_for: user.profile?.looking_for || '',
         relationship_status: user.profile?.relationship_status || 'single',
         height: user.profile?.height || '',
-        body_type: user.profile?.body_type || undefined,
-        hair_color: user.profile?.hair_color || undefined,
-        eye_color: user.profile?.eye_color || undefined,
-        ethnicity: user.profile?.ethnicity || undefined,
-        education: user.profile?.education || undefined,
+        body_type: user.profile?.body_type || '',
+        hair_color: user.profile?.hair_color || '',
+        eye_color: user.profile?.eye_color || '',
+        ethnicity: user.profile?.ethnicity || '',
+        education: user.profile?.education || '',
         occupation: user.profile?.occupation || '',
         has_children: user.profile?.has_children || false,
         wants_children: user.profile?.wants_children || false,
@@ -133,7 +133,12 @@ export default function Edit({
             naughty_interest_ids: selectedNaughtyIds,
         };
 
-        router.put('/profile', data);
+        router.put('/profile', data, {
+            preserveScroll: true,
+            onError: () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            },
+        });
     };
 
     const handleChange = (field: string, value: string | boolean | number | undefined) => {

@@ -27,6 +27,11 @@ class MessageController extends Controller
 
         abort_unless($user->canInteractWith($otherUser), 403, 'Cette conversation n’est plus disponible.');
         abort_if($otherUser->profile?->message_permission === 'verified_members' && ! $user->is_verified, 403, 'Cette personne accepte uniquement les messages de profils vérifiés.');
+
+        if (! $conversation->canSendMessage($user)) {
+            return redirect()->back()->with('error', 'Attendez sa réponse avant d’envoyer un autre message.');
+        }
+
         app(AntiAbuseService::class)->assertMessageAllowed($user, $request->string('content')->toString());
 
         // Create the message

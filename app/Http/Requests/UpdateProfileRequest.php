@@ -51,7 +51,7 @@ class UpdateProfileRequest extends FormRequest
             'is_naughty_mode' => ['boolean'],
             'is_discoverable' => ['boolean'],
             'incognito_mode' => ['boolean'],
-            'message_permission' => ['required', 'in:matches_only,verified_members'],
+            'message_permission' => ['sometimes', 'in:matches_only,verified_members'],
             'show_age' => ['boolean'],
             'show_location' => ['boolean'],
             'search_radius' => ['integer', 'min:1', 'max:500'],
