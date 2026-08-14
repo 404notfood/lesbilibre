@@ -6,6 +6,7 @@ import users from './users'
 import subscriptions from './subscriptions'
 import billing from './billing'
 import gems from './gems'
+import ephemeral from './ephemeral'
 import moderation from './moderation'
 import staticPages from './static-pages'
 import settings from './settings'
@@ -96,6 +97,7 @@ users: Object.assign(users, users),
 subscriptions: Object.assign(subscriptions, subscriptions),
 billing: Object.assign(billing, billing),
 gems: Object.assign(gems, gems),
+ephemeral: Object.assign(ephemeral, ephemeral),
 moderation: Object.assign(moderation, moderation),
 staticPages: Object.assign(staticPages, staticPages),
 settings: Object.assign(settings, settings),

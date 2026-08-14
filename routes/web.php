@@ -87,6 +87,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('conversations/{conversation}/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store')->middleware('throttle:20,1');
     Route::post('messages/{message}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('messages.read');
 
+    // Contenus éphémères — servis une vue à la fois, jamais par une URL partageable.
+    Route::post('conversations/{conversation}/ephemeral', [\App\Http\Controllers\EphemeralMediaController::class, 'store'])->name('ephemeral.store')->middleware('throttle:10,1');
+    Route::get('ephemeral/{medium}', [\App\Http\Controllers\EphemeralMediaController::class, 'show'])->name('ephemeral.show');
+    Route::post('ephemeral/{medium}/report', [\App\Http\Controllers\EphemeralMediaController::class, 'report'])->name('ephemeral.report')->middleware('throttle:5,1');
+
     // Notification routes
     Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('notifications/unread', [\App\Http\Controllers\NotificationController::class, 'unread'])->name('notifications.unread');
@@ -198,6 +203,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('gems/{user}', [\App\Http\Controllers\Admin\GemController::class, 'show'])->name('gems.show');
         Route::post('gems/{user}/add', [\App\Http\Controllers\Admin\GemController::class, 'add'])->name('gems.add');
         Route::post('gems/{user}/remove', [\App\Http\Controllers\Admin\GemController::class, 'remove'])->name('gems.remove');
+
+        // Éphémères — statistiques agrégées et file des signalements
+        Route::get('ephemeral', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'index'])->name('ephemeral.index');
+        Route::get('ephemeral/{medium}/file', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'show'])->name('ephemeral.file');
+        Route::post('ephemeral/{medium}/dismiss', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'dismiss'])->name('ephemeral.dismiss');
+        Route::delete('ephemeral/{medium}', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'destroy'])->name('ephemeral.destroy');
 
         // Moderation
         Route::get('moderation', [\App\Http\Controllers\Admin\ModerationController::class, 'index'])->name('moderation.index');

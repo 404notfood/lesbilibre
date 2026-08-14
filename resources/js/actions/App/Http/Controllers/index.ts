@@ -10,6 +10,7 @@ import ShopController from './ShopController'
 import PremiumController from './PremiumController'
 import ConversationController from './ConversationController'
 import MessageController from './MessageController'
+import EphemeralMediaController from './EphemeralMediaController'
 import NotificationController from './NotificationController'
 import BadgeController from './BadgeController'
 import StatsController from './StatsController'
@@ -37,6 +38,7 @@ ShopController: Object.assign(ShopController, ShopController),
 PremiumController: Object.assign(PremiumController, PremiumController),
 ConversationController: Object.assign(ConversationController, ConversationController),
 MessageController: Object.assign(MessageController, MessageController),
+EphemeralMediaController: Object.assign(EphemeralMediaController, EphemeralMediaController),
 NotificationController: Object.assign(NotificationController, NotificationController),
 BadgeController: Object.assign(BadgeController, BadgeController),
 StatsController: Object.assign(StatsController, StatsController),

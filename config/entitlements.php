@@ -30,6 +30,7 @@ return [
         'unlimited_likes' => false,
         'profile_boost' => false,
         'read_receipts' => false,
+        'free_replays' => false,
     ],
 
     /*
@@ -98,6 +99,12 @@ return [
             'key' => 'read_receipts',
             'label' => 'Accusés de lecture',
             'hint' => 'Savoir quand un message a été lu.',
+            'quota' => false,
+        ],
+        [
+            'key' => 'free_replays',
+            'label' => 'Revoir les éphémères sans payer',
+            'hint' => 'Sinon, revoir un contenu éphémère coûte des gemmes.',
             'quota' => false,
         ],
     ],

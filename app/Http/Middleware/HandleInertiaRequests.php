@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Conversation;
+use App\Models\EphemeralMedia;
 use App\Models\GalleryAccessRequest;
 use App\Models\Like;
 use App\Models\Photo;
@@ -91,6 +92,9 @@ class HandleInertiaRequests extends Middleware
                 'pending_photos' => Photo::where('is_approved', false)->count(),
                 'pending_verifications' => VerificationPhoto::where('status', 'pending')->count(),
                 'open_reports' => Report::where('status', 'pending')->count(),
+                'flagged_ephemeral' => EphemeralMedia::where('is_flagged', true)
+                    ->whereNull('purged_at')
+                    ->count(),
             ];
         }
 

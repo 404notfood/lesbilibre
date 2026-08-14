@@ -71,6 +71,28 @@ class PhotoProcessingService
     }
 
     /**
+     * Store an ephemeral photo on the private disk.
+     *
+     * Kept off the public disk entirely: these images are served one view at a
+     * time through the application, never by a URL somebody can share.
+     */
+    public function storePrivateEphemeral(UploadedFile $upload): string
+    {
+        $source = $this->openImage($upload->getRealPath(), $upload->getMimeType());
+        $main = $this->resizeToFit($source, imagesx($source), imagesy($source), self::MAX_DIMENSION);
+        $path = 'ephemeral/'.Str::uuid().'.jpg';
+
+        try {
+            Storage::disk('local')->put($path, $this->encode($main, 85));
+        } finally {
+            imagedestroy($source);
+            imagedestroy($main);
+        }
+
+        return $path;
+    }
+
+    /**
      * Render a photo for a viewer, reusing a previously rendered copy.
      *
      * Rendered images are kept on the private disk instead of the cache store:

@@ -12,6 +12,7 @@ import {
     ShieldAlert,
     Sparkles,
     Tags,
+    Timer,
     UserCog,
     Users,
 } from 'lucide-react';
@@ -62,6 +63,7 @@ interface AdminPageProps {
         pending_photos?: number;
         pending_verifications?: number;
         open_reports?: number;
+        flagged_ephemeral?: number;
     };
 }
 
@@ -117,6 +119,13 @@ export default function AdminLayout({
             icon: Flag,
             badge: adminAlerts?.open_reports || undefined,
             matchPrefix: '/admin/reports',
+        },
+        {
+            href: '/admin/ephemeral',
+            label: 'Éphémères',
+            icon: Timer,
+            badge: adminAlerts?.flagged_ephemeral || undefined,
+            matchPrefix: '/admin/ephemeral',
         },
     ];
 

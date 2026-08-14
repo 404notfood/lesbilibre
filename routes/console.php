@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('privacy:prune-verification-photos --days=30')->dailyAt('03:30')->withoutOverlapping();
 Schedule::command('photos:prune-render-cache')->hourly()->withoutOverlapping();
+Schedule::command('ephemeral:prune')->dailyAt('04:00')->withoutOverlapping();

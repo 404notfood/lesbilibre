@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useState } from 'react';
 import {
     Activity,
     ArrowRight,
@@ -13,6 +13,7 @@ import {
     Lock,
     LogOut,
     MessageCircle,
+    MoreHorizontal,
     Shield,
     ShoppingBag,
     Sparkles,
@@ -20,11 +21,24 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/toaster';
 import { FlashToaster } from '@/components/flash-toaster';
 import NotificationBell from '@/components/NotificationBell';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import PresencePanel, { type PresenceUser } from '@/components/discovery/PresencePanel';
+
+interface NavEntry {
+    icon: typeof Heart;
+    label: string;
+    href: string;
+    badge?: number;
+}
 
 interface DatingLayoutProps {
     title?: string;
@@ -79,6 +93,8 @@ export default function DatingLayout({
 
     const { permission, isSubscribed, subscribe } = usePushNotifications();
 
+    const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+
     const currentPath =
         typeof window !== 'undefined' ? window.location.pathname : '';
 
@@ -87,7 +103,7 @@ export default function DatingLayout({
             ? currentPath === '/' || currentPath === '/dashboard'
             : currentPath.startsWith(href);
 
-    const menuItems = [
+    const menuItems: NavEntry[] = [
         { icon: Compass, label: 'Découvrir', href: '/dashboard' },
         {
             icon: MessageCircle,
@@ -114,7 +130,7 @@ export default function DatingLayout({
         },
     ];
 
-    const secondaryItems = [
+    const secondaryItems: NavEntry[] = [
         // Tant que le compte n'est pas vérifié, on garde un accès direct au
         // parcours : sans lui, la page /verification est introuvable.
         ...(auth.user?.is_verified
@@ -129,6 +145,16 @@ export default function DatingLayout({
         { icon: Shield, label: 'Badges', href: '/badges' },
         { icon: ShoppingBag, label: 'Boutique', href: '/shop' },
     ];
+
+    // La barre du bas ne tient que 4 onglets + « Plus » ; tout le reste bascule
+    // dans le panneau, sinon ces pages n'ont aucun point d'entrée en PWA.
+    const primaryMobileItems: NavEntry[] = menuItems.slice(0, 4);
+    const overflowItems: NavEntry[] = [...menuItems.slice(4), ...secondaryItems];
+
+    const moreMenuBadge = overflowItems.reduce(
+        (total, item) => total + (item.badge ?? 0),
+        0,
+    );
 
     const onlineUsers: PresenceUser[] = presenceUsers ?? [];
 
@@ -418,7 +444,11 @@ export default function DatingLayout({
                         </div>
                     </header>
 
-                    <div className="flex-1 overflow-y-auto">{children}</div>
+                    {/* pb-20 : la barre de navigation mobile est fixed et
+                     * recouvrirait la fin du contenu. */}
+                    <div className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+                        {children}
+                    </div>
                 </main>
 
                 {showOnlineUsers && onlineUsers.length > 0 ? (
@@ -427,8 +457,131 @@ export default function DatingLayout({
             </div>
 
             <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-card px-2 py-2 lg:hidden" aria-label="Navigation principale mobile">
-                {menuItems.slice(0, 4).map((item) => <Link key={item.href} href={item.href} className="flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1 text-xs" aria-current={isActive(item.href) ? 'page' : undefined}><item.icon className="h-5 w-5" /><span>{item.label}</span></Link>)}
+                {primaryMobileItems.map((item) => (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        className="relative flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1 text-xs"
+                        aria-current={isActive(item.href) ? 'page' : undefined}
+                    >
+                        <item.icon className="h-5 w-5" />
+                        {item.badge !== undefined && (
+                            <span
+                                className="absolute -top-0.5 right-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold text-white"
+                                style={{ background: 'var(--desire)' }}
+                            >
+                                {item.badge}
+                            </span>
+                        )}
+                        <span>{item.label}</span>
+                    </Link>
+                ))}
+                <button
+                    type="button"
+                    onClick={() => setMoreMenuOpen(true)}
+                    className="relative flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1 text-xs"
+                    aria-label="Plus d'options"
+                    aria-haspopup="dialog"
+                    aria-expanded={moreMenuOpen}
+                >
+                    <MoreHorizontal className="h-5 w-5" />
+                    {moreMenuBadge > 0 && (
+                        <span
+                            className="absolute -top-0.5 right-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold text-white"
+                            style={{ background: 'var(--desire)' }}
+                        >
+                            {moreMenuBadge}
+                        </span>
+                    )}
+                    <span>Plus</span>
+                </button>
             </nav>
+
+            {/* Toutes les destinations qui ne tiennent pas dans la barre du bas.
+             * Sans ce panneau elles sont injoignables en PWA : la sidebar qui
+             * les porte est en lg:flex. */}
+            <Sheet open={moreMenuOpen} onOpenChange={setMoreMenuOpen}>
+                <SheetContent
+                    side="bottom"
+                    className="max-h-[85vh] overflow-y-auto rounded-t-2xl lg:hidden"
+                >
+                    <SheetHeader>
+                        <SheetTitle className="font-display text-lg font-medium italic">
+                            Tout LesbiLibre
+                        </SheetTitle>
+                    </SheetHeader>
+
+                    <div className="flex flex-col gap-1 px-4 pb-8">
+                        {overflowItems.map((item) => (
+                            <MobileMenuLink
+                                key={item.href}
+                                href={item.href}
+                                icon={item.icon}
+                                label={item.label}
+                                badge={item.badge}
+                                active={isActive(item.href)}
+                                onNavigate={() => setMoreMenuOpen(false)}
+                            />
+                        ))}
+
+                        <div
+                            className="my-2 h-px"
+                            style={{ background: 'var(--line-soft)' }}
+                        />
+
+                        <MobileMenuLink
+                            href="/premium"
+                            icon={Crown}
+                            label="Passe en Premium"
+                            active={isActive('/premium')}
+                            onNavigate={() => setMoreMenuOpen(false)}
+                        />
+
+                        {auth.user?.is_admin && (
+                            <MobileMenuLink
+                                href="/admin/dashboard"
+                                icon={Shield}
+                                label="Administration"
+                                active={isActive('/admin')}
+                                onNavigate={() => setMoreMenuOpen(false)}
+                            />
+                        )}
+
+                        <div
+                            className="my-2 h-px"
+                            style={{ background: 'var(--line-soft)' }}
+                        />
+
+                        <MobileMenuLink
+                            href="/faq"
+                            icon={HelpCircle}
+                            label="FAQ"
+                            active={isActive('/faq')}
+                            onNavigate={() => setMoreMenuOpen(false)}
+                            muted
+                        />
+                        <MobileMenuLink
+                            href="/terms"
+                            icon={Shield}
+                            label="Conditions"
+                            active={isActive('/terms')}
+                            onNavigate={() => setMoreMenuOpen(false)}
+                            muted
+                        />
+
+                        <Link
+                            href="/logout"
+                            method="post"
+                            as="button"
+                            onClick={handleLogout}
+                            className="mt-2 flex items-center gap-3 rounded-xl px-3 py-3 text-[14px] font-medium text-foreground/60 transition-colors hover:bg-foreground/[0.06]"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            Se déconnecter
+                        </Link>
+                    </div>
+                </SheetContent>
+            </Sheet>
 
             <Toaster />
             <FlashToaster />
@@ -469,6 +622,56 @@ function NavItem({
                       : 'var(--ink-soft)',
                 fontWeight: active ? 600 : 500,
             }}
+        >
+            <Icon className="h-4 w-4" />
+            <span className="flex-1">{label}</span>
+            {badge !== undefined && (
+                <span
+                    className="grid h-[18px] min-w-[18px] place-items-center rounded-md px-1.5 text-[10px] font-bold text-white"
+                    style={{ background: 'var(--desire)' }}
+                >
+                    {badge}
+                </span>
+            )}
+        </Link>
+    );
+}
+
+/* ---------------------------------------------------------------------------
+ * MobileMenuLink — entrée du panneau « Plus »
+ * -------------------------------------------------------------------------*/
+function MobileMenuLink({
+    href,
+    icon: Icon,
+    label,
+    badge,
+    active,
+    muted,
+    onNavigate,
+}: {
+    href: string;
+    icon: typeof Heart;
+    label: string;
+    badge?: number;
+    active?: boolean;
+    muted?: boolean;
+    onNavigate: () => void;
+}): JSX.Element {
+    return (
+        <Link
+            href={href}
+            onClick={onNavigate}
+            className="flex items-center gap-3 rounded-xl px-3 py-3 text-[14px] transition-colors"
+            style={{
+                background: active ? 'var(--blush)' : 'transparent',
+                color: active
+                    ? 'var(--wine-deep)'
+                    : muted
+                      ? 'var(--ink-mute)'
+                      : 'var(--ink-soft)',
+                fontWeight: active ? 600 : 500,
+            }}
+            aria-current={active ? 'page' : undefined}
         >
             <Icon className="h-4 w-4" />
             <span className="flex-1">{label}</span>
