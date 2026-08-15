@@ -166,6 +166,11 @@ class ActivityController extends Controller
             })
             ->toArray();
 
+        // Marquer l'activité comme vue une fois les données collectées : la
+        // pastille retombe à zéro, mais la page affiche encore ce qui était
+        // nouveau au moment de l'ouverture.
+        $user->forceFill(['activity_seen_at' => now()])->saveQuietly();
+
         return Inertia::render('Activity/Index', [
             'likes_received' => $recentLikes->toArray(),
             'visits' => $recentVisits->toArray(),

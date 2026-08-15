@@ -69,6 +69,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'gems' => 'integer',
             'last_login_at' => 'datetime',
             'last_activity_at' => 'datetime',
+            'activity_seen_at' => 'datetime',
             'trust_score' => 'integer',
             'trust_score_updated_at' => 'datetime',
             'data_processing_consent' => 'boolean',

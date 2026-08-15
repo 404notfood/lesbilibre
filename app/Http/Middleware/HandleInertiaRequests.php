@@ -64,17 +64,25 @@ class HandleInertiaRequests extends Middleware
                 })
                 ->count();
 
-            // Nombre d'activités récentes (non lues)
+            // Activités non lues : postérieures à la dernière consultation de
+            // la page Activité, plafonnées à 7 jours pour ne pas afficher un
+            // compteur énorme au premier passage.
+            $activitySince = $user->activity_seen_at ?? now()->subDays(7);
+
+            if ($activitySince->lt(now()->subDays(7))) {
+                $activitySince = now()->subDays(7);
+            }
+
             $recentActivitiesCount = Like::where('liked_user_id', $user->id)
-                ->where('created_at', '>=', now()->subDays(7))
+                ->where('created_at', '>', $activitySince)
                 ->count()
                 + ProfileVisit::where('visited_user_id', $user->id)
-                    ->where('created_at', '>=', now()->subDays(7))
+                    ->where('created_at', '>', $activitySince)
                     ->count()
                 + UserMatch::where(function ($query) use ($user) {
                     $query->where('user1_id', $user->id)->orWhere('user2_id', $user->id);
                 })
-                    ->where('created_at', '>=', now()->subDays(7))
+                    ->where('created_at', '>', $activitySince)
                     ->count();
 
             // Demandes d'accès à la galerie privée en attente de réponse
