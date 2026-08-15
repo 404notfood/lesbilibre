@@ -48,17 +48,33 @@ interface CurrentSubscription {
     managed_by_stripe: boolean;
 }
 
+/**
+ * État du premium tel que la membre le vit. Un compte peut être premium sans
+ * ligne d'abonnement (accès accordé à la main), d'où cet objet distinct.
+ */
+interface PremiumState {
+    expires_at: string | null;
+    managed_by_stripe: boolean;
+    has_subscription: boolean;
+}
+
 export default function Index({
     isPremium = false,
     plans = [],
     currentSubscription = null,
+    premiumState = null,
+    canCancel = false,
 }: {
     isPremium?: boolean;
     plans?: Plan[];
     currentSubscription?: CurrentSubscription | null;
+    premiumState?: PremiumState | null;
+    canCancel?: boolean;
 }) {
     const [confirmCancel, setConfirmCancel] = useState(false);
     const [cancelling, setCancelling] = useState(false);
+
+    const isCancelled = currentSubscription?.status === 'canceled';
 
     const handleSubscribe = (planId: number) => {
         router.post('/premium/subscribe', {
@@ -157,21 +173,21 @@ export default function Index({
                 </div>
 
                 {/* Gestion de l'abonnement en cours */}
-                {isPremium && (
+                {isPremium && premiumState && (
                     <Card className="mx-auto max-w-2xl border-2">
                         <CardContent className="space-y-4 p-6">
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <h2 className="text-lg font-bold">
-                                        Ton abonnement
+                                        Ton abonnement Premium
                                     </h2>
-                                    {currentSubscription?.expires_at ? (
+                                    {premiumState.expires_at ? (
                                         <p className="text-sm text-muted-foreground">
-                                            {currentSubscription.status === 'canceled'
+                                            {isCancelled
                                                 ? 'Résilié — accès conservé jusqu’au '
                                                 : 'Prochaine échéance le '}
                                             {new Date(
-                                                currentSubscription.expires_at,
+                                                premiumState.expires_at,
                                             ).toLocaleDateString('fr-FR', {
                                                 day: 'numeric',
                                                 month: 'long',
@@ -184,15 +200,13 @@ export default function Index({
                                         </p>
                                     )}
                                 </div>
-                                <Badge variant="secondary">
-                                    {currentSubscription?.status === 'canceled'
-                                        ? 'Résilié'
-                                        : 'Actif'}
+                                <Badge variant={isCancelled ? 'outline' : 'secondary'}>
+                                    {isCancelled ? 'Résilié' : 'Actif'}
                                 </Badge>
                             </div>
 
                             <div className="flex flex-wrap gap-2">
-                                {currentSubscription?.managed_by_stripe && (
+                                {premiumState.managed_by_stripe && (
                                     <Button
                                         variant="outline"
                                         onClick={() =>
@@ -203,22 +217,22 @@ export default function Index({
                                     </Button>
                                 )}
 
-                                {currentSubscription &&
-                                    currentSubscription.status !== 'canceled' &&
-                                    !currentSubscription.managed_by_stripe && (
-                                        <Button
-                                            variant="ghost"
-                                            onClick={() => setConfirmCancel(true)}
-                                        >
-                                            Résilier mon abonnement
-                                        </Button>
-                                    )}
+                                {canCancel && !isCancelled && (
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setConfirmCancel(true)}
+                                    >
+                                        Résilier mon abonnement
+                                    </Button>
+                                )}
                             </div>
 
                             <p className="text-xs text-muted-foreground">
-                                {currentSubscription?.managed_by_stripe
+                                {premiumState.managed_by_stripe
                                     ? 'La résiliation s’effectue depuis le portail de paiement : elle arrête le prélèvement et tu gardes l’accès jusqu’à la fin de la période payée.'
-                                    : 'En cas de résiliation, tu conserves ton accès Premium jusqu’à la fin de la période déjà réglée.'}
+                                    : premiumState.expires_at
+                                      ? 'En cas de résiliation, tu conserves ton accès Premium jusqu’à la fin de la période déjà réglée.'
+                                      : 'Ton accès n’a pas de date de fin : la résiliation prend effet immédiatement.'}
                             </p>
                         </CardContent>
                     </Card>
@@ -440,9 +454,9 @@ export default function Index({
                     <DialogHeader>
                         <DialogTitle>Résilier ton abonnement Premium</DialogTitle>
                         <DialogDescription>
-                            {currentSubscription?.expires_at
+                            {premiumState?.expires_at
                                 ? `Tu gardes l'accès à toutes les fonctionnalités Premium jusqu'au ${new Date(
-                                      currentSubscription.expires_at,
+                                      premiumState.expires_at,
                                   ).toLocaleDateString('fr-FR', {
                                       day: 'numeric',
                                       month: 'long',

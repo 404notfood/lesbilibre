@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\PremiumController::success
- * @see app/Http/Controllers/PremiumController.php:170
+ * @see app/Http/Controllers/PremiumController.php:186
  * @route '/premium/checkout/success'
  */
 export const success = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ success.definition = {
 
 /**
 * @see \App\Http\Controllers\PremiumController::success
- * @see app/Http/Controllers/PremiumController.php:170
+ * @see app/Http/Controllers/PremiumController.php:186
  * @route '/premium/checkout/success'
  */
 success.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ success.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PremiumController::success
- * @see app/Http/Controllers/PremiumController.php:170
+ * @see app/Http/Controllers/PremiumController.php:186
  * @route '/premium/checkout/success'
  */
 success.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ success.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\PremiumController::success
- * @see app/Http/Controllers/PremiumController.php:170
+ * @see app/Http/Controllers/PremiumController.php:186
  * @route '/premium/checkout/success'
  */
 success.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ success.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\PremiumController::success
- * @see app/Http/Controllers/PremiumController.php:170
+ * @see app/Http/Controllers/PremiumController.php:186
  * @route '/premium/checkout/success'
  */
     const successForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ success.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\PremiumController::success
- * @see app/Http/Controllers/PremiumController.php:170
+ * @see app/Http/Controllers/PremiumController.php:186
  * @route '/premium/checkout/success'
  */
         successForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ success.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\PremiumController::success
- * @see app/Http/Controllers/PremiumController.php:170
+ * @see app/Http/Controllers/PremiumController.php:186
  * @route '/premium/checkout/success'
  */
         successForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ success.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     success.form = successForm
 /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:191
+ * @see app/Http/Controllers/PremiumController.php:207
  * @route '/premium/checkout/cancel'
  */
 export const cancel = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ cancel.definition = {
 
 /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:191
+ * @see app/Http/Controllers/PremiumController.php:207
  * @route '/premium/checkout/cancel'
  */
 cancel.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ cancel.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:191
+ * @see app/Http/Controllers/PremiumController.php:207
  * @route '/premium/checkout/cancel'
  */
 cancel.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ cancel.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:191
+ * @see app/Http/Controllers/PremiumController.php:207
  * @route '/premium/checkout/cancel'
  */
 cancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ cancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:191
+ * @see app/Http/Controllers/PremiumController.php:207
  * @route '/premium/checkout/cancel'
  */
     const cancelForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ cancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:191
+ * @see app/Http/Controllers/PremiumController.php:207
  * @route '/premium/checkout/cancel'
  */
         cancelForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ cancel.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:191
+ * @see app/Http/Controllers/PremiumController.php:207
  * @route '/premium/checkout/cancel'
  */
         cancelForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({

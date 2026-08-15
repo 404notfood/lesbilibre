@@ -80,7 +80,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\PremiumController::subscribe
- * @see app/Http/Controllers/PremiumController.php:130
+ * @see app/Http/Controllers/PremiumController.php:146
  * @route '/premium/subscribe'
  */
 export const subscribe = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -95,7 +95,7 @@ subscribe.definition = {
 
 /**
 * @see \App\Http\Controllers\PremiumController::subscribe
- * @see app/Http/Controllers/PremiumController.php:130
+ * @see app/Http/Controllers/PremiumController.php:146
  * @route '/premium/subscribe'
  */
 subscribe.url = (options?: RouteQueryOptions) => {
@@ -104,7 +104,7 @@ subscribe.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PremiumController::subscribe
- * @see app/Http/Controllers/PremiumController.php:130
+ * @see app/Http/Controllers/PremiumController.php:146
  * @route '/premium/subscribe'
  */
 subscribe.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -114,7 +114,7 @@ subscribe.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\PremiumController::subscribe
- * @see app/Http/Controllers/PremiumController.php:130
+ * @see app/Http/Controllers/PremiumController.php:146
  * @route '/premium/subscribe'
  */
     const subscribeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -124,7 +124,7 @@ subscribe.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\PremiumController::subscribe
- * @see app/Http/Controllers/PremiumController.php:130
+ * @see app/Http/Controllers/PremiumController.php:146
  * @route '/premium/subscribe'
  */
         subscribeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -135,7 +135,7 @@ subscribe.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     subscribe.form = subscribeForm
 /**
 * @see \App\Http\Controllers\PremiumController::billingPortal
- * @see app/Http/Controllers/PremiumController.php:197
+ * @see app/Http/Controllers/PremiumController.php:213
  * @route '/premium/billing-portal'
  */
 export const billingPortal = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -150,7 +150,7 @@ billingPortal.definition = {
 
 /**
 * @see \App\Http\Controllers\PremiumController::billingPortal
- * @see app/Http/Controllers/PremiumController.php:197
+ * @see app/Http/Controllers/PremiumController.php:213
  * @route '/premium/billing-portal'
  */
 billingPortal.url = (options?: RouteQueryOptions) => {
@@ -159,7 +159,7 @@ billingPortal.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PremiumController::billingPortal
- * @see app/Http/Controllers/PremiumController.php:197
+ * @see app/Http/Controllers/PremiumController.php:213
  * @route '/premium/billing-portal'
  */
 billingPortal.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -169,7 +169,7 @@ billingPortal.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
     /**
 * @see \App\Http\Controllers\PremiumController::billingPortal
- * @see app/Http/Controllers/PremiumController.php:197
+ * @see app/Http/Controllers/PremiumController.php:213
  * @route '/premium/billing-portal'
  */
     const billingPortalForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -179,7 +179,7 @@ billingPortal.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
             /**
 * @see \App\Http\Controllers\PremiumController::billingPortal
- * @see app/Http/Controllers/PremiumController.php:197
+ * @see app/Http/Controllers/PremiumController.php:213
  * @route '/premium/billing-portal'
  */
         billingPortalForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -190,7 +190,7 @@ billingPortal.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
     billingPortal.form = billingPortalForm
 /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:222
+ * @see app/Http/Controllers/PremiumController.php:238
  * @route '/premium/cancel'
  */
 export const cancel = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -205,7 +205,7 @@ cancel.definition = {
 
 /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:222
+ * @see app/Http/Controllers/PremiumController.php:238
  * @route '/premium/cancel'
  */
 cancel.url = (options?: RouteQueryOptions) => {
@@ -214,7 +214,7 @@ cancel.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:222
+ * @see app/Http/Controllers/PremiumController.php:238
  * @route '/premium/cancel'
  */
 cancel.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -224,7 +224,7 @@ cancel.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:222
+ * @see app/Http/Controllers/PremiumController.php:238
  * @route '/premium/cancel'
  */
     const cancelForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -234,7 +234,7 @@ cancel.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\PremiumController::cancel
- * @see app/Http/Controllers/PremiumController.php:222
+ * @see app/Http/Controllers/PremiumController.php:238
  * @route '/premium/cancel'
  */
         cancelForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

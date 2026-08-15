@@ -102,12 +102,20 @@ class PremiumController extends Controller
             ],
         ];
 
-        // User's current subscription status
+        // Dernier abonnement encore valide, s'il en existe un. Un compte peut
+        // très bien être premium sans aucune ligne ici : premium accordé depuis
+        // la console, seeder, geste commercial.
         $currentSubscription = $user->subscriptions()
             ->where('status', 'active')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->latest()
             ->first();
+
+        $isPremium = $user->isPremium();
+        $managedByStripe = filled($currentSubscription?->stripe_customer_id);
 
         return Inertia::render('Premium/Index', [
             'features' => $features,
@@ -119,11 +127,19 @@ class PremiumController extends Controller
                 'amount' => (float) $currentSubscription->amount,
                 'status' => $currentSubscription->status,
                 'expires_at' => $currentSubscription->expires_at?->toISOString(),
-                // Un abonnement Stripe se résilie depuis le portail de facturation ;
-                // les autres (créés depuis la console) n'ont que la résiliation interne.
-                'managed_by_stripe' => filled($currentSubscription->stripe_customer_id),
+                'managed_by_stripe' => $managedByStripe,
             ] : null,
-            'isPremium' => $user->isPremium(),
+            'isPremium' => $isPremium,
+            // État du premium tel que la membre le vit, qu'une ligne
+            // d'abonnement existe ou non.
+            'premiumState' => $isPremium ? [
+                'expires_at' => $user->premium_expires_at?->toISOString(),
+                'managed_by_stripe' => $managedByStripe,
+                'has_subscription' => $currentSubscription !== null,
+            ] : null,
+            // Toute membre premium doit pouvoir couper son premium. Seul le cas
+            // Stripe passe par le portail, pour arrêter aussi le prélèvement.
+            'canCancel' => $isPremium && ! $managedByStripe,
         ]);
     }
 
@@ -223,31 +239,35 @@ class PremiumController extends Controller
     {
         $user = $request->user();
 
+        if (! $user->isPremium()) {
+            return back()->with('error', 'Aucun abonnement Premium à résilier.');
+        }
+
         $subscription = $user->subscriptions()
             ->where('status', 'active')
             ->latest()
             ->first();
 
-        if (! $subscription) {
-            return back()->with('error', 'Aucun abonnement actif à résilier.');
-        }
-
-        if (filled($subscription->stripe_customer_id)) {
+        // Le prélèvement récurrent ne peut être coupé que chez Stripe : arrêter
+        // le premier ici laisserait la carte débitée tous les mois.
+        if (filled($subscription?->stripe_customer_id)) {
             return back()->with(
                 'error',
                 'Cet abonnement est géré par notre prestataire de paiement. Utilise « Gérer mon abonnement » pour le résilier et arrêter le prélèvement.'
             );
         }
 
-        $subscription->update(['status' => 'canceled']);
+        $subscription?->update(['status' => 'canceled']);
 
-        // L'accès reste ouvert jusqu'à l'échéance déjà réglée. Sans échéance,
-        // il s'agit d'un accès offert : il prend fin immédiatement.
-        $keepUntil = $subscription->expires_at;
+        // L'accès reste ouvert jusqu'à la date déjà réglée — résilier ne doit
+        // pas reprendre ce qui a été payé. L'échéance du compte fait foi, y
+        // compris quand aucune ligne d'abonnement n'existe.
+        $keepUntil = $subscription?->expires_at ?? $user->premium_expires_at;
 
         if ($keepUntil?->isFuture()) {
             $user->premium_expires_at = $keepUntil;
         } else {
+            // Premium illimité ou déjà échu : il prend fin maintenant.
             $user->is_premium = false;
             $user->premium_expires_at = null;
         }
@@ -258,7 +278,7 @@ class PremiumController extends Controller
             'success',
             $keepUntil?->isFuture()
                 ? 'Abonnement résilié. Tu gardes ton accès Premium jusqu’au '.$keepUntil->format('d/m/Y').'.'
-                : 'Abonnement résilié.'
+                : 'Abonnement résilié. Ton compte repasse en gratuit.'
         );
     }
 }
