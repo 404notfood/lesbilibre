@@ -57,7 +57,6 @@ interface UserData {
     name: string;
     is_verified: boolean;
     profile?: Profile;
-    photos?: Photo[];
 }
 
 interface ProfileOptions {
@@ -78,6 +77,8 @@ interface ProfileOptions {
  * -------------------------------------------------------------------------*/
 export default function View({
     user,
+    photos = [],
+    viewerAcceptsNaughty = false,
     hasLiked,
     hasMatched,
     hasBlocked,
@@ -85,6 +86,8 @@ export default function View({
     profileOptions,
 }: {
     user: UserData;
+    photos?: Photo[];
+    viewerAcceptsNaughty?: boolean;
     hasLiked: boolean;
     hasMatched: boolean;
     hasBlocked: boolean;
@@ -97,8 +100,8 @@ export default function View({
     const [processingMessage, setProcessingMessage] = useState(false);
     const [processingBlock, setProcessingBlock] = useState(false);
 
-    const primaryPhoto = user.photos?.find((p) => p.is_primary) || user.photos?.[0];
-    const otherPhotos = (user.photos ?? []).filter((p) => p.id !== primaryPhoto?.id);
+    const primaryPhoto = photos.find((p) => p.is_primary) || photos[0];
+    const otherPhotos = photos.filter((p) => p.id !== primaryPhoto?.id);
     const initials = user.name.slice(0, 2).toUpperCase();
 
     const handleLike = () => {

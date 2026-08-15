@@ -69,11 +69,6 @@ class ShopGiftTest extends TestCase
     {
         $me = $this->createMember();
 
-        $this->actingAs($me)
-            ->get(route('shop.index', ['gift_to' => $me->id]))
-            ->assertOk()
-            ->viewData('page');
-
         $selfResponse = $this->actingAs($me)->get(route('shop.index', ['gift_to' => $me->id]));
         $this->assertNull($selfResponse->viewData('page')['props']['giftRecipient']);
 

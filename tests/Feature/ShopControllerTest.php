@@ -18,11 +18,15 @@ class ShopControllerTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('shop.index'));
 
+        $nonNaughtyGiftCount = collect(config('gifts'))
+            ->reject(fn (array $gift) => $gift['category'] === 'naughty')
+            ->count();
+
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page
             ->component('Shop/Index')
             ->has('gemPackages', 5)
-            ->has('gifts', 15)
+            ->has('gifts', $nonNaughtyGiftCount)
             ->where('userGems', $user->gems)
         );
     }
