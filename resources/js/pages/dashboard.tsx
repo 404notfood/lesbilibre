@@ -6,8 +6,6 @@ import {
     Eye,
     Flame,
     Heart,
-    MapPin,
-    MessageCircle,
     Search,
     SlidersHorizontal,
     Sparkles,
@@ -187,8 +185,6 @@ export default function Dashboard({
         (profile) => !passedProfileIds.includes(profile.id),
     );
 
-    const spotlightProfile = visibleProfiles[0];
-    const restProfiles = visibleProfiles.slice(1);
 
     const dayName = new Date().toLocaleDateString('fr-FR', { weekday: 'long' });
     // Online count vient du backend (utilisatrices actives dans les 15 dernières minutes,
@@ -319,16 +315,8 @@ export default function Dashboard({
                 {visibleProfiles.length === 0 ? (
                     <EmptyState onReset={() => router.get('/dashboard')} />
                 ) : (
-                    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                        {spotlightProfile && (
-                            <SpotlightCard
-                                profile={spotlightProfile}
-                                isLiked={likedUserIds.includes(spotlightProfile.id)}
-                                onLike={handleLike}
-                                onOpen={(id) => router.visit(`/profile/${id}`)}
-                            />
-                        )}
-                        {restProfiles.map((profile) => (
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                        {visibleProfiles.map((profile) => (
                             <ProfileCard
                                 key={profile.id}
                                 profile={profile}
@@ -656,137 +644,6 @@ function SearchRow({
                 Surprends-moi
             </button>
         </div>
-    );
-}
-
-/* ===========================================================================
- * SPOTLIGHT CARD — full wine, gold badge, premium feel
- * ==========================================================================*/
-function SpotlightCard({
-    profile,
-    isLiked,
-    onLike,
-    onOpen,
-}: {
-    profile: Profile;
-    isLiked: boolean;
-    onLike: (id: number) => void;
-    onOpen: (id: number) => void;
-}): JSX.Element {
-    return (
-        <article
-            onClick={() => onOpen(profile.id)}
-            className="group relative flex min-h-[600px] cursor-pointer flex-col overflow-hidden rounded-2xl transition-transform hover:-translate-y-1"
-            style={{
-                background: 'var(--wine-deep)',
-                color: 'oklch(96% 0.02 50)',
-            }}
-        >
-            {/* Photo */}
-            <div className="reveal-tile relative min-h-[280px] flex-1">
-                {profile.primary_photo ? (
-                    <img
-                        src={profile.primary_photo}
-                        alt={profile.name}
-                        loading="lazy"
-                        className="reveal-bg h-full w-full object-cover"
-                    />
-                ) : (
-                    <div
-                        className="relative h-full w-full"
-                        style={{
-                            background:
-                                'radial-gradient(120% 100% at 0% 0%, var(--wine) 0%, var(--wine-deep) 60%, oklch(15% 0.05 350) 100%)',
-                        }}
-                    >
-                        {/* Huge editorial monogram */}
-                        <div className="absolute inset-0 grid place-items-center">
-                            <span
-                                className="font-display select-none text-[10rem] font-medium italic leading-none"
-                                style={{ color: 'var(--gold)', opacity: 0.22 }}
-                            >
-                                {profile.name.slice(0, 2).toUpperCase()}
-                            </span>
-                        </div>
-                    </div>
-                )}
-                <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0"
-                    style={{
-                        background:
-                            'linear-gradient(to bottom, transparent 40%, oklch(20% 0.075 12 / 0.85) 100%)',
-                    }}
-                />
-                <div className="absolute left-3.5 top-3.5 flex gap-1.5">
-                    <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider"
-                        style={{ background: 'var(--gold)', color: 'var(--wine-deep)' }}
-                    >
-                        <Sparkles className="h-2.5 w-2.5 fill-current" />
-                        Spotlight du jour
-                    </span>
-                </div>
-            </div>
-
-            {/* Body */}
-            <div className="p-5">
-                <div className="editorial-caption mb-2 text-[0.625rem] opacity-70">
-                    {profile.compatibility_score || 96}% compatibilité émotionnelle
-                </div>
-                <h3 className="font-display m-0 text-3xl font-medium leading-tight tracking-[-0.015em]">
-                    {profile.name},{' '}
-                    <em className="italic opacity-80">{profile.age}</em>
-                </h3>
-                <div className="mt-1 flex items-center gap-1.5 text-xs opacity-70">
-                    <MapPin className="h-3 w-3" />
-                    {profile.city}
-                    {profile.distance != null && (
-                        <span>
-                            · {profile.distance < 1 ? 'à moins d\'1 km' : `à ${profile.distance} km`}
-                        </span>
-                    )}
-                </div>
-                <p className="mt-3 mb-3.5 text-[13.5px] leading-relaxed opacity-85 line-clamp-3">
-                    {profile.bio ||
-                        'Photographe argentique. Je nage tôt, je danse tard. Cherche une complicité qui ne se presse pas.'}
-                </p>
-                <div className="flex gap-2">
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onOpen(profile.id);
-                        }}
-                        className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-bold transition-transform hover:-translate-y-px"
-                        style={{ background: 'var(--gold)', color: 'var(--wine-deep)' }}
-                    >
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        Lui écrire
-                    </button>
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isLiked) onLike(profile.id);
-                        }}
-                        disabled={isLiked}
-                        aria-label={`Aimer ${profile.name}`}
-                        className="grid h-11 w-11 place-items-center rounded-xl border text-white transition-colors"
-                        style={{
-                            background: 'oklch(100% 0 0 / 0.12)',
-                            borderColor: 'oklch(100% 0 0 / 0.18)',
-                        }}
-                    >
-                        <Heart
-                            className={`h-4 w-4 ${
-                                isLiked ? 'fill-current animate-heartbeat' : ''
-                            }`}
-                        />
-                    </button>
-                </div>
-            </div>
-        </article>
     );
 }
 

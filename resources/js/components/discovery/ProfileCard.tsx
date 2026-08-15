@@ -73,47 +73,48 @@ export default function ProfileCard({
             {/* ============================================
              * BODY
              * ============================================*/}
-            <div className="px-5 pb-5 pt-4">
+            <div className="px-2.5 pb-2.5 pt-2">
                 {/* Name + match score */}
-                <div className="mb-1 flex items-baseline justify-between">
-                    <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight">
-                        {profile.name},{' '}
-                        <span className="italic font-medium text-foreground/65">
-                            {profile.age}
-                        </span>
+                <div className="flex items-baseline justify-between gap-1">
+                    <h3 className="truncate font-display text-sm font-semibold leading-tight tracking-tight">
+                        {profile.name}
+                        {profile.age ? (
+                            <span className="italic font-medium text-foreground/65">
+                                , {profile.age}
+                            </span>
+                        ) : null}
                     </h3>
                     {profile.compatibility_score > 0 && (
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[color:var(--desire-deep)]">
-                            <Heart className="h-3 w-3 fill-current" />
+                        <div className="flex shrink-0 items-center gap-0.5 text-[10px] font-semibold text-[color:var(--desire-deep)]">
+                            <Heart className="h-2.5 w-2.5 fill-current" />
                             {profile.compatibility_score}%
                         </div>
                     )}
                 </div>
 
                 {/* City */}
-                <div className="mb-3 flex items-center gap-1.5 text-xs text-foreground/55">
-                    <MapPin className="h-3 w-3" />
+                <div className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-foreground/55">
+                    <MapPin className="h-2.5 w-2.5 shrink-0" />
                     {profile.city}
                     {profile.distance !== null && profile.distance !== undefined && (
-                        <span>· à {profile.distance} km</span>
+                        <span>· {profile.distance} km</span>
                     )}
                 </div>
 
-                {/* Headline — italic editorial quote */}
-                <p className="font-display mb-3 text-base font-medium italic leading-snug text-[color:var(--wine-deep)] line-clamp-2 min-h-[2.6em]">
-                    «{' '}
-                    {profile.bio ||
-                        'Cinéma de minuit & nuits qui s’étirent.'}{' '}
-                    »
-                </p>
+                {/* Bio réelle uniquement — pas de texte inventé */}
+                {profile.bio && (
+                    <p className="font-display mt-1.5 text-xs font-medium italic leading-snug text-[color:var(--wine-deep)] line-clamp-2">
+                        « {profile.bio} »
+                    </p>
+                )}
 
                 {/* Tags mono */}
                 {signals.length > 0 && (
-                    <div className="mb-4 flex flex-wrap gap-1.5">
-                        {signals.slice(0, 3).map((tag) => (
+                    <div className="mt-2 mb-2 flex flex-wrap gap-1">
+                        {signals.slice(0, 2).map((tag) => (
                             <span
                                 key={`${profile.id}-${tag.id}`}
-                                className="font-mono inline-flex items-center rounded px-2 py-1 text-[0.625rem] font-medium uppercase tracking-[0.09em] bg-muted text-foreground/65"
+                                className="font-mono inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.09em] bg-muted text-foreground/65"
                             >
                                 {tag.label}
                             </span>
@@ -122,7 +123,7 @@ export default function ProfileCard({
                 )}
 
                 {/* Actions trio: X, message, Like */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                     <button
                         type="button"
                         aria-label={`Passer ${profile.name}`}
@@ -130,9 +131,9 @@ export default function ProfileCard({
                             e.stopPropagation();
                             onPass(profile.id);
                         }}
-                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-background text-foreground/55 transition-colors hover:border-foreground/40 hover:text-foreground"
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-background text-foreground/55 transition-colors hover:border-foreground/40 hover:text-foreground"
                     >
-                        <X className="h-4 w-4" />
+                        <X className="h-3.5 w-3.5" />
                     </button>
                     <button
                         type="button"
@@ -141,10 +142,10 @@ export default function ProfileCard({
                             e.stopPropagation();
                             onOpen(profile.id);
                         }}
-                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-muted text-[color:var(--wine-deep)] transition-colors hover:bg-blush hover:bg-[color:var(--blush)]"
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-muted text-[color:var(--wine-deep)] transition-colors hover:bg-blush hover:bg-[color:var(--blush)]"
                         style={{ background: 'var(--bg-soft)' }}
                     >
-                        <MessageCircle className="h-4 w-4" />
+                        <MessageCircle className="h-3.5 w-3.5" />
                     </button>
                     <button
                         type="button"
@@ -154,13 +155,13 @@ export default function ProfileCard({
                             if (!isLiked) onLike(profile.id);
                         }}
                         disabled={isLiked}
-                        className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all"
+                        className="flex h-8 flex-1 items-center justify-center gap-1 rounded-lg text-xs font-semibold text-white transition-all"
                         style={{
                             background: isLiked ? 'var(--wine)' : 'var(--desire)',
                         }}
                     >
                         <Heart
-                            className={`h-4 w-4 ${
+                            className={`h-3.5 w-3.5 ${
                                 isLiked ? 'fill-current animate-heartbeat' : ''
                             }`}
                         />
@@ -200,7 +201,7 @@ function CardImage({
     const VibeIcon = vibe?.tone === 'accent' ? Star : Sparkles;
 
     return (
-        <div className="reveal-tile relative h-80 w-full overflow-hidden">
+        <div className="reveal-tile relative aspect-square w-full overflow-hidden">
             {profile.primary_photo ? (
                 <img
                     src={profile.primary_photo}
@@ -219,7 +220,7 @@ function CardImage({
                     {/* Big editorial initials, centred */}
                     <div className="absolute inset-0 grid place-items-center">
                         <span
-                            className="font-display select-none text-[7rem] font-medium italic leading-none"
+                            className="font-display select-none text-[3.5rem] font-medium italic leading-none"
                             style={{ color: 'var(--wine-deep)', opacity: 0.18 }}
                         >
                             {noPhotoInitials}
@@ -228,12 +229,12 @@ function CardImage({
                     {/* Foreground avatar circle */}
                     <div className="absolute inset-0 grid place-items-center">
                         <Avatar
-                            className="h-20 w-20 border-2"
+                            className="h-12 w-12 border-2"
                             style={{ borderColor: 'var(--paper)' }}
                         >
                             <AvatarImage src="" />
                             <AvatarFallback
-                                className="font-display text-2xl font-medium italic"
+                                className="font-display text-base font-medium italic"
                                 style={{
                                     background: 'var(--wine-deep)',
                                     color: 'var(--paper)',
@@ -257,10 +258,10 @@ function CardImage({
             />
 
             {/* Top row: vibe badge + distance pill */}
-            <div className="absolute inset-x-3 top-3 flex justify-between gap-2">
+            <div className="absolute inset-x-1.5 top-1.5 flex justify-between gap-1">
                 {vibe && (
                     <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.65rem] font-semibold tracking-wide"
+                        className="inline-flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide"
                         style={vibeStyle}
                     >
                         <VibeIcon className="h-2.5 w-2.5 fill-current" />
@@ -269,7 +270,7 @@ function CardImage({
                 )}
                 {profile.distance !== null && profile.distance !== undefined && (
                     <span
-                        className="font-mono rounded px-2 py-1 text-[0.625rem] font-semibold uppercase tracking-wider text-white backdrop-blur"
+                        className="font-mono rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white backdrop-blur"
                         style={{ background: 'oklch(15% 0.02 350 / 0.55)' }}
                     >
                         {profile.distance} km
@@ -302,7 +303,7 @@ function CardImage({
                     color: isLiked ? 'white' : 'var(--desire)',
                 }}
             >
-                <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+                <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-current' : ''}`} />
             </button>
 
             {/* Reward particles */}
