@@ -77,8 +77,11 @@ export default function DatingLayout({
                 is_verified?: boolean;
                 gems?: number;
             };
+            isPremium?: boolean;
         };
     }>().props;
+
+    const isPremium = auth.isPremium ?? false;
 
     // Gemmes : on prend l'override prop si fourni, sinon le vrai solde user.
     const gemsBalance = gems ?? auth.user?.gems ?? 0;
@@ -167,7 +170,7 @@ export default function DatingLayout({
                  * SIDEBAR — Wine Editorial
                  * ==========================================================*/}
                 <aside
-                    className="hidden w-64 flex-col px-4 pb-4 pt-5 lg:flex"
+                    className="hidden w-64 shrink-0 flex-col overflow-y-auto px-4 pb-4 pt-5 lg:flex"
                     style={{
                         background: 'var(--paper)',
                         borderRight: '1px solid var(--line)',
@@ -198,7 +201,7 @@ export default function DatingLayout({
 
                     {/* Gems card */}
                     <div
-                        className="mb-5 rounded-2xl border p-3.5"
+                        className="mb-5 shrink-0 rounded-2xl border p-3.5"
                         style={{
                             borderColor: 'var(--line)',
                             background:
@@ -262,10 +265,11 @@ export default function DatingLayout({
                         ))}
                     </nav>
 
-                    {/* Premium block */}
+                    {/* Premium block — masqué pour les abonnées */}
+                    {!isPremium && (
                     <Link
                         href="/premium"
-                        className="relative mt-4 overflow-hidden rounded-2xl px-3.5 py-3.5"
+                        className="relative mt-4 block shrink-0 overflow-hidden rounded-2xl px-3.5 pb-3.5 pt-3.5"
                         style={{
                             background:
                                 'linear-gradient(140deg, var(--wine) 0%, var(--wine-deep) 100%)',
@@ -300,6 +304,7 @@ export default function DatingLayout({
                             <ArrowRight className="h-3 w-3" />
                         </div>
                     </Link>
+                    )}
 
                     {auth.user?.is_admin && (
                         <>
@@ -532,7 +537,7 @@ export default function DatingLayout({
                         <MobileMenuLink
                             href="/premium"
                             icon={Crown}
-                            label="Passe en Premium"
+                            label={isPremium ? 'Mon abonnement' : 'Passe en Premium'}
                             active={isActive('/premium')}
                             onNavigate={() => setMoreMenuOpen(false)}
                         />

@@ -104,6 +104,9 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                // La colonne `is_premium` seule ne dit pas si l'abonnement court
+                // encore : on partage l'état calculé, expiration comprise.
+                'isPremium' => (bool) $user?->isPremium(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'counts' => [
