@@ -8,6 +8,15 @@
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
+                // La landing publique est toujours en dark : l'appliquer ici, avant
+                // le premier rendu, évite un flash où le header sombre devient
+                // illisible sur le hero (le useEffect de la page arrive trop tard).
+                if (window.location.pathname === '/') {
+                    document.documentElement.classList.add('dark');
+
+                    return;
+                }
+
                 const appearance = '{{ $appearance ?? "system" }}';
 
                 if (appearance === 'system') {
