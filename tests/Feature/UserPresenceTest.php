@@ -44,7 +44,10 @@ class UserPresenceTest extends TestCase
 
     public function test_a_member_inactive_for_too_long_is_offline(): void
     {
-        $user = $this->createMember(['last_activity_at' => now()->subMinutes(20)]);
+        $user = $this->createMember([
+            'last_activity_at' => now()->subMinutes(User::ONLINE_WINDOW_MINUTES + 1),
+            'last_login_at' => null,
+        ]);
 
         $this->assertFalse($user->is_online);
     }
@@ -53,7 +56,7 @@ class UserPresenceTest extends TestCase
     {
         $user = $this->createMember([
             'last_activity_at' => null,
-            'last_login_at' => now()->subMinutes(5),
+            'last_login_at' => now()->subMinutes(2),
         ]);
 
         $this->assertTrue(

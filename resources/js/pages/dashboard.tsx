@@ -186,9 +186,21 @@ export default function Dashboard({
     );
 
 
-    const dayName = new Date().toLocaleDateString('fr-FR', { weekday: 'long' });
-    // Online count vient du backend (utilisatrices actives dans les 15 dernières minutes,
-    // hors moi-même). Fallback à 0 si vraiment personne.
+    const now = new Date();
+    const dayName = now.toLocaleDateString('fr-FR', { weekday: 'long' });
+    // Le moment de la journée était figé sur « soir » : à 15 h, « samedi soir »
+    // sonnait faux et trahissait un texte écrit en dur.
+    const hour = now.getHours();
+    const dayPart = hour < 6 ? 'nuit' : hour < 12 ? 'matin' : hour < 18 ? 'après-midi' : 'soir';
+    // « cet après-midi », « ce matin », « cette nuit » : l'élision change.
+    const dayPartPhrase =
+        dayPart === 'nuit'
+            ? 'cette nuit'
+            : dayPart === 'après-midi'
+              ? 'cet après-midi'
+              : `ce ${dayPart}`;
+    // Online count vient du backend (utilisatrices actives récemment, hors
+    // moi-même). Fallback à 0 si vraiment personne.
     const onlineCount = liveSignals?.online_count ?? 0;
 
     return (
@@ -201,7 +213,7 @@ export default function Dashboard({
                  * =========================================*/}
                 <div className="mb-8 flex items-center justify-between">
                     <div className="editorial-eyebrow text-foreground/55">
-                        Découvrir · feed du soir
+                        Découvrir · le feed du moment
                     </div>
                     {/* Icons remplacés par ceux du header layout — on garde la place propre */}
                 </div>
@@ -211,6 +223,8 @@ export default function Dashboard({
                  * =========================================*/}
                 <EditorialHero
                     dayName={dayName}
+                    dayPart={dayPart}
+                    dayPartPhrase={dayPartPhrase}
                     onlineCount={onlineCount}
                     signals={liveSignals}
                     profileCount={visibleProfiles.length}
@@ -345,11 +359,15 @@ export default function Dashboard({
  * ==========================================================================*/
 function EditorialHero({
     dayName,
+    dayPart,
+    dayPartPhrase,
     onlineCount,
     signals,
     profileCount,
 }: {
     dayName: string;
+    dayPart: string;
+    dayPartPhrase: string;
     onlineCount: number;
     signals: LiveSignals;
     profileCount: number;
@@ -373,15 +391,16 @@ function EditorialHero({
                         }}
                     />
                     <span className="editorial-eyebrow text-foreground/65">
-                        {dayName} soir · {onlineCount.toLocaleString('fr-FR')} femmes en ligne
+                        {dayName} {dayPart} · {onlineCount.toLocaleString('fr-FR')}{' '}
+                        {onlineCount > 1 ? 'femmes en ligne' : 'femme en ligne'}
                     </span>
                 </div>
 
                 {/* Big editorial title */}
                 <h1 className="font-display m-0 text-5xl font-medium leading-[0.96] tracking-[-0.02em] md:text-6xl xl:text-7xl">
                     Qui te fait{' '}
-                    <em className="italic text-[color:var(--desire-deep)]">vibrer</em> ce
-                    soir&nbsp;?
+                    <em className="italic text-[color:var(--desire-deep)]">vibrer</em>{' '}
+                    {dayPartPhrase}&nbsp;?
                 </h1>
 
                 <p className="mt-5 max-w-[480px] text-[15.5px] leading-relaxed text-foreground/65">

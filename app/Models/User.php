@@ -306,8 +306,13 @@ class User extends Authenticatable implements MustVerifyEmail
      * Check if user has active premium subscription.
      * A null premium_expires_at means unlimited premium.
      */
-    /** Fenêtre de présence : au-delà, la membre n'est plus considérée en ligne. */
-    public const ONLINE_WINDOW_MINUTES = 15;
+    /**
+     * Fenêtre de présence : au-delà, la membre n'est plus considérée en ligne.
+     *
+     * Volontairement courte — un « en ligne » qui persiste un quart d'heure
+     * après le départ ne veut plus rien dire.
+     */
+    public const ONLINE_WINDOW_MINUTES = 5;
 
     /**
      * Présence en ligne, basée sur l'activité réelle plutôt que sur la seule
