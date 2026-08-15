@@ -29,8 +29,11 @@ import { useState } from 'react';
 interface Photo {
     id: number;
     url: string;
+    media_type?: 'photo' | 'video';
+    duration?: number | null;
     is_primary: boolean;
     is_naughty: boolean;
+    is_private?: boolean;
     is_blurred: boolean;
 }
 
@@ -383,13 +386,36 @@ export default function View({
                                             style={{ borderColor: 'var(--line)' }}
                                             onContextMenu={(e) => e.preventDefault()}
                                         >
-                                            <img
-                                                src={photo.url}
-                                                alt=""
-                                                draggable={false}
-                                                onContextMenu={(e) => e.preventDefault()}
-                                                className="reveal-bg h-full w-full select-none object-cover"
-                                            />
+                                            {photo.media_type === 'video' && !photo.is_blurred ? (
+                                                <video
+                                                    src={photo.url}
+                                                    poster={`${photo.url}?thumb=1`}
+                                                    controls
+                                                    playsInline
+                                                    preload="metadata"
+                                                    controlsList="nodownload"
+                                                    onContextMenu={(e) => e.preventDefault()}
+                                                    className="h-full w-full bg-black object-contain"
+                                                />
+                                            ) : (
+                                                <img
+                                                    src={
+                                                        photo.media_type === 'video'
+                                                            ? `${photo.url}?thumb=1`
+                                                            : photo.url
+                                                    }
+                                                    alt=""
+                                                    draggable={false}
+                                                    onContextMenu={(e) => e.preventDefault()}
+                                                    className="reveal-bg h-full w-full select-none object-cover"
+                                                />
+                                            )}
+
+                                            {photo.media_type === 'video' && !photo.is_blurred && (
+                                                <span className="pointer-events-none absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                                                    VIDÉO
+                                                </span>
+                                            )}
                                             {photo.is_blurred && (
                                                 <div
                                                     className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center"

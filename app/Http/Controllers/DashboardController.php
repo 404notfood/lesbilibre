@@ -30,8 +30,14 @@ class DashboardController extends Controller
         ];
 
         // Build query
+        // La vignette d'un profil ne doit jamais provenir d'un média coquin
+        // ou privé : c'est une carte visible sans consentement ni accès.
         $query = User::with(['profile', 'photos' => function ($q) {
             $q->where('is_approved', true)
+                ->where('moderation_status', '!=', 'rejected')
+                ->where('is_naughty', false)
+                ->where('is_private', false)
+                ->where('media_type', 'photo')
                 ->orderByDesc('is_primary')
                 ->orderBy('order');
         }])
@@ -173,7 +179,7 @@ class DashboardController extends Controller
                 'distance' => isset($profile->distance) ? round($profile->distance, 1) : null,
                 'bio' => $profile->profile->bio ?? null,
                 'sexual_orientation' => $profile->profile->sexual_orientation ?? null,
-                'primary_photo' => $profile->photos->first()?->url ?? null,
+                'primary_photo' => $profile->photos->first()?->viewUrl(thumbnail: true),
                 'is_online' => $profile->last_login_at?->gt(now()->subMinutes(15)) ?? false,
                 'is_premium' => $profile->isPremium(),
                 'compatibility_score' => $profile->compatibility_score,

@@ -29,7 +29,8 @@ import { useState } from 'react';
 
 interface Photo {
     id: number;
-    path: string;
+    url: string;
+    thumbnail_url: string;
 }
 
 interface Profile {
@@ -514,12 +515,12 @@ export default function Index({
                         {results.data.map((user) => (
                             <Card key={user.id} className="overflow-hidden transition-all hover:shadow-lg group">
                                 <Link href={`/profile/${user.id}`}>
-                                    <div className="relative h-80 overflow-hidden bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-950 dark:to-purple-950">
+                                    <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-950 dark:to-purple-950">
                                         {user.photos?.[0] ? (
                                             <img
-                                                src={`/storage/${user.photos[0].path}`}
+                                                src={user.photos[0].url}
                                                 alt={user.name}
-                                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
                                             />
                                         ) : (
                                             <div className="flex h-full items-center justify-center text-6xl font-bold text-pink-300">

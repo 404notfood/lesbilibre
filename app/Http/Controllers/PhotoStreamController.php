@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Photo;
+use App\Models\User;
 use App\Services\PhotoProcessingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PhotoStreamController extends Controller
@@ -41,6 +43,17 @@ class PhotoStreamController extends Controller
         );
         $thumb = $request->boolean('thumb') && $photo->thumbnail_path;
 
+        // Une vidéo ne peut pas traverser le pipeline d'image : tant qu'elle
+        // est masquée, on ne sert que son poster (flouté) ; une fois débloquée,
+        // le fichier est diffusé tel quel pour rester lisible par le navigateur.
+        if ($photo->isVideo() && ! $thumb) {
+            if ($blur) {
+                return $this->streamPoster($photo, $viewer, $isOwner, blur: true);
+            }
+
+            return $this->streamVideo($photo);
+        }
+
         // Re-encoding on every request would be wasteful: the result only
         // depends on the photo, the viewer's label and the blur decision.
         //
@@ -65,6 +78,54 @@ class PhotoStreamController extends Controller
         // must never be cached by a proxy and handed to somebody else.
         return response($rendered, 200, [
             'Content-Type' => 'image/jpeg',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
+    /**
+     * Sert le poster d'une vidéo, flouté ou non, via le pipeline d'image.
+     */
+    private function streamPoster(Photo $photo, User $viewer, bool $isOwner, bool $blur): Response
+    {
+        abort_if($photo->thumbnail_path === null, 404);
+
+        $rendered = $this->photos->cachedRenderForViewer(
+            storedPath: $photo->thumbnail_path,
+            viewerLabel: $isOwner ? 'Aperçu' : ($viewer->pseudo ?? "#{$viewer->id}"),
+            blur: $blur,
+            cacheKey: sprintf(
+                'photo-render:%d:%d:%s:poster',
+                $photo->id,
+                $viewer->id,
+                $blur ? 'blur' : 'clear',
+            ),
+        );
+
+        return response($rendered, 200, [
+            'Content-Type' => 'image/jpeg',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Disposition' => 'inline',
+        ]);
+    }
+
+    /**
+     * Diffuse le fichier vidéo lui-même.
+     *
+     * `Accept-Ranges` est indispensable : sans lui, aucun navigateur ne peut
+     * chercher dans la timeline ni démarrer avant la fin du téléchargement.
+     */
+    private function streamVideo(Photo $photo): StreamedResponse
+    {
+        $disk = Storage::disk('local');
+
+        abort_unless($disk->exists($photo->path), 404);
+
+        return $disk->response($photo->path, null, [
+            'Content-Type' => 'video/mp4',
+            'Accept-Ranges' => 'bytes',
             'Cache-Control' => 'private, no-store, max-age=0',
             'X-Content-Type-Options' => 'nosniff',
             'Content-Disposition' => 'inline',

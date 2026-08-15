@@ -74,8 +74,16 @@ class SearchController extends Controller
      */
     protected function buildSearchQuery(User $currentUser, array $filters)
     {
+        // Même règle que le dashboard : la vignette de résultat ne peut pas
+        // provenir d'un média coquin ou privé.
         $query = User::with(['profile', 'photos' => function ($query) {
-            $query->where('is_approved', true)->where('is_primary', true);
+            $query->where('is_approved', true)
+                ->where('moderation_status', '!=', 'rejected')
+                ->where('is_naughty', false)
+                ->where('is_private', false)
+                ->where('media_type', 'photo')
+                ->orderByDesc('is_primary')
+                ->orderBy('order');
         }])
             ->where('users.id', '!=', $currentUser->id)
             ->where('users.is_verified', true)

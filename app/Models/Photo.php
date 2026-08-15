@@ -28,6 +28,12 @@ class Photo extends Model
         'rejection_reason',
     ];
 
+    /** Exposés au client à la place du chemin de stockage. */
+    protected $appends = ['url', 'thumbnail_url'];
+
+    /** Les chemins disque ne doivent jamais atteindre le navigateur. */
+    protected $hidden = ['path', 'thumbnail_path', 'content_hash'];
+
     protected function casts(): array
     {
         return [
@@ -86,6 +92,22 @@ class Photo extends Model
     public function viewUrl(bool $thumbnail = false): string
     {
         return route('media.photo', $thumbnail ? [$this, 'thumb' => 1] : [$this]);
+    }
+
+    /**
+     * URL exposée lors de la sérialisation du modèle.
+     *
+     * Le chemin de stockage ne doit jamais partir vers le client : seule la
+     * route média applique le filigrane, le floutage et les contrôles d'accès.
+     */
+    public function getUrlAttribute(): string
+    {
+        return $this->viewUrl();
+    }
+
+    public function getThumbnailUrlAttribute(): string
+    {
+        return $this->viewUrl(thumbnail: true);
     }
 
     /**
