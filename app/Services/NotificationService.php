@@ -106,6 +106,57 @@ class NotificationService
     }
 
     /**
+     * Create a gallery access request notification for the gallery owner.
+     */
+    public function notifyGalleryAccessRequest(int $userId, int $requesterId): void
+    {
+        Notification::create([
+            'user_id' => $userId,
+            'type' => 'gallery_access',
+            'title' => 'Demande d\'accès à votre galerie',
+            'message' => 'souhaite accéder à votre galerie privée',
+            'data' => [
+                'requester_id' => $requesterId,
+                'status' => 'pending',
+            ],
+        ]);
+    }
+
+    /**
+     * Create a gallery access accepted notification for the requester.
+     */
+    public function notifyGalleryAccessAccepted(int $userId, int $ownerId): void
+    {
+        Notification::create([
+            'user_id' => $userId,
+            'type' => 'gallery_access',
+            'title' => 'Accès galerie accordé',
+            'message' => 'vous a donné accès à sa galerie privée',
+            'data' => [
+                'owner_id' => $ownerId,
+                'status' => 'accepted',
+            ],
+        ]);
+    }
+
+    /**
+     * Create a gallery access rejected notification for the requester.
+     */
+    public function notifyGalleryAccessRejected(int $userId, int $ownerId): void
+    {
+        Notification::create([
+            'user_id' => $userId,
+            'type' => 'gallery_access',
+            'title' => 'Demande d\'accès refusée',
+            'message' => 'a refusé votre demande d\'accès. Vos gemmes ont été remboursées.',
+            'data' => [
+                'owner_id' => $ownerId,
+                'status' => 'rejected',
+            ],
+        ]);
+    }
+
+    /**
      * Mark all notifications as read for a user.
      */
     public function markAllAsRead(int $userId): void

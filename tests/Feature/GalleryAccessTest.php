@@ -108,4 +108,111 @@ class GalleryAccessTest extends TestCase
     {
         $this->get(route('gallery-access.index'))->assertRedirect(route('login'));
     }
+
+    public function test_requesting_access_deducts_gems_and_notifies_the_owner(): void
+    {
+        $owner = User::factory()->create();
+        $requester = User::factory()->create(['gems' => 200]);
+
+        $this->actingAs($requester)
+            ->post(route('gallery-access.request', $owner->id))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('gallery_access_requests', [
+            'requester_user_id' => $requester->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'pending',
+        ]);
+
+        $this->assertSame(150, $requester->fresh()->gems);
+
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $owner->id,
+            'type' => 'gallery_access',
+        ]);
+    }
+
+    public function test_requesting_access_without_enough_gems_does_not_create_a_request(): void
+    {
+        $owner = User::factory()->create();
+        $requester = User::factory()->create(['gems' => 10]);
+
+        $this->actingAs($requester)
+            ->post(route('gallery-access.request', $owner->id))
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('gallery_access_requests', 0);
+        $this->assertSame(10, $requester->fresh()->gems);
+    }
+
+    public function test_accepting_a_request_notifies_the_requester(): void
+    {
+        $owner = User::factory()->create();
+        $requester = User::factory()->create();
+
+        $accessRequest = GalleryAccessRequest::create([
+            'requester_user_id' => $requester->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'pending',
+            'gems_cost' => 50,
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('gallery-access.accept', $accessRequest->id))
+            ->assertRedirect();
+
+        $this->assertSame('accepted', $accessRequest->fresh()->status);
+
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $requester->id,
+            'type' => 'gallery_access',
+        ]);
+    }
+
+    public function test_rejecting_a_request_refunds_gems_and_notifies_the_requester(): void
+    {
+        $owner = User::factory()->create();
+        $requester = User::factory()->create(['gems' => 0]);
+
+        $accessRequest = GalleryAccessRequest::create([
+            'requester_user_id' => $requester->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'pending',
+            'gems_cost' => 50,
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('gallery-access.reject', $accessRequest->id))
+            ->assertRedirect();
+
+        $this->assertSame('rejected', $accessRequest->fresh()->status);
+        $this->assertSame(50, $requester->fresh()->gems);
+
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $requester->id,
+            'type' => 'gallery_access',
+        ]);
+    }
+
+    public function test_granting_access_directly_notifies_the_beneficiary(): void
+    {
+        $owner = User::factory()->create();
+        $beneficiary = User::factory()->create();
+
+        $this->actingAs($owner)
+            ->post(route('gallery-access.grant', $beneficiary->id))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('gallery_access_requests', [
+            'requester_user_id' => $beneficiary->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'accepted',
+            'gems_cost' => 0,
+        ]);
+
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $beneficiary->id,
+            'type' => 'gallery_access',
+        ]);
+    }
 }

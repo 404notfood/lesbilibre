@@ -6,6 +6,7 @@ use App\Models\GalleryAccessRequest;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -56,26 +57,25 @@ class GalleryAccessController extends Controller
             return back()->with('error', 'Vous avez déjà une demande en attente.');
         }
 
-        // Deduct gems from requester
-        app(\App\Services\GemService::class)->deductGems(
-            $user,
-            $gemsCost,
-            'spend',
-            'gallery_access_request',
-            "Demande d'accès à la galerie privée",
-            ['owner_user_id' => $userId]
-        );
+        DB::transaction(function () use ($user, $userId, $gemsCost): void {
+            app(\App\Services\GemService::class)->deductGems(
+                $user,
+                $gemsCost,
+                'spend',
+                'gallery_access_request',
+                "Demande d'accès à la galerie privée",
+                ['owner_user_id' => $userId]
+            );
 
-        // Create gallery access request
-        GalleryAccessRequest::create([
-            'requester_user_id' => $user->id,
-            'owner_user_id' => $userId,
-            'gems_cost' => $gemsCost,
-            'status' => 'pending',
-        ]);
+            GalleryAccessRequest::create([
+                'requester_user_id' => $user->id,
+                'owner_user_id' => $userId,
+                'gems_cost' => $gemsCost,
+                'status' => 'pending',
+            ]);
 
-        // Send notification to the owner
-        $this->notificationService->notifyGalleryAccessRequest($userId, $user->id);
+            $this->notificationService->notifyGalleryAccessRequest($userId, $user->id);
+        });
 
         return back()->with('success', 'Demande d\'accès envoyée avec succès.');
     }
