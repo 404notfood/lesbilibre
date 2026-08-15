@@ -456,17 +456,17 @@ export default function View({
                                                 >
                                                     Demandez l&apos;accès pour voir ces photos.
                                                 </p>
-                                                <Button
-                                                    size="sm"
-                                                    className="mt-3"
+                                                <button
+                                                    type="button"
                                                     disabled={requestingAccess}
                                                     onClick={handleRequestGalleryAccess}
+                                                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-foreground/15 px-4 py-2 text-sm font-semibold transition-colors hover:bg-foreground hover:text-background disabled:opacity-50"
                                                 >
-                                                    <Lock className="mr-2 h-4 w-4" />
+                                                    <Lock className="h-3.5 w-3.5" />
                                                     {requestingAccess
                                                         ? 'Envoi...'
                                                         : "Demander l'accès"}
-                                                </Button>
+                                                </button>
                                             </>
                                         )}
                                     </div>

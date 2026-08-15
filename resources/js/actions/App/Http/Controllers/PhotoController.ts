@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\PhotoController::index
- * @see app/Http/Controllers/PhotoController.php:24
+ * @see app/Http/Controllers/PhotoController.php:25
  * @route '/photos'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::index
- * @see app/Http/Controllers/PhotoController.php:24
+ * @see app/Http/Controllers/PhotoController.php:25
  * @route '/photos'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PhotoController::index
- * @see app/Http/Controllers/PhotoController.php:24
+ * @see app/Http/Controllers/PhotoController.php:25
  * @route '/photos'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\PhotoController::index
- * @see app/Http/Controllers/PhotoController.php:24
+ * @see app/Http/Controllers/PhotoController.php:25
  * @route '/photos'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\PhotoController::index
- * @see app/Http/Controllers/PhotoController.php:24
+ * @see app/Http/Controllers/PhotoController.php:25
  * @route '/photos'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\PhotoController::index
- * @see app/Http/Controllers/PhotoController.php:24
+ * @see app/Http/Controllers/PhotoController.php:25
  * @route '/photos'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\PhotoController::index
- * @see app/Http/Controllers/PhotoController.php:24
+ * @see app/Http/Controllers/PhotoController.php:25
  * @route '/photos'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\PhotoController::store
- * @see app/Http/Controllers/PhotoController.php:50
+ * @see app/Http/Controllers/PhotoController.php:51
  * @route '/photos'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::store
- * @see app/Http/Controllers/PhotoController.php:50
+ * @see app/Http/Controllers/PhotoController.php:51
  * @route '/photos'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PhotoController::store
- * @see app/Http/Controllers/PhotoController.php:50
+ * @see app/Http/Controllers/PhotoController.php:51
  * @route '/photos'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\PhotoController::store
- * @see app/Http/Controllers/PhotoController.php:50
+ * @see app/Http/Controllers/PhotoController.php:51
  * @route '/photos'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\PhotoController::store
- * @see app/Http/Controllers/PhotoController.php:50
+ * @see app/Http/Controllers/PhotoController.php:51
  * @route '/photos'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\PhotoController::setPrimary
- * @see app/Http/Controllers/PhotoController.php:87
+ * @see app/Http/Controllers/PhotoController.php:114
  * @route '/photos/{photo}/primary'
  */
 export const setPrimary = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -149,7 +149,7 @@ setPrimary.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::setPrimary
- * @see app/Http/Controllers/PhotoController.php:87
+ * @see app/Http/Controllers/PhotoController.php:114
  * @route '/photos/{photo}/primary'
  */
 setPrimary.url = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -182,7 +182,7 @@ setPrimary.url = (args: { photo: number | { id: number } } | [photo: number | { 
 
 /**
 * @see \App\Http\Controllers\PhotoController::setPrimary
- * @see app/Http/Controllers/PhotoController.php:87
+ * @see app/Http/Controllers/PhotoController.php:114
  * @route '/photos/{photo}/primary'
  */
 setPrimary.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -192,7 +192,7 @@ setPrimary.post = (args: { photo: number | { id: number } } | [photo: number | {
 
     /**
 * @see \App\Http\Controllers\PhotoController::setPrimary
- * @see app/Http/Controllers/PhotoController.php:87
+ * @see app/Http/Controllers/PhotoController.php:114
  * @route '/photos/{photo}/primary'
  */
     const setPrimaryForm = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -202,7 +202,7 @@ setPrimary.post = (args: { photo: number | { id: number } } | [photo: number | {
 
             /**
 * @see \App\Http\Controllers\PhotoController::setPrimary
- * @see app/Http/Controllers/PhotoController.php:87
+ * @see app/Http/Controllers/PhotoController.php:114
  * @route '/photos/{photo}/primary'
  */
         setPrimaryForm.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -213,7 +213,7 @@ setPrimary.post = (args: { photo: number | { id: number } } | [photo: number | {
     setPrimary.form = setPrimaryForm
 /**
 * @see \App\Http\Controllers\PhotoController::requestAvatar
- * @see app/Http/Controllers/PhotoController.php:128
+ * @see app/Http/Controllers/PhotoController.php:155
  * @route '/photos/{photo}/request-avatar'
  */
 export const requestAvatar = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -228,7 +228,7 @@ requestAvatar.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::requestAvatar
- * @see app/Http/Controllers/PhotoController.php:128
+ * @see app/Http/Controllers/PhotoController.php:155
  * @route '/photos/{photo}/request-avatar'
  */
 requestAvatar.url = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -261,7 +261,7 @@ requestAvatar.url = (args: { photo: number | { id: number } } | [photo: number |
 
 /**
 * @see \App\Http\Controllers\PhotoController::requestAvatar
- * @see app/Http/Controllers/PhotoController.php:128
+ * @see app/Http/Controllers/PhotoController.php:155
  * @route '/photos/{photo}/request-avatar'
  */
 requestAvatar.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -271,7 +271,7 @@ requestAvatar.post = (args: { photo: number | { id: number } } | [photo: number 
 
     /**
 * @see \App\Http\Controllers\PhotoController::requestAvatar
- * @see app/Http/Controllers/PhotoController.php:128
+ * @see app/Http/Controllers/PhotoController.php:155
  * @route '/photos/{photo}/request-avatar'
  */
     const requestAvatarForm = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -281,7 +281,7 @@ requestAvatar.post = (args: { photo: number | { id: number } } | [photo: number 
 
             /**
 * @see \App\Http\Controllers\PhotoController::requestAvatar
- * @see app/Http/Controllers/PhotoController.php:128
+ * @see app/Http/Controllers/PhotoController.php:155
  * @route '/photos/{photo}/request-avatar'
  */
         requestAvatarForm.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -292,7 +292,7 @@ requestAvatar.post = (args: { photo: number | { id: number } } | [photo: number 
     requestAvatar.form = requestAvatarForm
 /**
 * @see \App\Http\Controllers\PhotoController::destroy
- * @see app/Http/Controllers/PhotoController.php:161
+ * @see app/Http/Controllers/PhotoController.php:188
  * @route '/photos/{photo}'
  */
 export const destroy = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -307,7 +307,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::destroy
- * @see app/Http/Controllers/PhotoController.php:161
+ * @see app/Http/Controllers/PhotoController.php:188
  * @route '/photos/{photo}'
  */
 destroy.url = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -340,7 +340,7 @@ destroy.url = (args: { photo: number | { id: number } } | [photo: number | { id:
 
 /**
 * @see \App\Http\Controllers\PhotoController::destroy
- * @see app/Http/Controllers/PhotoController.php:161
+ * @see app/Http/Controllers/PhotoController.php:188
  * @route '/photos/{photo}'
  */
 destroy.delete = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -350,7 +350,7 @@ destroy.delete = (args: { photo: number | { id: number } } | [photo: number | { 
 
     /**
 * @see \App\Http\Controllers\PhotoController::destroy
- * @see app/Http/Controllers/PhotoController.php:161
+ * @see app/Http/Controllers/PhotoController.php:188
  * @route '/photos/{photo}'
  */
     const destroyForm = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -365,7 +365,7 @@ destroy.delete = (args: { photo: number | { id: number } } | [photo: number | { 
 
             /**
 * @see \App\Http\Controllers\PhotoController::destroy
- * @see app/Http/Controllers/PhotoController.php:161
+ * @see app/Http/Controllers/PhotoController.php:188
  * @route '/photos/{photo}'
  */
         destroyForm.delete = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -381,7 +381,7 @@ destroy.delete = (args: { photo: number | { id: number } } | [photo: number | { 
     destroy.form = destroyForm
 /**
 * @see \App\Http\Controllers\PhotoController::pending
- * @see app/Http/Controllers/PhotoController.php:189
+ * @see app/Http/Controllers/PhotoController.php:216
  * @route '/admin/photos/pending'
  */
 export const pending = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -396,7 +396,7 @@ pending.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::pending
- * @see app/Http/Controllers/PhotoController.php:189
+ * @see app/Http/Controllers/PhotoController.php:216
  * @route '/admin/photos/pending'
  */
 pending.url = (options?: RouteQueryOptions) => {
@@ -405,7 +405,7 @@ pending.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\PhotoController::pending
- * @see app/Http/Controllers/PhotoController.php:189
+ * @see app/Http/Controllers/PhotoController.php:216
  * @route '/admin/photos/pending'
  */
 pending.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -414,7 +414,7 @@ pending.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\PhotoController::pending
- * @see app/Http/Controllers/PhotoController.php:189
+ * @see app/Http/Controllers/PhotoController.php:216
  * @route '/admin/photos/pending'
  */
 pending.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -424,7 +424,7 @@ pending.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\PhotoController::pending
- * @see app/Http/Controllers/PhotoController.php:189
+ * @see app/Http/Controllers/PhotoController.php:216
  * @route '/admin/photos/pending'
  */
     const pendingForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -434,7 +434,7 @@ pending.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\PhotoController::pending
- * @see app/Http/Controllers/PhotoController.php:189
+ * @see app/Http/Controllers/PhotoController.php:216
  * @route '/admin/photos/pending'
  */
         pendingForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -443,7 +443,7 @@ pending.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\PhotoController::pending
- * @see app/Http/Controllers/PhotoController.php:189
+ * @see app/Http/Controllers/PhotoController.php:216
  * @route '/admin/photos/pending'
  */
         pendingForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -459,7 +459,7 @@ pending.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     pending.form = pendingForm
 /**
 * @see \App\Http\Controllers\PhotoController::approve
- * @see app/Http/Controllers/PhotoController.php:216
+ * @see app/Http/Controllers/PhotoController.php:243
  * @route '/admin/photos/{photo}/approve'
  */
 export const approve = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -474,7 +474,7 @@ approve.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::approve
- * @see app/Http/Controllers/PhotoController.php:216
+ * @see app/Http/Controllers/PhotoController.php:243
  * @route '/admin/photos/{photo}/approve'
  */
 approve.url = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -507,7 +507,7 @@ approve.url = (args: { photo: number | { id: number } } | [photo: number | { id:
 
 /**
 * @see \App\Http\Controllers\PhotoController::approve
- * @see app/Http/Controllers/PhotoController.php:216
+ * @see app/Http/Controllers/PhotoController.php:243
  * @route '/admin/photos/{photo}/approve'
  */
 approve.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -517,7 +517,7 @@ approve.post = (args: { photo: number | { id: number } } | [photo: number | { id
 
     /**
 * @see \App\Http\Controllers\PhotoController::approve
- * @see app/Http/Controllers/PhotoController.php:216
+ * @see app/Http/Controllers/PhotoController.php:243
  * @route '/admin/photos/{photo}/approve'
  */
     const approveForm = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -527,7 +527,7 @@ approve.post = (args: { photo: number | { id: number } } | [photo: number | { id
 
             /**
 * @see \App\Http\Controllers\PhotoController::approve
- * @see app/Http/Controllers/PhotoController.php:216
+ * @see app/Http/Controllers/PhotoController.php:243
  * @route '/admin/photos/{photo}/approve'
  */
         approveForm.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -538,7 +538,7 @@ approve.post = (args: { photo: number | { id: number } } | [photo: number | { id
     approve.form = approveForm
 /**
 * @see \App\Http\Controllers\PhotoController::reject
- * @see app/Http/Controllers/PhotoController.php:245
+ * @see app/Http/Controllers/PhotoController.php:272
  * @route '/admin/photos/{photo}/reject'
  */
 export const reject = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -553,7 +553,7 @@ reject.definition = {
 
 /**
 * @see \App\Http\Controllers\PhotoController::reject
- * @see app/Http/Controllers/PhotoController.php:245
+ * @see app/Http/Controllers/PhotoController.php:272
  * @route '/admin/photos/{photo}/reject'
  */
 reject.url = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -586,7 +586,7 @@ reject.url = (args: { photo: number | { id: number } } | [photo: number | { id: 
 
 /**
 * @see \App\Http\Controllers\PhotoController::reject
- * @see app/Http/Controllers/PhotoController.php:245
+ * @see app/Http/Controllers/PhotoController.php:272
  * @route '/admin/photos/{photo}/reject'
  */
 reject.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -596,7 +596,7 @@ reject.post = (args: { photo: number | { id: number } } | [photo: number | { id:
 
     /**
 * @see \App\Http\Controllers\PhotoController::reject
- * @see app/Http/Controllers/PhotoController.php:245
+ * @see app/Http/Controllers/PhotoController.php:272
  * @route '/admin/photos/{photo}/reject'
  */
     const rejectForm = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -606,7 +606,7 @@ reject.post = (args: { photo: number | { id: number } } | [photo: number | { id:
 
             /**
 * @see \App\Http\Controllers\PhotoController::reject
- * @see app/Http/Controllers/PhotoController.php:245
+ * @see app/Http/Controllers/PhotoController.php:272
  * @route '/admin/photos/{photo}/reject'
  */
         rejectForm.post = (args: { photo: number | { id: number } } | [photo: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
