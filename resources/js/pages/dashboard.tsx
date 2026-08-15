@@ -57,24 +57,34 @@ interface DashboardProps {
     liveSignals: LiveSignals;
 }
 
-type VibeKey = 'coup' | 'live' | 'eye' | 'new';
-type MoodKey = 'nearby' | 'online' | 'slow' | 'curious' | 'photos' | 'verified' | 'open';
+type VibeKey = 'coup' | 'live' | 'new';
+type MoodKey =
+    | 'nearby'
+    | 'online'
+    | 'photos'
+    | 'verified'
+    | 'relationship'
+    | 'dating'
+    | 'friendship'
+    | 'casual'
+    | 'open';
 
-const VIBES: { id: VibeKey; label: string; icon: typeof Sparkles; hot?: boolean }[] = [
-    { id: 'coup', label: 'Coup de cœur du jour', icon: Sparkles, hot: true },
-    { id: 'live', label: 'Active maintenant', icon: Flame },
-    { id: 'eye', label: 'Te regarde peut-être', icon: Eye },
-    { id: 'new', label: 'Nouveaux profils', icon: Star },
+const VIBES: { id: VibeKey; label: string; icon: typeof Sparkles; sortBy: string; hot?: boolean }[] = [
+    { id: 'coup', label: 'Les plus compatibles', icon: Sparkles, sortBy: 'compatibility', hot: true },
+    { id: 'live', label: 'Les plus proches', icon: Flame, sortBy: 'distance' },
+    { id: 'new', label: 'Dernières inscrites', icon: Star, sortBy: 'recent' },
 ];
 
-const MOODS: { id: MoodKey; label: string; quickFilter?: string }[] = [
+const MOODS: { id: MoodKey; label: string; quickFilter: string }[] = [
     { id: 'nearby', label: 'Près de moi', quickFilter: 'nearby' },
     { id: 'online', label: 'En ligne', quickFilter: 'online' },
-    { id: 'slow', label: 'Slow' },
-    { id: 'curious', label: 'Curieuse' },
     { id: 'photos', label: 'Avec photos', quickFilter: 'photos' },
-    { id: 'verified', label: 'Vérifiée' },
-    { id: 'open', label: 'Open' },
+    { id: 'verified', label: 'Vérifiée', quickFilter: 'verified' },
+    { id: 'relationship', label: 'Relation sérieuse', quickFilter: 'relationship' },
+    { id: 'dating', label: 'Rencontres amoureuses', quickFilter: 'dating' },
+    { id: 'friendship', label: 'Amitié', quickFilter: 'friendship' },
+    { id: 'casual', label: 'Rencontres légères', quickFilter: 'casual' },
+    { id: 'open', label: 'Ouverte à tout', quickFilter: 'open' },
 ];
 
 export default function Dashboard({
@@ -85,7 +95,9 @@ export default function Dashboard({
 }: DashboardProps) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
     const [activeFilter, setActiveFilter] = useState(filters.quick_filter || '');
-    const [vibe, setVibe] = useState<VibeKey>('coup');
+    const [vibe, setVibe] = useState<VibeKey>(
+        () => VIBES.find((v) => v.sortBy === filters.sort_by)?.id ?? 'coup',
+    );
     const [mood, setMood] = useState<MoodKey | null>(null);
     const [passedProfileIds, setPassedProfileIds] = useState<number[]>([]);
     const [rewardState, setRewardState] = useState<RewardState | null>(null);
@@ -106,6 +118,21 @@ export default function Dashboard({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery]);
+
+    const handleVibe = (v: VibeKey): void => {
+        const target = VIBES.find((x) => x.id === v);
+
+        if (!target) {
+            return;
+        }
+
+        setVibe(v);
+        router.get(
+            '/dashboard',
+            { sort_by: target.sortBy, quick_filter: activeFilter, search: searchQuery },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
 
     const handleMood = (m: MoodKey): void => {
         const next = mood === m ? null : m;
@@ -184,6 +211,7 @@ export default function Dashboard({
                     dayName={dayName}
                     onlineCount={onlineCount}
                     signals={liveSignals}
+                    profileCount={visibleProfiles.length}
                 />
 
                 {/* ===========================================
@@ -206,7 +234,7 @@ export default function Dashboard({
                             <button
                                 key={v.id}
                                 type="button"
-                                onClick={() => setVibe(v.id)}
+                                onClick={() => handleVibe(v.id)}
                                 aria-pressed={active}
                                 className="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all"
                                 style={{
@@ -325,10 +353,12 @@ function EditorialHero({
     dayName,
     onlineCount,
     signals,
+    profileCount,
 }: {
     dayName: string;
     onlineCount: number;
     signals: LiveSignals;
+    profileCount: number;
 }): JSX.Element {
     return (
         <section
@@ -385,12 +415,12 @@ function EditorialHero({
                     </button>
                 </div>
 
-                {/* Trust strip */}
+                {/* Chiffres réels du moment */}
                 <div className="mt-7 flex flex-wrap gap-6 text-foreground/65">
                     {[
-                        ['100%', 'communauté féminine'],
-                        ['Vérifié', 'par selfie'],
-                        ['Safe', 'modération 24/7'],
+                        [String(profileCount), profileCount > 1 ? 'profils à découvrir' : 'profil à découvrir'],
+                        [String(signals.new_profiles_today), 'inscrites aujourd’hui'],
+                        [String(signals.recent_views), 'visites sur ton profil (24 h)'],
                     ].map(([k, v]) => (
                         <div key={v}>
                             <div className="font-display text-2xl font-medium italic text-foreground">

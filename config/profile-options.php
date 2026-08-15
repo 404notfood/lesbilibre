@@ -21,9 +21,9 @@ return [
     'looking_for' => [
         'relationship' => 'Relation sérieuse',
         'friendship' => 'Amitié',
-        'casual' => 'Rencontres casual',
+        'casual' => 'Rencontres légères',
         'dating' => 'Rencontres amoureuses',
-        'open' => 'Ouvert à tout',
+        'open' => 'Ouverte à tout',
     ],
 
     'body_type' => [

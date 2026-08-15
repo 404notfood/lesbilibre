@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Profile;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -61,6 +61,66 @@ class DashboardTest extends TestCase
         $this->assertEquals('nearby', $filters['quick_filter']);
         $this->assertEquals(10, $filters['search_radius']);
         $this->assertEquals('distance', $filters['sort_by']);
+    }
+
+    public function test_looking_for_quick_filter_narrows_the_results(): void
+    {
+        $me = User::factory()->create();
+        Profile::create([
+            'user_id' => $me->id,
+            'date_of_birth' => now()->subYears(30),
+            'is_discoverable' => true,
+        ]);
+
+        $serious = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::create([
+            'user_id' => $serious->id,
+            'date_of_birth' => now()->subYears(28),
+            'looking_for' => 'relationship',
+            'is_discoverable' => true,
+        ]);
+
+        $friendly = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::create([
+            'user_id' => $friendly->id,
+            'date_of_birth' => now()->subYears(29),
+            'looking_for' => 'friendship',
+            'is_discoverable' => true,
+        ]);
+
+        $response = $this->actingAs($me)
+            ->get(route('dashboard', ['quick_filter' => 'relationship']))
+            ->assertOk();
+
+        $ids = array_column($response->viewData('page')['props']['profiles'], 'id');
+
+        $this->assertContains($serious->id, $ids);
+        $this->assertNotContains($friendly->id, $ids);
+    }
+
+    public function test_verified_quick_filter_excludes_unverified_members(): void
+    {
+        $me = User::factory()->create();
+        Profile::create([
+            'user_id' => $me->id,
+            'date_of_birth' => now()->subYears(30),
+            'is_discoverable' => true,
+        ]);
+
+        $verified = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::create([
+            'user_id' => $verified->id,
+            'date_of_birth' => now()->subYears(27),
+            'is_discoverable' => true,
+        ]);
+
+        $response = $this->actingAs($me)
+            ->get(route('dashboard', ['quick_filter' => 'verified']))
+            ->assertOk();
+
+        $ids = array_column($response->viewData('page')['props']['profiles'], 'id');
+
+        $this->assertContains($verified->id, $ids);
     }
 
     public function test_online_quick_filter_shows_only_online_users(): void

@@ -12,6 +12,9 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    /** Filtres rapides adossés à la colonne `profiles.looking_for`. */
+    private const LOOKING_FOR_FILTERS = ['relationship', 'dating', 'friendship', 'casual', 'open'];
+
     public function __construct(protected MatchScoreService $matchScoreService) {}
 
     public function index(Request $request): Response
@@ -86,6 +89,18 @@ class DashboardController extends Controller
                     break;
                 case 'photos':
                     $query->has('photos');
+                    break;
+                case 'verified':
+                    $query->where('users.is_verified', true);
+                    break;
+                default:
+                    // Filtres d'intention : mappés sur profiles.looking_for.
+                    if (in_array($filters['quick_filter'], self::LOOKING_FOR_FILTERS, true)) {
+                        $query->whereHas(
+                            'profile',
+                            fn ($q) => $q->where('looking_for', $filters['quick_filter'])
+                        );
+                    }
                     break;
             }
         }
