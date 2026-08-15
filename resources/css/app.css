@@ -204,8 +204,17 @@
         @apply border-border;
     }
 
+    /* Le fond du thème doit couvrir la fenêtre entière, y compris quand le
+     * contenu est plus court : sinon la couleur de <html> apparaît sous la
+     * page. */
+    html {
+        background: var(--bg);
+    }
+
     body {
         @apply bg-background text-foreground antialiased;
+        min-height: 100vh;
+        min-height: 100dvh;
         font-family: var(--font-sans);
         font-feature-settings: 'ss01', 'cv11';
         font-optical-sizing: auto;

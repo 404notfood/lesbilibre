@@ -3,19 +3,25 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     Clock,
     EyeOff,
+    Image as ImageIcon,
     ImagePlus,
     Info,
     Lock,
+    Play,
     Star,
     Trash2,
     UploadCloud,
+    Video,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import PhotoLightbox from '@/components/photo-lightbox';
 
 interface Photo {
     id: number;
     url: string;
+    poster_url: string | null;
+    media_type: 'photo' | 'video';
     is_primary: boolean;
     is_naughty: boolean;
     moderation_status: 'pending' | 'approved' | 'rejected' | 'quarantined';
@@ -26,16 +32,44 @@ interface Photo {
 
 const MAX_PHOTOS = 10;
 
+type MediaTab = 'photo' | 'video';
+
 export default function Index({ photos }: { photos: Photo[] }) {
     const [uploading, setUploading] = useState(false);
     const [dragging, setDragging] = useState(false);
     const [markAsNaughty, setMarkAsNaughty] = useState(false);
     const [markAsPrivate, setMarkAsPrivate] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [tab, setTab] = useState<MediaTab>('photo');
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const published = photos.filter((p) => p.moderation_status !== 'rejected');
-    const rejected = photos.filter((p) => p.moderation_status === 'rejected');
+    const isVideo = (media: Photo) => media.media_type === 'video';
+
+    const photoCount = photos.filter((media) => !isVideo(media)).length;
+    const videoCount = photos.filter(isVideo).length;
+
+    // Onglet actif : on ne garde que le type sélectionné, puis on sépare ce qui
+    // est en ligne de ce que la modération a retiré.
+    const inTab = photos.filter((media) =>
+        tab === 'video' ? isVideo(media) : !isVideo(media),
+    );
+    const published = inTab.filter((p) => p.moderation_status !== 'rejected');
+    const rejected = inTab.filter((p) => p.moderation_status === 'rejected');
+
+    // La visionneuse ne parcourt que les médias visibles de l'onglet courant.
+    const lightboxItems = published.map((media) => ({
+        id: media.id,
+        url: media.url,
+        mediaType: media.media_type,
+        posterUrl: media.poster_url,
+        caption: media.is_primary
+            ? 'Photo de profil'
+            : media.is_naughty
+              ? 'Contenu coquin — flouté pour les profils non consentants'
+              : undefined,
+    }));
+
     const remaining = MAX_PHOTOS - photos.length;
     const isFull = remaining <= 0;
 
@@ -301,22 +335,109 @@ export default function Index({ photos }: { photos: Photo[] }) {
                     </section>
                 )}
 
-                {/* ---- Photos en ligne ------------------------------------ */}
+                {/* ---- Onglets photos / vidéos ---------------------------- */}
+                {photos.length > 0 && (
+                    <div
+                        className="mb-6 inline-flex gap-1 rounded-xl border p-1"
+                        style={{
+                            borderColor: 'var(--line)',
+                            background: 'var(--paper)',
+                        }}
+                        role="tablist"
+                    >
+                        {(
+                            [
+                                { value: 'photo', label: 'Photos', count: photoCount },
+                                { value: 'video', label: 'Vidéos', count: videoCount },
+                            ] as const
+                        ).map(({ value, label, count }) => (
+                            <button
+                                key={value}
+                                type="button"
+                                role="tab"
+                                aria-selected={tab === value}
+                                onClick={() => {
+                                    setTab(value);
+                                    setLightboxIndex(null);
+                                }}
+                                className={cn(
+                                    'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors',
+                                    tab === value
+                                        ? 'text-white'
+                                        : 'hover:bg-[color:var(--bg-soft)]',
+                                )}
+                                style={{
+                                    background:
+                                        tab === value
+                                            ? 'var(--wine-deep)'
+                                            : 'transparent',
+                                    color:
+                                        tab === value ? 'white' : 'var(--ink-soft)',
+                                }}
+                            >
+                                {value === 'video' ? (
+                                    <Video className="h-3.5 w-3.5" />
+                                ) : (
+                                    <ImageIcon className="h-3.5 w-3.5" />
+                                )}
+                                {label}
+                                <span
+                                    className="font-mono grid h-5 min-w-[20px] place-items-center rounded px-1 text-[10px] font-bold"
+                                    style={{
+                                        background:
+                                            tab === value
+                                                ? 'oklch(100% 0 0 / 0.2)'
+                                                : 'var(--bg-soft)',
+                                        color:
+                                            tab === value
+                                                ? 'white'
+                                                : 'var(--ink-mute)',
+                                    }}
+                                >
+                                    {count}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* ---- Onglet vide ---------------------------------------- */}
+                {photos.length > 0 && inTab.length === 0 && (
+                    <section
+                        className="rounded-2xl border p-10 text-center"
+                        style={{
+                            borderColor: 'var(--line)',
+                            background: 'var(--paper)',
+                        }}
+                    >
+                        <p className="text-sm" style={{ color: 'var(--ink-mute)' }}>
+                            {tab === 'video'
+                                ? 'Aucune vidéo dans votre galerie pour l’instant.'
+                                : 'Aucune photo dans votre galerie pour l’instant.'}
+                        </p>
+                    </section>
+                )}
+
+                {/* ---- Médias en ligne ------------------------------------ */}
                 {published.length > 0 && (
                     <PhotoSection
                         eyebrow={`${published.length} visible${published.length > 1 ? 's' : ''} sur votre profil`}
-                        title="Ma galerie"
+                        title={tab === 'video' ? 'Mes vidéos' : 'Mes photos'}
                     >
-                        {published.map((photo) => (
-                            <PhotoTile key={photo.id} photo={photo} />
+                        {published.map((photo, index) => (
+                            <PhotoTile
+                                key={photo.id}
+                                photo={photo}
+                                onOpen={() => setLightboxIndex(index)}
+                            />
                         ))}
                     </PhotoSection>
                 )}
 
-                {/* ---- Photos retirées par la modération ------------------ */}
+                {/* ---- Médias retirés par la modération ------------------- */}
                 {rejected.length > 0 && (
                     <PhotoSection
-                        eyebrow="Retirées par la modération"
+                        eyebrow="Retirés par la modération"
                         title="Non conformes"
                     >
                         {rejected.map((photo) => (
@@ -365,6 +486,13 @@ export default function Index({ photos }: { photos: Photo[] }) {
                     </Link>
                 </section>
             </main>
+
+            <PhotoLightbox
+                items={lightboxItems}
+                index={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onNavigate={setLightboxIndex}
+            />
         </DatingLayout>
     );
 }
@@ -396,11 +524,16 @@ function PhotoSection({
     );
 }
 
-function PhotoTile({ photo }: { photo: Photo }) {
+function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
     const [busy, setBusy] = useState(false);
 
     const isRejected = photo.moderation_status === 'rejected';
     const isApproved = photo.moderation_status === 'approved';
+    const isVideo = photo.media_type === 'video';
+
+    // Une vidéo montre son poster dans la grille : le fichier lui-même n'est
+    // chargé qu'à l'ouverture de la visionneuse.
+    const previewUrl = isVideo ? (photo.poster_url ?? photo.url) : photo.url;
 
     const act = (url: string) => {
         setBusy(true);
@@ -425,7 +558,7 @@ function PhotoTile({ photo }: { photo: Photo }) {
             }}
         >
             <img
-                src={photo.url}
+                src={previewUrl}
                 alt=""
                 loading="lazy"
                 draggable={false}
@@ -436,12 +569,37 @@ function PhotoTile({ photo }: { photo: Photo }) {
                 )}
             />
 
-            {/* Calque anti-copie : intercepte clic droit et glisser-déposer */}
-            <span
-                aria-hidden
-                className="absolute inset-0"
-                onContextMenu={(e) => e.preventDefault()}
-            />
+            {/* Zone cliquable plein cadre : ouvre la visionneuse et intercepte
+             * le clic droit comme le glisser-déposer. */}
+            {onOpen ? (
+                <button
+                    type="button"
+                    onClick={onOpen}
+                    onContextMenu={(e) => e.preventDefault()}
+                    className="absolute inset-0 cursor-zoom-in"
+                    aria-label={
+                        isVideo ? 'Lire la vidéo' : 'Agrandir la photo'
+                    }
+                />
+            ) : (
+                <span
+                    aria-hidden
+                    className="absolute inset-0"
+                    onContextMenu={(e) => e.preventDefault()}
+                />
+            )}
+
+            {/* Pastille de lecture sur les vidéos */}
+            {isVideo && (
+                <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 grid place-items-center"
+                >
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-transform duration-200 group-hover:scale-110">
+                        <Play className="h-5 w-5 translate-x-[1px] fill-current" />
+                    </span>
+                </span>
+            )}
 
             {/* Badges */}
             <div className="pointer-events-none absolute inset-x-2 top-2 flex flex-wrap items-start justify-between gap-1">
@@ -490,10 +648,11 @@ function PhotoTile({ photo }: { photo: Photo }) {
                 )}
             </div>
 
-            {/* Actions au survol */}
+            {/* Actions au survol — z-10 pour rester au-dessus de la zone
+             * d'ouverture de la visionneuse. */}
             <figcaption
                 className={cn(
-                    'absolute inset-x-0 bottom-0 flex flex-col gap-1 p-2 opacity-0 transition-opacity',
+                    'absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 p-2 opacity-0 transition-opacity',
                     'group-hover:opacity-100 group-focus-within:opacity-100',
                 )}
                 style={{

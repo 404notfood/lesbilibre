@@ -16,6 +16,20 @@ class PhotoProcessingService
     /** Largeur intermédiaire d'une photo masquée : plus elle est basse, moins l'image reste lisible. */
     private const OBSCURED_WIDTH = 16;
 
+    /** Nom affiché dans la signature incrustée sur chaque média servi. */
+    private const WATERMARK_BRAND = 'Lesbi-Libre';
+
+    /**
+     * Marque pré-redimensionnée, gardée en mémoire pour la durée du processus.
+     *
+     * Le PNG source fait 1254×1254 : le décoder puis le réduire à trente pixels
+     * coûte ~28 ms, à chaque photo servie. Les tailles demandées se comptent sur
+     * les doigts d'une main (vignette, photo, poster), le cache reste minuscule.
+     *
+     * @var array<int, \GdImage|null>
+     */
+    private array $logoCache = [];
+
     public const RENDER_CACHE_DIRECTORY = 'photo-cache';
 
     /** Six hours, matching the lifetime the rendered images had in the cache store. */
@@ -224,12 +238,181 @@ class PhotoProcessingService
         $font = $this->watermarkFont();
 
         if ($font !== null) {
-            $this->stampWithTrueType($image, $label, $font);
+            $this->stampSignature($image, $label, $font);
 
             return;
         }
 
         $this->stampWithBitmapFont($image, $label);
+    }
+
+    /**
+     * Signature discrète en bas à droite : logo, nom du site, puis le libellé
+     * du destinataire.
+     *
+     * Un pavage diagonal identifie tout aussi bien la copie mais rend la photo
+     * pénible à regarder, ce qui dessert un site de rencontre. La signature
+     * garde la trace sans manger le sujet ; elle est incrustée dans le JPEG,
+     * donc elle survit à une capture d'écran, contrairement à une surcouche CSS
+     * qu'on retire en deux clics dans les outils de développement.
+     */
+    private function stampSignature(\GdImage $image, string $label, string $font): void
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        // Taille relative à la plus petite dimension : lisible sur une vignette
+        // comme sur une photo pleine résolution, sans jamais dominer.
+        $size = max(9, (int) round(min($width, $height) / 42));
+        $margin = max(10, (int) round(min($width, $height) / 28));
+        $logoSize = (int) round($size * 2.4);
+        $gap = (int) round($size * 0.6);
+
+        $text = self::WATERMARK_BRAND.' · '.$label;
+        $box = imagettfbbox($size, 0, $font, $text);
+        $textWidth = abs($box[2] - $box[0]);
+        $textHeight = abs($box[1] - $box[7]);
+
+        $blockWidth = $logoSize + $gap + $textWidth;
+        $blockHeight = max($logoSize, $textHeight);
+
+        $left = $width - $margin - $blockWidth;
+        $bottom = $height - $margin;
+
+        // Voile sombre derrière la signature : sans lui, un texte clair posé
+        // sur une zone claire de la photo devient illisible.
+        $this->shadeSignatureArea(
+            $image,
+            (int) ($left - $gap),
+            (int) ($bottom - $blockHeight - $gap),
+            (int) ($left + $blockWidth + $gap),
+            (int) ($bottom + $gap),
+        );
+
+        $this->stampLogo(
+            $image,
+            (int) $left,
+            (int) ($bottom - $blockHeight + ($blockHeight - $logoSize) / 2),
+            $logoSize,
+        );
+
+        $textX = (int) ($left + $logoSize + $gap);
+        $textY = (int) ($bottom - ($blockHeight - $textHeight) / 2);
+
+        $shadow = imagecolorallocatealpha($image, 0, 0, 0, 75);
+        $ink = imagecolorallocatealpha($image, 255, 255, 255, 40);
+
+        imagettftext($image, $size, 0, $textX + 1, $textY + 1, $shadow, $font, $text);
+        imagettftext($image, $size, 0, $textX, $textY, $ink, $font, $text);
+    }
+
+    /**
+     * Dégradé sombre derrière la signature, pour garantir le contraste quel que
+     * soit le fond de la photo.
+     */
+    private function shadeSignatureArea(\GdImage $image, int $x1, int $y1, int $x2, int $y2): void
+    {
+        $width = max(1, $x2 - $x1);
+        $height = max(1, $y2 - $y1);
+
+        // Voile en dégradé vertical, dessiné par bandes : transparent en haut,
+        // dense sous le texte. Un rectangle uniforme poserait une plaque
+        // visible dans le coin, et un dégradé pixel par pixel coûterait des
+        // centaines de millisecondes par photo.
+        $fadeHeight = max(1, (int) round($height * 0.55));
+
+        for ($y = 0; $y < $height; $y++) {
+            $strength = min(1.0, $y / $fadeHeight);
+
+            if ($strength <= 0.02) {
+                continue;
+            }
+
+            // 127 = invisible, 55 = voile le plus dense retenu.
+            $alpha = (int) round(127 - ($strength * 72));
+            $color = imagecolorallocatealpha(
+                $image,
+                0,
+                0,
+                0,
+                max(0, min(127, $alpha)),
+            );
+
+            // Le bord gauche rentre progressivement : sans ce biseau, le voile
+            // couperait la photo par une arête verticale nette.
+            $inset = (int) round((1 - $strength) * $width * 0.18);
+
+            imagefilledrectangle($image, $x1 + $inset, $y1 + $y, $x2, $y1 + $y, $color);
+        }
+    }
+
+    /**
+     * Incruste la marque, redimensionnée, en préservant sa transparence.
+     *
+     * L'absence du fichier n'est pas une erreur : la signature textuelle suffit
+     * à tracer la copie, le logo n'est qu'un repère de marque.
+     */
+    private function stampLogo(\GdImage $image, int $x, int $y, int $size): void
+    {
+        $logo = $this->logoAtSize($size);
+
+        if ($logo === null) {
+            return;
+        }
+
+        imagealphablending($image, true);
+        imagecopy($image, $logo, $x, $y, 0, 0, $size, $size);
+    }
+
+    private function logoAtSize(int $size): ?\GdImage
+    {
+        if (array_key_exists($size, $this->logoCache)) {
+            return $this->logoCache[$size];
+        }
+
+        $path = public_path('images/branding/lesbilibre-mark.png');
+
+        if (! is_readable($path)) {
+            return $this->logoCache[$size] = null;
+        }
+
+        $source = @imagecreatefrompng($path);
+
+        if ($source === false) {
+            return $this->logoCache[$size] = null;
+        }
+
+        $scaled = imagecreatetruecolor($size, $size);
+
+        // Sans ces deux réglages, la transparence du PNG est aplatie en noir.
+        imagealphablending($scaled, false);
+        imagesavealpha($scaled, true);
+        imagefilledrectangle(
+            $scaled,
+            0,
+            0,
+            $size,
+            $size,
+            imagecolorallocatealpha($scaled, 0, 0, 0, 127),
+        );
+        imagealphablending($scaled, true);
+
+        imagecopyresampled(
+            $scaled,
+            $source,
+            0,
+            0,
+            0,
+            0,
+            $size,
+            $size,
+            imagesx($source),
+            imagesy($source),
+        );
+
+        imagedestroy($source);
+
+        return $this->logoCache[$size] = $scaled;
     }
 
     /**
@@ -249,68 +432,38 @@ class PhotoProcessingService
     }
 
     /**
-     * Diagonal repeated watermark, the shape people recognise as "protected".
-     */
-    private function stampWithTrueType(\GdImage $image, string $label, string $font): void
-    {
-        $width = imagesx($image);
-        $height = imagesy($image);
-
-        $size = max(11, (int) round(min($width, $height) / 22));
-        $white = imagecolorallocatealpha($image, 255, 255, 255, 95);
-        $shadow = imagecolorallocatealpha($image, 0, 0, 0, 105);
-
-        // Diagonal band spacing derived from the text box so rows never collide.
-        $box = imagettfbbox($size, 30, $font, $label);
-        $stepY = max(60, abs($box[1] - $box[7]) * 3);
-        $stepX = max(120, abs($box[2] - $box[0]) + 60);
-
-        for ($y = (int) ($stepY / 2); $y < $height + $stepY; $y += $stepY) {
-            $offset = (($y / $stepY) % 2 === 0) ? 0 : (int) ($stepX / 2);
-
-            for ($x = -$stepX + $offset; $x < $width + $stepX; $x += $stepX) {
-                imagettftext($image, $size, 30, $x + 1, $y + 1, $shadow, $font, $label);
-                imagettftext($image, $size, 30, $x, $y, $white, $font, $label);
-            }
-        }
-    }
-
-    /**
-     * Tile the viewer's identity across the image, twice, so cropping one
-     * corner out of a screenshot does not remove the trace.
+     * Repli sans police TrueType : même signature en bas à droite, dessinée
+     * avec la police bitmap de GD. Plus rustique, mais placée au même endroit
+     * pour que le rendu reste cohérent si le fichier de police disparaît.
      */
     private function stampWithBitmapFont(\GdImage $image, string $label): void
     {
         $width = imagesx($image);
         $height = imagesy($image);
 
-        $white = imagecolorallocatealpha($image, 255, 255, 255, 88);
-        $shadow = imagecolorallocatealpha($image, 0, 0, 0, 100);
+        $text = self::WATERMARK_BRAND.' · '.$label;
 
-        $font = 5;
-        $textWidth = imagefontwidth($font) * strlen($label);
+        $font = 3;
+        $textWidth = imagefontwidth($font) * strlen($text);
         $textHeight = imagefontheight($font);
 
-        $positions = [
-            [(int) (($width - $textWidth) / 2), (int) ($height * 0.35)],
-            [(int) (($width - $textWidth) / 2), (int) ($height * 0.68)],
-        ];
+        $margin = max(6, (int) round(min($width, $height) / 40));
+        $x = max(4, $width - $textWidth - $margin);
+        $y = max(4, $height - $textHeight - $margin);
 
-        foreach ($positions as [$x, $y]) {
-            $x = max(4, $x);
-            imagestring($image, $font, $x + 1, $y + 1, $label, $shadow);
-            imagestring($image, $font, $x, $y, $label, $white);
-        }
-
-        // Discreet corner stamp, harder to notice and therefore to crop out.
-        imagestring(
+        $this->shadeSignatureArea(
             $image,
-            2,
-            max(4, $width - imagefontwidth(2) * strlen($label) - 8),
-            max(4, $height - $textHeight - 6),
-            $label,
-            $white
+            $x - 6,
+            $y - 4,
+            $x + $textWidth + 6,
+            $y + $textHeight + 4,
         );
+
+        $white = imagecolorallocatealpha($image, 255, 255, 255, 40);
+        $shadow = imagecolorallocatealpha($image, 0, 0, 0, 75);
+
+        imagestring($image, $font, $x + 1, $y + 1, $text, $shadow);
+        imagestring($image, $font, $x, $y, $text, $white);
     }
 
     private function openImage(string $path, ?string $mimeType): \GdImage

@@ -29,14 +29,22 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
+        {{-- Fond de page appliqué avant le CSS compilé, pour éviter un flash
+             blanc au chargement. Les teintes reprennent --bg de app.css : un
+             blanc pur ici trahirait le thème dès que la page dépasse la
+             hauteur de la fenêtre. --}}
         <style>
             html {
-                background-color: oklch(1 0 0);
+                background-color: oklch(96.5% 0.013 60);
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: oklch(14% 0.025 350);
+            }
+
+            html,
+            body {
+                min-height: 100%;
             }
         </style>
 

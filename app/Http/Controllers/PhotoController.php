@@ -32,6 +32,10 @@ class PhotoController extends Controller
             ->map(fn (Photo $photo) => [
                 'id' => $photo->id,
                 'url' => $photo->viewUrl(),
+                // Poster de la vidéo : la miniature traverse le pipeline image,
+                // le fichier vidéo non.
+                'poster_url' => $photo->isVideo() ? $photo->viewUrl(thumbnail: true) : null,
+                'media_type' => $photo->isVideo() ? 'video' : 'photo',
                 'is_primary' => $photo->is_primary,
                 'is_naughty' => $photo->is_naughty,
                 'moderation_status' => $photo->moderation_status,

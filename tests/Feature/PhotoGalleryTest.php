@@ -32,6 +32,36 @@ class PhotoGalleryTest extends TestCase
             );
     }
 
+    public function test_gallery_tells_photos_and_videos_apart(): void
+    {
+        $user = User::factory()->create();
+
+        Photo::factory()->approved()->create([
+            'user_id' => $user->id,
+            'media_type' => 'photo',
+        ]);
+
+        Photo::factory()->approved()->create([
+            'user_id' => $user->id,
+            'media_type' => 'video',
+            'thumbnail_path' => 'photos/poster.jpg',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('photos.index'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Photos/Index')
+                ->has('photos', 2)
+                // L'onglet Vidéos et la vignette de lecture s'appuient sur ce
+                // champ : sans lui, tout retombe dans l'onglet Photos.
+                ->where('photos.0.media_type', 'photo')
+                ->where('photos.1.media_type', 'video')
+                ->where('photos.0.poster_url', null)
+                ->whereNot('photos.1.poster_url', null)
+            );
+    }
+
     public function test_user_can_upload_a_photo(): void
     {
         Storage::fake('public');

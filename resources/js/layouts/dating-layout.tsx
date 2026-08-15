@@ -162,10 +162,14 @@ export default function DatingLayout({
     const onlineUsers: PresenceUser[] = presenceUsers ?? [];
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        // La coque occupe exactement la fenêtre et ne défile jamais elle-même :
+        // seul le panneau de contenu scrolle. Sans overflow-hidden ici, le
+        // document glisse sous le layout et découvre une bande vide.
+        // dvh suit la barre d'URL mobile qui se rétracte (repli vh en amont).
+        <div className="h-[100vh] h-[100dvh] overflow-hidden bg-background text-foreground">
             {title && <Head title={title} />}
 
-            <div className="flex h-screen">
+            <div className="flex h-full">
                 {/* ============================================================
                  * SIDEBAR — Wine Editorial
                  * ==========================================================*/}
