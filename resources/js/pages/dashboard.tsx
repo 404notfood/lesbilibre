@@ -15,6 +15,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import ProfileCard from '@/components/discovery/ProfileCard';
 import { DiscoverySignals } from '@/domain/engagement/DiscoverySignals';
+import {
+    pickHeroCopy,
+    type DayPart,
+    type HeroCopy as HeroCopyText,
+} from '@/domain/engagement/HeroCopy';
 import { RewardFeedback, type RewardState } from '@/domain/engagement/RewardFeedback';
 
 interface Profile {
@@ -191,7 +196,8 @@ export default function Dashboard({
     // Le moment de la journée était figé sur « soir » : à 15 h, « samedi soir »
     // sonnait faux et trahissait un texte écrit en dur.
     const hour = now.getHours();
-    const dayPart = hour < 6 ? 'nuit' : hour < 12 ? 'matin' : hour < 18 ? 'après-midi' : 'soir';
+    const dayPart: DayPart =
+        hour < 6 ? 'nuit' : hour < 12 ? 'matin' : hour < 18 ? 'après-midi' : 'soir';
     // « cet après-midi », « ce matin », « cette nuit » : l'élision change.
     const dayPartPhrase =
         dayPart === 'nuit'
@@ -199,6 +205,14 @@ export default function Dashboard({
             : dayPart === 'après-midi'
               ? 'cet après-midi'
               : `ce ${dayPart}`;
+
+    // Graine figée au montage : sans elle, l'accroche changerait à chaque
+    // re-rendu, donc à chaque clic sur un filtre.
+    const [copySeed] = useState(() => Math.floor(Math.random() * 1000));
+    const heroCopy = useMemo(
+        () => pickHeroCopy(dayPart, dayPartPhrase, copySeed),
+        [dayPart, dayPartPhrase, copySeed],
+    );
     // Online count vient du backend (utilisatrices actives récemment, hors
     // moi-même). Fallback à 0 si vraiment personne.
     const onlineCount = liveSignals?.online_count ?? 0;
@@ -225,6 +239,7 @@ export default function Dashboard({
                     dayName={dayName}
                     dayPart={dayPart}
                     dayPartPhrase={dayPartPhrase}
+                    heroCopy={heroCopy}
                     onlineCount={onlineCount}
                     signals={liveSignals}
                     profileCount={visibleProfiles.length}
@@ -357,10 +372,38 @@ export default function Dashboard({
 /* ===========================================================================
  * EDITORIAL HERO — collage + bubbles flottantes + trust strip
  * ==========================================================================*/
+/**
+ * Met en italique coloré le mot porteur de l'accroche.
+ *
+ * Chaque variante déclare son mot fort via `*astérisques*` ; à défaut, le
+ * titre s'affiche tel quel.
+ */
+function HighlightedTitle({ text }: { text: string }): JSX.Element {
+    const parts = text.split(/\*([^*]+)\*/);
+
+    return (
+        <>
+            {parts.map((part, index) =>
+                index % 2 === 1 ? (
+                    <em
+                        key={index}
+                        className="italic text-[color:var(--desire-deep)]"
+                    >
+                        {part}
+                    </em>
+                ) : (
+                    part
+                ),
+            )}
+        </>
+    );
+}
+
 function EditorialHero({
     dayName,
     dayPart,
     dayPartPhrase,
+    heroCopy,
     onlineCount,
     signals,
     profileCount,
@@ -368,6 +411,7 @@ function EditorialHero({
     dayName: string;
     dayPart: string;
     dayPartPhrase: string;
+    heroCopy: HeroCopyText;
     onlineCount: number;
     signals: LiveSignals;
     profileCount: number;
@@ -398,14 +442,11 @@ function EditorialHero({
 
                 {/* Big editorial title */}
                 <h1 className="font-display m-0 text-5xl font-medium leading-[0.96] tracking-[-0.02em] md:text-6xl xl:text-7xl">
-                    Qui te fait{' '}
-                    <em className="italic text-[color:var(--desire-deep)]">vibrer</em>{' '}
-                    {dayPartPhrase}&nbsp;?
+                    <HighlightedTitle text={heroCopy.title} />
                 </h1>
 
                 <p className="mt-5 max-w-[480px] text-[15.5px] leading-relaxed text-foreground/65">
-                    Du flirt d&apos;un soir à l&apos;histoire d&apos;un été. Choisis ton tempo
-                    — on te trouve la rencontre qui va avec.
+                    {heroCopy.subtitle}
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-2.5">
