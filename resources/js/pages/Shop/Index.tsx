@@ -29,8 +29,14 @@ interface GiftItem {
     emoji: string;
     name: string;
     cost: number;
-    category: 'romantic' | 'luxury' | 'fun' | 'special';
+    category: 'romantic' | 'luxury' | 'fun' | 'naughty';
     popular?: boolean;
+}
+
+interface GiftRecipient {
+    id: number;
+    name: string;
+    pseudo: string | null;
 }
 
 interface GemPackage {
@@ -45,11 +51,19 @@ interface Props {
     userGems: number;
     gemPackages: GemPackage[];
     gifts: any[];
+    giftRecipient?: GiftRecipient | null;
 }
 
-export default function Index({ userGems, gemPackages, gifts: backendGifts }: Props) {
+export default function Index({
+    userGems,
+    gemPackages,
+    gifts: backendGifts,
+    giftRecipient = null,
+}: Props) {
     const [selectedGift, setSelectedGift] = useState<GiftItem | null>(null);
     const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+    const [giftMessage, setGiftMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
 
     // Mapper les cadeaux du backend au format attendu par le frontend
     const gifts: GiftItem[] = backendGifts.map((gift: any) => ({
@@ -71,7 +85,30 @@ export default function Index({ userGems, gemPackages, gifts: backendGifts }: Pr
 
     const handleSendGift = (gift: GiftItem) => {
         setSelectedGift(gift);
+        setGiftMessage('');
         setIsGiftModalOpen(true);
+    };
+
+    const confirmSendGift = () => {
+        if (!selectedGift || !giftRecipient) {
+            return;
+        }
+
+        setIsSending(true);
+        router.post(
+            '/shop/gifts/send',
+            {
+                gift_id: selectedGift.id,
+                recipient_id: giftRecipient.id,
+                message: giftMessage,
+            },
+            {
+                onFinish: () => {
+                    setIsSending(false);
+                    setIsGiftModalOpen(false);
+                },
+            }
+        );
     };
 
     const handlePurchaseGems = (packageId: number) => {
@@ -88,8 +125,8 @@ export default function Index({ userGems, gemPackages, gifts: backendGifts }: Pr
                 return 'Luxe';
             case 'fun':
                 return 'Fun';
-            case 'special':
-                return 'Spécial';
+            case 'naughty':
+                return 'Coquin';
             default:
                 return category;
         }
@@ -103,8 +140,8 @@ export default function Index({ userGems, gemPackages, gifts: backendGifts }: Pr
                 return 'from-purple-500 to-indigo-500';
             case 'fun':
                 return 'from-amber-500 to-orange-500';
-            case 'special':
-                return 'from-cyan-500 to-blue-500';
+            case 'naughty':
+                return 'from-red-500 to-rose-600';
             default:
                 return 'from-gray-500 to-gray-600';
         }
@@ -123,6 +160,12 @@ export default function Index({ userGems, gemPackages, gifts: backendGifts }: Pr
                     <p className="text-muted-foreground text-lg">
                         Envoie des cadeaux virtuels pour te démarquer et charmer !
                     </p>
+                    {giftRecipient && (
+                        <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-1 text-base">
+                            <Gift className="h-4 w-4 mr-2" />
+                            Cadeau pour {giftRecipient.pseudo || giftRecipient.name}
+                        </Badge>
+                    )}
                 </div>
 
                 <Tabs defaultValue="gifts" className="w-full">
@@ -175,7 +218,7 @@ export default function Index({ userGems, gemPackages, gifts: backendGifts }: Pr
                         </div>
 
                         {/* Gift Categories */}
-                        {(['romantic', 'luxury', 'fun', 'special'] as const).map((category) => (
+                        {(['romantic', 'luxury', 'fun', 'naughty'] as const).map((category) => (
                             <div key={category} className="space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Badge
@@ -368,7 +411,9 @@ export default function Index({ userGems, gemPackages, gifts: backendGifts }: Pr
                     <DialogHeader>
                         <DialogTitle>Envoyer un cadeau {selectedGift?.emoji}</DialogTitle>
                         <DialogDescription>
-                            Pour envoyer un cadeau, vous devez d'abord sélectionner un destinataire depuis son profil.
+                            {giftRecipient
+                                ? `Pour ${giftRecipient.pseudo || giftRecipient.name}`
+                                : "Pour envoyer un cadeau, rendez-vous sur le profil de la personne et cliquez sur « Cadeau »."}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -384,21 +429,74 @@ export default function Index({ userGems, gemPackages, gifts: backendGifts }: Pr
                                 </div>
                             </CardContent>
                         </Card>
-                        <div className="text-sm text-muted-foreground text-center">
-                            <p>Pour envoyer ce cadeau :</p>
-                            <ol className="list-decimal list-inside mt-2 space-y-1">
-                                <li>Rendez-vous sur le profil d'un utilisateur</li>
-                                <li>Cliquez sur le bouton "Envoyer un cadeau"</li>
-                                <li>Sélectionnez le cadeau de votre choix</li>
-                            </ol>
-                        </div>
-                        <Button
-                            onClick={() => setIsGiftModalOpen(false)}
-                            variant="outline"
-                            className="w-full"
-                        >
-                            Fermer
-                        </Button>
+                        {giftRecipient ? (
+                            <>
+                                <div className="space-y-2">
+                                    <label
+                                        htmlFor="gift_message"
+                                        className="text-sm font-medium"
+                                    >
+                                        Message (optionnel)
+                                    </label>
+                                    <textarea
+                                        id="gift_message"
+                                        rows={3}
+                                        maxLength={500}
+                                        value={giftMessage}
+                                        onChange={(e) => setGiftMessage(e.target.value)}
+                                        placeholder="Un mot pour l'accompagner..."
+                                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    />
+                                </div>
+
+                                {selectedGift && userGems < selectedGift.cost && (
+                                    <p className="text-sm text-destructive text-center">
+                                        Solde insuffisant : il vous manque{' '}
+                                        {selectedGift.cost - userGems} gemmes.
+                                    </p>
+                                )}
+
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => setIsGiftModalOpen(false)}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        Annuler
+                                    </Button>
+                                    <Button
+                                        onClick={confirmSendGift}
+                                        disabled={
+                                            isSending ||
+                                            !selectedGift ||
+                                            userGems < selectedGift.cost
+                                        }
+                                        className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600"
+                                    >
+                                        <Gift className="h-4 w-4 mr-2" />
+                                        {isSending ? 'Envoi...' : 'Offrir'}
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-sm text-muted-foreground text-center">
+                                    <p>Pour envoyer ce cadeau :</p>
+                                    <ol className="list-decimal list-inside mt-2 space-y-1">
+                                        <li>Rendez-vous sur le profil d'un membre</li>
+                                        <li>Cliquez sur le bouton « Cadeau »</li>
+                                        <li>Sélectionnez le cadeau de votre choix</li>
+                                    </ol>
+                                </div>
+                                <Button
+                                    onClick={() => setIsGiftModalOpen(false)}
+                                    variant="outline"
+                                    className="w-full"
+                                >
+                                    Fermer
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </DialogContent>
             </Dialog>

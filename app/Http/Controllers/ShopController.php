@@ -6,6 +6,7 @@ use App\Models\GemPackage;
 use App\Services\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,36 +30,47 @@ class ShopController extends Controller
             'popular' => $package->is_featured,
         ])->values();
 
-        $gifts = [
-            // Romantique
-            ['id' => 1, 'name' => 'Rose Rouge', 'emoji' => '🌹', 'price' => 10, 'category' => 'romantic'],
-            ['id' => 2, 'name' => 'Bouquet', 'emoji' => '💐', 'price' => 25, 'category' => 'romantic'],
-            ['id' => 3, 'name' => 'Coeur', 'emoji' => '💖', 'price' => 15, 'category' => 'romantic'],
-            ['id' => 4, 'name' => 'Bague', 'emoji' => '💍', 'price' => 50, 'category' => 'romantic'],
+        $acceptsNaughty = (bool) $user->profile?->is_naughty_mode;
 
-            // Fun
-            ['id' => 5, 'name' => 'Café', 'emoji' => '☕', 'price' => 5, 'category' => 'fun'],
-            ['id' => 6, 'name' => 'Champagne', 'emoji' => '🍾', 'price' => 30, 'category' => 'fun'],
-            ['id' => 7, 'name' => 'Gâteau', 'emoji' => '🎂', 'price' => 20, 'category' => 'fun'],
-            ['id' => 8, 'name' => 'Cocktail', 'emoji' => '🍹', 'price' => 15, 'category' => 'fun'],
-
-            // Luxe
-            ['id' => 9, 'name' => 'Couronne', 'emoji' => '👑', 'price' => 100, 'category' => 'luxury'],
-            ['id' => 10, 'name' => 'Diamant', 'emoji' => '💎', 'price' => 150, 'category' => 'luxury'],
-            ['id' => 11, 'name' => 'Voiture de Luxe', 'emoji' => '🚗', 'price' => 200, 'category' => 'luxury'],
-            ['id' => 12, 'name' => 'Jet Privé', 'emoji' => '✈️', 'price' => 500, 'category' => 'luxury'],
-
-            // Séduction
-            ['id' => 13, 'name' => 'Bisou', 'emoji' => '💋', 'price' => 8, 'category' => 'seduction'],
-            ['id' => 14, 'name' => 'Message Hot', 'emoji' => '🔥', 'price' => 12, 'category' => 'seduction'],
-            ['id' => 15, 'name' => 'Lingerie', 'emoji' => '👙', 'price' => 35, 'category' => 'seduction'],
-        ];
+        $gifts = collect(config('gifts'))
+            ->reject(fn (array $gift) => $gift['category'] === 'naughty' && ! $acceptsNaughty)
+            ->map(fn (array $gift, int $id) => ['id' => $id] + $gift)
+            ->values();
 
         return Inertia::render('Shop/Index', [
             'userGems' => $user->gems,
             'gemPackages' => $gemPackages,
             'gifts' => $gifts,
+            'giftRecipient' => $this->resolveGiftRecipient($request),
         ]);
+    }
+
+    /**
+     * Destinataire présélectionnée via `?gift_to=` (bouton « Cadeau » d'un profil).
+     *
+     * @return array{id: int, name: string, pseudo: string|null}|null
+     */
+    protected function resolveGiftRecipient(Request $request): ?array
+    {
+        $recipientId = $request->integer('gift_to');
+
+        if ($recipientId <= 0 || $recipientId === $request->user()->id) {
+            return null;
+        }
+
+        $recipient = \App\Models\User::query()
+            ->where('is_banned', false)
+            ->find($recipientId);
+
+        if ($recipient === null) {
+            return null;
+        }
+
+        return [
+            'id' => $recipient->id,
+            'name' => $recipient->name,
+            'pseudo' => $recipient->pseudo,
+        ];
     }
 
     public function purchaseGems(Request $request): RedirectResponse|\Illuminate\Http\Response
@@ -122,7 +134,7 @@ class ShopController extends Controller
     public function sendGift(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'gift_id' => 'required|integer|between:1,15',
+            'gift_id' => ['required', 'integer', Rule::in(array_keys(config('gifts')))],
             'recipient_id' => 'required|exists:users,id',
             'message' => 'nullable|string|max:500',
         ]);
@@ -130,28 +142,18 @@ class ShopController extends Controller
         $user = $request->user();
         $recipient = \App\Models\User::findOrFail($validated['recipient_id']);
 
-        $gifts = [
-            1 => ['name' => 'Rose Rouge', 'price' => 10],
-            2 => ['name' => 'Bouquet', 'price' => 25],
-            3 => ['name' => 'Coeur', 'price' => 15],
-            4 => ['name' => 'Bague', 'price' => 50],
-            5 => ['name' => 'Café', 'price' => 5],
-            6 => ['name' => 'Champagne', 'price' => 30],
-            7 => ['name' => 'Gâteau', 'price' => 20],
-            8 => ['name' => 'Cocktail', 'price' => 15],
-            9 => ['name' => 'Couronne', 'price' => 100],
-            10 => ['name' => 'Diamant', 'price' => 150],
-            11 => ['name' => 'Voiture de Luxe', 'price' => 200],
-            12 => ['name' => 'Jet Privé', 'price' => 500],
-            13 => ['name' => 'Bisou', 'price' => 8],
-            14 => ['name' => 'Message Hot', 'price' => 12],
-            15 => ['name' => 'Lingerie', 'price' => 35],
-        ];
-
-        $gift = $gifts[$validated['gift_id']] ?? null;
+        $gift = config('gifts')[$validated['gift_id']] ?? null;
 
         if (! $gift) {
             return back()->with('error', 'Cadeau invalide.');
+        }
+
+        if ($gift['category'] === 'naughty' && ! $user->profile?->is_naughty_mode) {
+            return back()->with('error', 'Activez le mode coquin pour offrir ce cadeau.');
+        }
+
+        if ($recipient->id === $user->id) {
+            return back()->with('error', 'Vous ne pouvez pas vous offrir un cadeau.');
         }
 
         // Vérifier que l'utilisateur a assez de gemmes
