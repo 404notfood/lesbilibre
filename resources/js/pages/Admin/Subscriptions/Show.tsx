@@ -2,17 +2,27 @@ import AdminLayout, {
     AdminBadge,
     AdminButton,
     AdminCard,
-    AdminSectionTitle,
+    AdminCardHeader,
+    AdminMeta,
 } from '@/layouts/admin-layout';
-import { Head, Link, router } from '@inertiajs/react';
-import { Dialog } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
-    Clock,
-    Edit,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+    AlertTriangle,
+    CalendarPlus,
+    CreditCard,
+    Pencil,
     RefreshCw,
     Trash2,
+    User as UserIcon,
     XCircle,
 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
@@ -39,454 +49,443 @@ interface Subscription {
     updated_at: string;
 }
 
+const STATUS_TONES: Record<string, 'success' | 'neutral' | 'danger' | 'wine'> = {
+    active: 'success',
+    canceled: 'neutral',
+    expired: 'danger',
+    trialing: 'wine',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+    active: 'Actif',
+    canceled: 'Annulé',
+    expired: 'Expiré',
+    trialing: 'Essai',
+};
+
+const PLAN_LABELS: Record<string, string> = {
+    monthly: 'Mensuel',
+    yearly: 'Annuel',
+};
+
+const formatDate = (value: string | null): string =>
+    value
+        ? new Date(value).toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+          })
+        : '—';
+
 export default function Show({ subscription }: { subscription: Subscription }) {
-    const [showExtendDialog, setShowExtendDialog] = useState(false);
-    const [showCancelDialog, setShowCancelDialog] = useState(false);
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showExtend, setShowExtend] = useState(false);
+    const [showCancel, setShowCancel] = useState(false);
+    const [showDelete, setShowDelete] = useState(false);
     const [months, setMonths] = useState(1);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [busy, setBusy] = useState(false);
 
-    const handleExtend = (e: FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        router.post(
-            `/admin/subscriptions/${subscription.id}/extend`,
-            { months },
-            {
-                onFinish: () => {
-                    setIsSubmitting(false);
-                    setShowExtendDialog(false);
+    const act = (action: () => void) => {
+        setBusy(true);
+        action();
+    };
+
+    const extend = (event: FormEvent) => {
+        event.preventDefault();
+        act(() =>
+            router.post(
+                `/admin/subscriptions/${subscription.id}/extend`,
+                { months },
+                {
+                    preserveScroll: true,
+                    onFinish: () => {
+                        setBusy(false);
+                        setShowExtend(false);
+                    },
                 },
-            }
+            ),
         );
     };
 
-    const handleCancel = () => {
-        setIsSubmitting(true);
-        router.post(
-            `/admin/subscriptions/${subscription.id}/cancel`,
-            {},
-            {
-                onFinish: () => {
-                    setIsSubmitting(false);
-                    setShowCancelDialog(false);
-                },
-            }
-        );
-    };
-
-    const handleReactivate = () => {
-        setIsSubmitting(true);
-        router.post(
-            `/admin/subscriptions/${subscription.id}/reactivate`,
-            {},
-            {
-                onFinish: () => setIsSubmitting(false),
-            }
-        );
-    };
-
-    const handleDelete = () => {
-        setIsSubmitting(true);
-        router.delete(`/admin/subscriptions/${subscription.id}`, {
-            onFinish: () => {
-                setIsSubmitting(false);
-                setShowDeleteDialog(false);
-            },
-        });
-    };
-
-    const getStatusBadge = (status: string) => {
-        const tones: Record<string, 'success' | 'neutral' | 'danger' | 'wine'> = {
-            active: 'success',
-            canceled: 'neutral',
-            expired: 'danger',
-            trialing: 'wine',
-        };
-
-        const labels: Record<string, string> = {
-            active: 'Actif',
-            canceled: 'Annulé',
-            expired: 'Expiré',
-            trialing: 'Essai',
-        };
-
-        return (
-            <AdminBadge tone={tones[status] || 'neutral'}>
-                {labels[status] || status}
-            </AdminBadge>
-        );
-    };
+    const isStripe = Boolean(subscription.stripe_subscription_id);
+    const daysLeft = subscription.expires_at
+        ? Math.ceil(
+              (new Date(subscription.expires_at).getTime() - Date.now()) / 86400000,
+          )
+        : null;
+    const isStale =
+        subscription.status === 'active' && daysLeft !== null && daysLeft < 0;
 
     return (
         <AdminLayout
             title={`Abonnement #${subscription.id}`}
-            subtitle={`Gérer l'abonnement de ${subscription.user.name}`}
+            subtitle={`${PLAN_LABELS[subscription.plan] ?? subscription.plan} · ${Number(subscription.amount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`}
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
-                { label: 'Abonnements', href: '/admin/subscriptions' },
+                { label: 'Abonnées', href: '/admin/subscriptions' },
                 { label: `#${subscription.id}` },
             ]}
+            hideSearch
             actions={
                 <>
-                    {getStatusBadge(subscription.status)}
                     <AdminButton
+                        icon={Pencil}
                         href={`/admin/subscriptions/${subscription.id}/edit`}
-                        variant="default"
-                        icon={Edit}
                     >
                         Modifier
                     </AdminButton>
+                    <AdminButton
+                        icon={CalendarPlus}
+                        variant="wine"
+                        onClick={() => setShowExtend(true)}
+                    >
+                        Prolonger
+                    </AdminButton>
+                    {subscription.status === 'active' ? (
+                        <AdminButton
+                            icon={XCircle}
+                            variant="danger"
+                            onClick={() => setShowCancel(true)}
+                        >
+                            Annuler
+                        </AdminButton>
+                    ) : (
+                        <AdminButton
+                            icon={RefreshCw}
+                            variant="success"
+                            disabled={busy}
+                            onClick={() =>
+                                act(() =>
+                                    router.post(
+                                        `/admin/subscriptions/${subscription.id}/reactivate`,
+                                        {},
+                                        {
+                                            preserveScroll: true,
+                                            onFinish: () => setBusy(false),
+                                        },
+                                    ),
+                                )
+                            }
+                        >
+                            Réactiver
+                        </AdminButton>
+                    )}
+                    <AdminButton
+                        icon={Trash2}
+                        variant="ghost"
+                        onClick={() => setShowDelete(true)}
+                        title="Supprimer définitivement"
+                    />
                 </>
             }
         >
-            <Head title={`Abonnement #${subscription.id}`} />
+            <Head title={`Abonnement #${subscription.id} · Admin`} />
 
-            <div className="space-y-10 max-w-4xl">
-                {/* User Info */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="01 · Utilisatrice"
-                        title="Profil concerné"
-                    />
-                    <AdminCard>
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="min-w-0">
-                                <p
-                                    className="font-display text-xl font-medium"
-                                    style={{ color: 'var(--ink)' }}
-                                >
-                                    {subscription.user.name}
-                                </p>
-                                <p
-                                    className="text-sm"
-                                    style={{ color: 'var(--ink-mute)' }}
-                                >
-                                    {subscription.user.email}
-                                </p>
-                            </div>
-                            <AdminButton
-                                href={`/admin/users/${subscription.user.id}`}
-                                variant="default"
-                                size="sm"
-                            >
-                                Voir le profil
-                            </AdminButton>
-                        </div>
-                    </AdminCard>
-                </section>
-
-                {/* Subscription Details */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="02 · Détails"
-                        title="Abonnement"
-                    />
-                    <AdminCard>
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <DetailField
-                                label="Plan"
-                                value={subscription.plan === 'monthly' ? 'Mensuel' : 'Annuel'}
-                            />
-                            <DetailField
-                                label="Montant"
-                                value={`${subscription.amount} €`}
-                                emphasized
-                            />
-                            <DetailField
-                                label="Date de début"
-                                value={
-                                    subscription.starts_at
-                                        ? new Date(subscription.starts_at).toLocaleDateString(
-                                              'fr-FR',
-                                              {
-                                                  year: 'numeric',
-                                                  month: 'long',
-                                                  day: 'numeric',
-                                              }
-                                          )
-                                        : '-'
-                                }
-                            />
-                            <DetailField
-                                label="Date d'expiration"
-                                value={
-                                    subscription.expires_at
-                                        ? new Date(subscription.expires_at).toLocaleDateString(
-                                              'fr-FR',
-                                              {
-                                                  year: 'numeric',
-                                                  month: 'long',
-                                                  day: 'numeric',
-                                              }
-                                          )
-                                        : '-'
-                                }
-                            />
-                            <DetailField
-                                label="Méthode de paiement"
-                                value={subscription.payment_method || '-'}
-                            />
-                            <DetailField
-                                label="Créé le"
-                                value={new Date(subscription.created_at).toLocaleDateString(
-                                    'fr-FR',
-                                    {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    }
-                                )}
-                            />
-                        </div>
-                    </AdminCard>
-                </section>
-
-                {/* Stripe Info */}
-                {subscription.stripe_subscription_id && (
-                    <section>
-                        <AdminSectionTitle
-                            eyebrow="03 · Stripe"
-                            title="Identifiants externes"
-                        />
-                        <AdminCard>
-                            <div className="grid gap-6 md:grid-cols-2">
-                                <DetailField
-                                    label="Subscription ID"
-                                    value={subscription.stripe_subscription_id}
-                                    mono
-                                />
-                                <DetailField
-                                    label="Customer ID"
-                                    value={subscription.stripe_customer_id ?? '-'}
-                                    mono
-                                />
-                                <DetailField
-                                    label="Price ID"
-                                    value={subscription.stripe_price_id ?? '-'}
-                                    mono
-                                />
-                            </div>
-                        </AdminCard>
-                    </section>
+            <div className="space-y-4">
+                {isStale && (
+                    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[color:var(--destructive)]/30 bg-[oklch(62%_0.19_10_/_0.08)] px-5 py-4">
+                        <AlertTriangle className="h-5 w-5 shrink-0 text-[color:var(--destructive)]" />
+                        <p className="min-w-0 flex-1 text-sm text-[color:var(--ink)]">
+                            Cet abonnement est encore marqué actif alors que son échéance
+                            est dépassée de {Math.abs(daysLeft as number)} jour
+                            {Math.abs(daysLeft as number) > 1 ? 's' : ''}. La membre garde
+                            son Premium indûment.
+                        </p>
+                    </div>
                 )}
 
-                {/* Actions */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="04 · Opérations"
-                        title="Actions"
-                    />
+                <div className="grid gap-4 lg:grid-cols-3">
+                    <div className="space-y-4 lg:col-span-2">
+                        <AdminCard padded={false}>
+                            <AdminCardHeader
+                                title="Période et facturation"
+                                icon={CreditCard}
+                                action={
+                                    <AdminBadge
+                                        tone={
+                                            STATUS_TONES[subscription.status] ?? 'neutral'
+                                        }
+                                    >
+                                        {STATUS_LABELS[subscription.status] ??
+                                            subscription.status}
+                                    </AdminBadge>
+                                }
+                            />
+                            <dl className="divide-y divide-[color:var(--line-soft)]">
+                                <Row
+                                    label="Formule"
+                                    value={
+                                        PLAN_LABELS[subscription.plan] ??
+                                        subscription.plan
+                                    }
+                                />
+                                <Row
+                                    label="Montant"
+                                    value={`${Number(subscription.amount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`}
+                                />
+                                <Row
+                                    label="Début"
+                                    value={formatDate(subscription.starts_at)}
+                                />
+                                <Row
+                                    label="Échéance"
+                                    value={
+                                        subscription.expires_at ? (
+                                            <>
+                                                {formatDate(subscription.expires_at)}
+                                                {subscription.status === 'active' &&
+                                                    daysLeft !== null && (
+                                                        <span
+                                                            className={`ml-2 text-xs ${
+                                                                daysLeft < 0
+                                                                    ? 'font-semibold text-[color:var(--destructive)]'
+                                                                    : daysLeft <= 7
+                                                                      ? 'font-semibold text-[color:var(--desire)]'
+                                                                      : 'text-[color:var(--ink-mute)]'
+                                                            }`}
+                                                        >
+                                                            {daysLeft < 0
+                                                                ? `dépassée de ${Math.abs(daysLeft)} j`
+                                                                : `dans ${daysLeft} j`}
+                                                        </span>
+                                                    )}
+                                            </>
+                                        ) : (
+                                            'Illimité'
+                                        )
+                                    }
+                                />
+                                <Row
+                                    label="Moyen de paiement"
+                                    value={
+                                        subscription.payment_method === 'admin'
+                                            ? 'Créé manuellement (aucun prélèvement)'
+                                            : (subscription.payment_method ?? '—')
+                                    }
+                                />
+                                <Row
+                                    label="Créé le"
+                                    value={formatDate(subscription.created_at)}
+                                />
+                            </dl>
+                        </AdminCard>
+
+                        {isStripe && (
+                            <AdminCard padded={false}>
+                                <AdminCardHeader title="Références Stripe" />
+                                <dl className="divide-y divide-[color:var(--line-soft)]">
+                                    <Row
+                                        label="Abonnement"
+                                        value={
+                                            <code className="font-mono text-xs">
+                                                {subscription.stripe_subscription_id}
+                                            </code>
+                                        }
+                                    />
+                                    <Row
+                                        label="Client"
+                                        value={
+                                            <code className="font-mono text-xs">
+                                                {subscription.stripe_customer_id ?? '—'}
+                                            </code>
+                                        }
+                                    />
+                                    <Row
+                                        label="Tarif"
+                                        value={
+                                            <code className="font-mono text-xs">
+                                                {subscription.stripe_price_id ?? '—'}
+                                            </code>
+                                        }
+                                    />
+                                    <Row
+                                        label="Période en cours"
+                                        value={`${formatDate(subscription.current_period_start)} → ${formatDate(subscription.current_period_end)}`}
+                                    />
+                                </dl>
+                                <p className="border-t border-[color:var(--line-soft)] px-5 py-3 text-xs text-[color:var(--ink-mute)]">
+                                    Annuler ici ne résilie pas le prélèvement côté Stripe.
+                                    Fais-le également depuis le tableau de bord Stripe.
+                                </p>
+                            </AdminCard>
+                        )}
+                    </div>
+
                     <AdminCard>
-                        <div className="flex flex-wrap gap-2">
-                            {subscription.status === 'active' && (
-                                <>
-                                    <AdminButton
-                                        onClick={() => setShowExtendDialog(true)}
-                                        variant="primary"
-                                        icon={Clock}
-                                    >
-                                        Prolonger
-                                    </AdminButton>
-                                    <AdminButton
-                                        onClick={() => setShowCancelDialog(true)}
-                                        variant="default"
-                                        icon={XCircle}
-                                    >
-                                        Annuler
-                                    </AdminButton>
-                                </>
-                            )}
-
-                            {subscription.status === 'canceled' && (
-                                <AdminButton
-                                    onClick={handleReactivate}
-                                    disabled={isSubmitting}
-                                    variant="primary"
-                                    icon={RefreshCw}
-                                >
-                                    Réactiver
-                                </AdminButton>
-                            )}
-
-                            <AdminButton
-                                onClick={() => setShowDeleteDialog(true)}
-                                variant="danger"
-                                icon={Trash2}
-                            >
-                                Supprimer
-                            </AdminButton>
+                        <div className="editorial-caption mb-2 text-[color:var(--ink-mute)]">
+                            Abonnée
                         </div>
+                        <div className="flex items-start gap-3">
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[color:var(--blush)] text-[color:var(--wine-deep)]">
+                                <UserIcon className="h-4 w-4" />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <div className="font-display truncate text-base font-semibold text-[color:var(--ink)]">
+                                    {subscription.user.name}
+                                </div>
+                                <div className="truncate text-xs text-[color:var(--ink-soft)]">
+                                    {subscription.user.email}
+                                </div>
+                            </div>
+                        </div>
+                        <AdminButton
+                            size="sm"
+                            className="mt-3 w-full"
+                            href={`/admin/users/${subscription.user.id}`}
+                        >
+                            Ouvrir la fiche
+                        </AdminButton>
+                        <AdminMeta>
+                            <span className="mt-3 block">
+                                Dernière modification :{' '}
+                                {formatDate(subscription.updated_at)}
+                            </span>
+                        </AdminMeta>
                     </AdminCard>
-                </section>
+                </div>
             </div>
 
-            {/* Extend Dialog */}
-            {showExtendDialog && (
-                <Dialog open={showExtendDialog} onClose={() => setShowExtendDialog(false)}>
-                    <div className="p-6">
-                        <h2
-                            className="font-display mb-4 text-2xl font-medium"
-                            style={{ color: 'var(--ink)' }}
-                        >
-                            Prolonger l&apos;abonnement
-                        </h2>
-                        <form onSubmit={handleExtend} className="space-y-4">
-                            <div>
-                                <Label
-                                    htmlFor="months"
-                                    className="editorial-caption mb-1.5 block"
-                                    style={{ color: 'var(--ink-mute)' }}
-                                >
-                                    Nombre de mois
-                                </Label>
-                                <Input
-                                    id="months"
-                                    type="number"
-                                    min="1"
-                                    max="24"
-                                    value={months}
-                                    onChange={(e) => setMonths(parseInt(e.target.value))}
-                                />
-                                <p
-                                    className="mt-2 text-xs"
-                                    style={{ color: 'var(--ink-mute)' }}
-                                >
-                                    Nouvelle date d&apos;expiration :{' '}
-                                    {new Date(
-                                        new Date(
-                                            subscription.expires_at ||
-                                                subscription.current_period_end!
-                                        ).setMonth(
-                                            new Date(
-                                                subscription.expires_at ||
-                                                    subscription.current_period_end!
-                                            ).getMonth() + months
-                                        )
-                                    ).toLocaleDateString('fr-FR')}
-                                </p>
-                            </div>
-                            <div className="flex gap-2">
-                                <AdminButton
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    variant="primary"
-                                >
-                                    {isSubmitting ? 'Prolongation...' : 'Prolonger'}
-                                </AdminButton>
-                                <AdminButton
-                                    onClick={() => setShowExtendDialog(false)}
-                                    variant="default"
-                                >
-                                    Annuler
-                                </AdminButton>
-                            </div>
-                        </form>
-                    </div>
-                </Dialog>
-            )}
-
-            {/* Cancel Dialog */}
-            {showCancelDialog && (
-                <Dialog open={showCancelDialog} onClose={() => setShowCancelDialog(false)}>
-                    <div className="p-6">
-                        <h2
-                            className="font-display mb-4 text-2xl font-medium"
-                            style={{ color: 'var(--ink)' }}
-                        >
-                            Annuler l&apos;abonnement
-                        </h2>
-                        <p
-                            className="mb-4 text-sm"
-                            style={{ color: 'var(--ink-soft)' }}
-                        >
-                            Êtes-vous sûre de vouloir annuler cet abonnement ?
-                        </p>
-                        <div className="flex gap-2">
-                            <AdminButton
-                                onClick={handleCancel}
-                                disabled={isSubmitting}
-                                variant="danger"
-                            >
-                                {isSubmitting ? 'Annulation...' : "Annuler l'abonnement"}
-                            </AdminButton>
-                            <AdminButton
-                                onClick={() => setShowCancelDialog(false)}
-                                variant="default"
-                            >
-                                Retour
-                            </AdminButton>
+            {/* Prolonger */}
+            <Dialog open={showExtend} onOpenChange={setShowExtend}>
+                <DialogContent>
+                    <form onSubmit={extend}>
+                        <DialogHeader>
+                            <DialogTitle className="font-display text-2xl font-medium italic">
+                                Prolonger l&apos;abonnement
+                            </DialogTitle>
+                            <DialogDescription>
+                                La nouvelle échéance sera calculée à partir de la date de
+                                fin actuelle ({formatDate(subscription.expires_at)}).
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-2">
+                            <label className="editorial-caption mb-1.5 block text-[color:var(--ink-mute)]">
+                                Nombre de mois
+                            </label>
+                            <Input
+                                type="number"
+                                min={1}
+                                max={24}
+                                value={months}
+                                onChange={(event) =>
+                                    setMonths(Number(event.target.value))
+                                }
+                                autoFocus
+                            />
                         </div>
-                    </div>
-                </Dialog>
-            )}
-
-            {/* Delete Dialog */}
-            {showDeleteDialog && (
-                <Dialog open={showDeleteDialog} onClose={() => setShowDeleteDialog(false)}>
-                    <div className="p-6">
-                        <h2
-                            className="font-display mb-4 text-2xl font-medium"
-                            style={{ color: 'var(--ink)' }}
-                        >
-                            Supprimer l&apos;abonnement
-                        </h2>
-                        <p
-                            className="mb-4 text-sm"
-                            style={{ color: 'var(--ink-soft)' }}
-                        >
-                            Êtes-vous sûre de vouloir supprimer définitivement cet abonnement ?
-                            Cette action est irréversible.
-                        </p>
-                        <div className="flex gap-2">
-                            <AdminButton
-                                onClick={handleDelete}
-                                disabled={isSubmitting}
-                                variant="danger"
-                            >
-                                {isSubmitting ? 'Suppression...' : 'Supprimer définitivement'}
-                            </AdminButton>
-                            <AdminButton
-                                onClick={() => setShowDeleteDialog(false)}
-                                variant="default"
-                            >
+                        <DialogFooter>
+                            <AdminButton onClick={() => setShowExtend(false)}>
                                 Annuler
                             </AdminButton>
-                        </div>
-                    </div>
-                </Dialog>
-            )}
+                            <AdminButton
+                                type="submit"
+                                variant="wine"
+                                disabled={busy || months < 1}
+                            >
+                                {busy ? 'Prolongation…' : 'Prolonger'}
+                            </AdminButton>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Annuler */}
+            <Dialog open={showCancel} onOpenChange={setShowCancel}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-display text-2xl font-medium italic">
+                            Annuler cet abonnement
+                        </DialogTitle>
+                        <DialogDescription>
+                            L&apos;abonnement passera en « annulé » et le statut Premium
+                            de {subscription.user.name} sera retiré immédiatement, sauf si
+                            un autre abonnement actif existe.
+                            {isStripe && (
+                                <span className="mt-2 block text-[color:var(--destructive)]">
+                                    Cet abonnement est lié à Stripe : pense à résilier
+                                    aussi le prélèvement depuis le tableau de bord
+                                    Stripe.
+                                </span>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <AdminButton onClick={() => setShowCancel(false)}>
+                            Revenir
+                        </AdminButton>
+                        <AdminButton
+                            variant="danger"
+                            icon={XCircle}
+                            disabled={busy}
+                            onClick={() =>
+                                act(() =>
+                                    router.post(
+                                        `/admin/subscriptions/${subscription.id}/cancel`,
+                                        {},
+                                        {
+                                            preserveScroll: true,
+                                            onFinish: () => {
+                                                setBusy(false);
+                                                setShowCancel(false);
+                                            },
+                                        },
+                                    ),
+                                )
+                            }
+                        >
+                            {busy ? 'Annulation…' : "Confirmer l'annulation"}
+                        </AdminButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Supprimer */}
+            <Dialog open={showDelete} onOpenChange={setShowDelete}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-display text-2xl font-medium italic text-[color:var(--destructive)]">
+                            Supprimer cet abonnement
+                        </DialogTitle>
+                        <DialogDescription>
+                            <strong>Action irréversible.</strong> L&apos;enregistrement
+                            disparaîtra de l&apos;historique de facturation. Préfère
+                            l&apos;annulation si tu veux garder une trace comptable.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <AdminButton onClick={() => setShowDelete(false)}>
+                            Annuler
+                        </AdminButton>
+                        <AdminButton
+                            variant="danger"
+                            icon={Trash2}
+                            disabled={busy}
+                            onClick={() =>
+                                act(() =>
+                                    router.delete(
+                                        `/admin/subscriptions/${subscription.id}`,
+                                        { onFinish: () => setBusy(false) },
+                                    ),
+                                )
+                            }
+                        >
+                            Supprimer définitivement
+                        </AdminButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }
 
-function DetailField({
-    label,
-    value,
-    emphasized = false,
-    mono = false,
-}: {
-    label: string;
-    value: string;
-    emphasized?: boolean;
-    mono?: boolean;
-}) {
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
     return (
-        <div>
-            <div
-                className="editorial-caption mb-1"
-                style={{ color: 'var(--ink-mute)' }}
-            >
+        <div className="flex flex-wrap items-baseline justify-between gap-3 px-5 py-2.5">
+            <dt className="editorial-caption shrink-0 text-[color:var(--ink-mute)]">
                 {label}
-            </div>
-            <p
-                className={`${emphasized ? 'font-display text-lg' : ''} ${mono ? 'font-mono text-sm' : ''} font-semibold`}
-                style={{ color: 'var(--ink)' }}
-            >
+            </dt>
+            <dd className="min-w-0 text-right text-sm font-medium text-[color:var(--ink)]">
                 {value}
-            </p>
+            </dd>
         </div>
     );
 }

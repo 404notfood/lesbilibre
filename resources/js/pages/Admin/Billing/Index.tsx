@@ -101,24 +101,18 @@ export default function Index({
 
     return (
         <AdminLayout
-            title="Abonnements & tarifs"
+            title="Offres & tarifs"
             subtitle="Plans premium, packs de gemmes, avantages et mise en avant"
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
-                { label: 'Abonnements & tarifs' },
+                { label: 'Offres & tarifs' },
             ]}
+            hideSearch
         >
-            <Head title="Abonnements & tarifs · Admin" />
+            <Head title="Offres & tarifs · Admin" />
 
             {missingStripe.length > 0 && (
-                <div
-                    className="mb-5 flex items-start gap-3 rounded-2xl border p-4 text-sm"
-                    style={{
-                        borderColor: 'var(--desire)',
-                        background: 'var(--blush)',
-                        color: 'var(--wine-deep)',
-                    }}
-                >
+                <div className="mb-4 flex items-start gap-3 rounded-2xl border border-[color:var(--desire)] bg-[color:var(--blush)] p-4 text-sm text-[color:var(--wine-deep)]">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                     <div>
                         <p className="font-semibold">
@@ -128,52 +122,61 @@ export default function Index({
                         </p>
                         <p className="mt-1">
                             {missingStripe.map((p) => p.name).join(', ')} —
-                            {missingStripe.length > 1 ? ' ces plans sont' : ' ce plan est'}{' '}
+                            {missingStripe.length > 1
+                                ? ' ces plans sont'
+                                : ' ce plan est'}{' '}
                             visible{missingStripe.length > 1 ? 's' : ''} sur la page
-                            premium mais le paiement échouera. Créez le prix dans votre
-                            tableau de bord Stripe, puis collez son identifiant
-                            (price_…) ici.
+                            premium mais le paiement échouera. Crée le prix dans ton
+                            tableau de bord Stripe, puis colle son identifiant (price_…)
+                            ici.
                         </p>
                     </div>
                 </div>
             )}
 
             {/* ---- Rappel du palier gratuit --------------------------- */}
-            <AdminCard className="mb-6">
-                <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
-                    <div>
-                        <div
-                            className="editorial-caption"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
+            <AdminCard className="mb-4">
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+                    <div className="min-w-0 flex-1">
+                        <div className="editorial-caption text-[color:var(--ink-mute)]">
                             Compte gratuit
                         </div>
-                        <p className="mt-1 text-xs" style={{ color: 'var(--ink-mute)' }}>
+                        <p className="mt-1 text-xs text-[color:var(--ink-mute)]">
                             Valeurs de référence, définies dans{' '}
-                            <code>config/entitlements.php</code>
+                            <code className="font-mono">config/entitlements.php</code>
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-6">
                         <div>
-                            <div className="font-display text-2xl font-medium">
+                            <div className="font-display text-2xl font-medium text-[color:var(--ink)]">
                                 {String(freeLimits.likes_per_day ?? '—')}
                             </div>
-                            <div
-                                className="text-[11px]"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
+                            <div className="text-[11px] text-[color:var(--ink-mute)]">
                                 likes / jour
                             </div>
                         </div>
                         <div>
-                            <div className="font-display text-2xl font-medium">
+                            <div className="font-display text-2xl font-medium text-[color:var(--ink)]">
                                 {String(freeLimits.first_messages_per_day ?? '—')}
                             </div>
-                            <div
-                                className="text-[11px]"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
+                            <div className="text-[11px] text-[color:var(--ink-mute)]">
                                 nouvelles conversations / jour
+                            </div>
+                        </div>
+                        <div>
+                            <div className="font-display text-2xl font-medium text-[color:var(--ink)]">
+                                {plans.filter((plan) => plan.is_active).length}
+                            </div>
+                            <div className="text-[11px] text-[color:var(--ink-mute)]">
+                                plans actifs
+                            </div>
+                        </div>
+                        <div>
+                            <div className="font-display text-2xl font-medium text-[color:var(--ink)]">
+                                {packages.filter((pack) => pack.is_active).length}
+                            </div>
+                            <div className="text-[11px] text-[color:var(--ink-mute)]">
+                                packs actifs
                             </div>
                         </div>
                     </div>

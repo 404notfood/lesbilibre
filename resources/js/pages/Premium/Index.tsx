@@ -4,6 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     Crown,
     Check,
     Zap,
@@ -17,6 +25,7 @@ import {
     Infinity,
     Gift
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface Plan {
     id: number;
@@ -30,17 +39,46 @@ interface Plan {
     available: boolean;
 }
 
+interface CurrentSubscription {
+    id: number;
+    plan: string;
+    amount: number;
+    status: string;
+    expires_at: string | null;
+    managed_by_stripe: boolean;
+}
+
 export default function Index({
     isPremium = false,
     plans = [],
+    currentSubscription = null,
 }: {
     isPremium?: boolean;
     plans?: Plan[];
+    currentSubscription?: CurrentSubscription | null;
 }) {
+    const [confirmCancel, setConfirmCancel] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
+
     const handleSubscribe = (planId: number) => {
         router.post('/premium/subscribe', {
             plan_id: planId,
         });
+    };
+
+    const handleCancel = () => {
+        setCancelling(true);
+        router.post(
+            '/premium/cancel',
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setCancelling(false);
+                    setConfirmCancel(false);
+                },
+            },
+        );
     };
 
     const features = [
@@ -116,8 +154,75 @@ export default function Index({
                         <Check className="h-4 w-4 text-green-500" />
                         <span>Garantie satisfait ou remboursé 30 jours</span>
                     </div>
-                    {isPremium && <Button variant="outline" onClick={() => router.post('/premium/billing-portal')}>Gérer mon abonnement et mes factures</Button>}
                 </div>
+
+                {/* Gestion de l'abonnement en cours */}
+                {isPremium && (
+                    <Card className="mx-auto max-w-2xl border-2">
+                        <CardContent className="space-y-4 p-6">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <h2 className="text-lg font-bold">
+                                        Ton abonnement
+                                    </h2>
+                                    {currentSubscription?.expires_at ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            {currentSubscription.status === 'canceled'
+                                                ? 'Résilié — accès conservé jusqu’au '
+                                                : 'Prochaine échéance le '}
+                                            {new Date(
+                                                currentSubscription.expires_at,
+                                            ).toLocaleDateString('fr-FR', {
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric',
+                                            })}
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            Accès Premium sans date de fin.
+                                        </p>
+                                    )}
+                                </div>
+                                <Badge variant="secondary">
+                                    {currentSubscription?.status === 'canceled'
+                                        ? 'Résilié'
+                                        : 'Actif'}
+                                </Badge>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                {currentSubscription?.managed_by_stripe && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() =>
+                                            router.post('/premium/billing-portal')
+                                        }
+                                    >
+                                        Gérer mon abonnement et mes factures
+                                    </Button>
+                                )}
+
+                                {currentSubscription &&
+                                    currentSubscription.status !== 'canceled' &&
+                                    !currentSubscription.managed_by_stripe && (
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => setConfirmCancel(true)}
+                                        >
+                                            Résilier mon abonnement
+                                        </Button>
+                                    )}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground">
+                                {currentSubscription?.managed_by_stripe
+                                    ? 'La résiliation s’effectue depuis le portail de paiement : elle arrête le prélèvement et tu gardes l’accès jusqu’à la fin de la période payée.'
+                                    : 'En cas de résiliation, tu conserves ton accès Premium jusqu’à la fin de la période déjà réglée.'}
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Features Grid */}
                 <div className="max-w-6xl mx-auto">
@@ -329,6 +434,40 @@ export default function Index({
                     </p>
                 </div>
             </div>
+
+            <Dialog open={confirmCancel} onOpenChange={setConfirmCancel}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Résilier ton abonnement Premium</DialogTitle>
+                        <DialogDescription>
+                            {currentSubscription?.expires_at
+                                ? `Tu gardes l'accès à toutes les fonctionnalités Premium jusqu'au ${new Date(
+                                      currentSubscription.expires_at,
+                                  ).toLocaleDateString('fr-FR', {
+                                      day: 'numeric',
+                                      month: 'long',
+                                      year: 'numeric',
+                                  })}. Passé cette date, ton compte repassera en gratuit. Tu peux te réabonner quand tu veux.`
+                                : 'Ton accès Premium prendra fin immédiatement. Tu peux te réabonner quand tu veux.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setConfirmCancel(false)}
+                        >
+                            Garder mon Premium
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleCancel}
+                            disabled={cancelling}
+                        >
+                            {cancelling ? 'Résiliation…' : 'Confirmer la résiliation'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </DatingLayout>
     );
 }

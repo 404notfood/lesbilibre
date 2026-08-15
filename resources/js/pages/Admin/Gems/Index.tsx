@@ -1,12 +1,25 @@
 import AdminLayout, {
     AdminBadge,
+    AdminBarList,
+    AdminButton,
     AdminCard,
+    AdminCardHeader,
+    AdminEmpty,
+    AdminField,
     AdminKpi,
-    AdminSectionTitle,
+    AdminMeta,
+    AdminPagination,
+    AdminSelect,
+    AdminTable,
+    AdminTd,
+    AdminTh,
+    AdminThead,
+    AdminToolbar,
+    AdminTr,
 } from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { Coins, Sparkles, TrendingDown, Wallet } from 'lucide-react';
-import { useState } from 'react';
+import { Coins, Search, Sparkles, TrendingDown, TrendingUp, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface TransactionUser {
     id: number;
@@ -24,19 +37,14 @@ interface Transaction {
     created_at: string;
 }
 
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
 interface Props {
     transactions: {
         data: Transaction[];
-        links: PaginationLink[];
-        total: number;
         from: number | null;
         to: number | null;
+        last_page: number;
+        total: number;
+        links: Array<{ url: string | null; label: string; active: boolean }>;
     };
     stats: {
         in_circulation: number;
@@ -44,21 +52,19 @@ interface Props {
         spent: number;
         revenue: number;
     };
-    byType: { type: string; movements: number; total: number }[];
-    topHolders: { id: number; pseudo: string; gems: number }[];
+    byType: Array<{ type: string; movements: number; total: number }>;
+    topHolders: Array<{ id: number; pseudo: string; gems: number }>;
     filters: { type: string | null; search: string | null };
 }
 
 const TYPE_LABELS: Record<string, string> = {
     purchase: 'Achat',
-    admin_add: 'Crédit admin',
-    admin_remove: 'Débit admin',
-    gift_sent: 'Cadeau envoyé',
-    gift_received: 'Cadeau reçu',
-    gallery_access: 'Accès galerie',
-    gallery_access_refund: 'Remboursement galerie',
-    profile_completion: 'Profil complété',
-    premium_monthly_bonus: 'Bonus premium',
+    expense: 'Dépense',
+    gift: 'Cadeau',
+    admin_add: 'Ajout admin',
+    admin_remove: 'Retrait admin',
+    reward: 'Récompense',
+    refund: 'Remboursement',
 };
 
 const label = (type: string): string => TYPE_LABELS[type] ?? type;
@@ -71,331 +77,292 @@ export default function Index({
     filters,
 }: Props) {
     const [search, setSearch] = useState(filters.search ?? '');
+    const isFirstRender = useRef(true);
 
-    const applyFilters = (next: { type?: string | null; search?: string }) => {
+    const visit = (params: Record<string, string>) => {
         router.get(
             '/admin/gems',
             {
-                type: next.type !== undefined ? next.type : filters.type,
-                search: next.search !== undefined ? next.search : filters.search,
+                search: params.search ?? search,
+                type: params.type ?? filters.type ?? '',
             },
-            { preserveState: true, replace: true },
+            { preserveState: true, preserveScroll: true, replace: true },
         );
     };
 
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            if (search !== (filters.search ?? '')) {
+                visit({ search });
+            }
+        }, 350);
+
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
+
+    const hasFilters = Boolean(filters.search || filters.type);
+
     return (
         <AdminLayout
-            title="Économie gemmes"
-            subtitle="Circulation, flux et mouvements de la monnaie interne"
+            title="Économie des gemmes"
+            subtitle="Circulation, flux et mouvements récents"
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
                 { label: 'Économie gemmes' },
             ]}
+            hideSearch
         >
             <Head title="Économie gemmes · Admin" />
 
-            {/* ---- KPI ------------------------------------------------- */}
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <AdminKpi
-                    label="En circulation"
-                    value={stats.in_circulation}
-                    icon={Wallet}
-                />
-                <AdminKpi label="Émises au total" value={stats.issued} icon={Sparkles} />
-                <AdminKpi label="Dépensées" value={stats.spent} icon={TrendingDown} />
-                <AdminKpi
-                    label="Revenus gemmes"
-                    value={`${stats.revenue.toLocaleString('fr-FR', {
-                        minimumFractionDigits: 2,
-                    })} €`}
-                    icon={Coins}
-                />
-            </div>
+            <div className="space-y-4">
+                {/* Indicateurs */}
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <AdminKpi
+                        label="En circulation"
+                        value={stats.in_circulation}
+                        hint="Soldes cumulés des comptes"
+                        icon={Sparkles}
+                    />
+                    <AdminKpi
+                        label="Émises"
+                        value={stats.issued}
+                        hint="Achats, cadeaux, récompenses"
+                        icon={TrendingUp}
+                    />
+                    <AdminKpi
+                        label="Dépensées"
+                        value={stats.spent}
+                        hint="Sorties de circulation"
+                        icon={TrendingDown}
+                    />
+                    <AdminKpi
+                        label="Revenus générés"
+                        value={`${stats.revenue.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €`}
+                        hint="Ventes de packs"
+                        icon={Coins}
+                    />
+                </div>
 
-            <div className="mt-5 grid gap-5 lg:grid-cols-3">
-                {/* ---- Répartition par type --------------------------- */}
-                <AdminCard>
-                    <AdminSectionTitle eyebrow="Flux" title="Par type" />
-                    {byType.length === 0 ? (
-                        <p className="text-sm" style={{ color: 'var(--ink-mute)' }}>
-                            Aucun mouvement enregistré.
-                        </p>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            {byType.map((row) => (
-                                <button
-                                    key={row.type}
-                                    type="button"
-                                    onClick={() =>
-                                        applyFilters({
-                                            type:
-                                                filters.type === row.type
-                                                    ? null
-                                                    : row.type,
-                                        })
-                                    }
-                                    className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:border-[color:var(--wine)]"
-                                    style={{
-                                        borderColor:
-                                            filters.type === row.type
-                                                ? 'var(--wine-deep)'
-                                                : 'var(--line)',
-                                    }}
-                                >
-                                    <span className="min-w-0 flex-1 truncate">
-                                        {label(row.type)}
-                                    </span>
-                                    <span
-                                        className="font-mono text-[11px]"
-                                        style={{ color: 'var(--ink-mute)' }}
-                                    >
-                                        {row.movements}×
-                                    </span>
-                                    <span
-                                        className="font-mono text-xs font-semibold"
-                                        style={{
-                                            color:
-                                                row.total >= 0
-                                                    ? 'var(--success)'
-                                                    : 'var(--desire-deep)',
-                                        }}
-                                    >
-                                        {row.total > 0 ? '+' : ''}
-                                        {row.total.toLocaleString('fr-FR')}
-                                    </span>
-                                </button>
-                            ))}
+                <div className="grid gap-4 lg:grid-cols-3">
+                    {/* Répartition par type */}
+                    <AdminCard padded={false}>
+                        <AdminCardHeader title="Mouvements par type" />
+                        <div className="p-5">
+                            {byType.length === 0 ? (
+                                <p className="text-sm text-[color:var(--ink-mute)]">
+                                    Aucun mouvement enregistré.
+                                </p>
+                            ) : (
+                                <AdminBarList
+                                    items={byType.map((row) => ({
+                                        label: `${label(row.type)} · ${row.movements} mvt`,
+                                        value: Math.abs(row.total),
+                                    }))}
+                                />
+                            )}
                         </div>
-                    )}
-                </AdminCard>
+                    </AdminCard>
 
-                {/* ---- Top détentrices --------------------------------- */}
-                <AdminCard>
-                    <AdminSectionTitle eyebrow="Soldes" title="Plus gros soldes" />
-                    {topHolders.length === 0 ? (
-                        <p className="text-sm" style={{ color: 'var(--ink-mute)' }}>
-                            Aucun solde positif.
-                        </p>
-                    ) : (
-                        <div className="flex flex-col gap-1.5">
-                            {topHolders.map((holder, i) => (
-                                <Link
-                                    key={holder.id}
-                                    href={`/admin/gems/${holder.id}`}
-                                    className="flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[color:var(--bg-soft)]"
-                                >
-                                    <span
-                                        className="font-mono w-4 text-[11px]"
-                                        style={{ color: 'var(--ink-mute)' }}
-                                    >
-                                        {i + 1}
-                                    </span>
-                                    <span className="min-w-0 flex-1 truncate font-medium">
-                                        {holder.pseudo}
-                                    </span>
-                                    <span className="font-mono text-xs font-semibold">
-                                        {holder.gems.toLocaleString('fr-FR')}
-                                    </span>
-                                </Link>
-                            ))}
-                        </div>
-                    )}
-                </AdminCard>
-
-                {/* ---- Recherche --------------------------------------- */}
-                <AdminCard>
-                    <AdminSectionTitle eyebrow="Filtrer" title="Rechercher" />
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            applyFilters({ search });
-                        }}
-                        className="flex flex-col gap-3"
-                    >
-                        <input
-                            type="search"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Pseudo, nom ou e-mail"
-                            className="w-full rounded-lg border px-3 py-2 text-sm"
-                            style={{
-                                borderColor: 'var(--line)',
-                                background: 'var(--bg-soft)',
-                                color: 'var(--ink)',
-                            }}
+                    {/* Plus gros soldes */}
+                    <AdminCard padded={false} className="lg:col-span-2">
+                        <AdminCardHeader
+                            title="Plus gros soldes"
+                            icon={Sparkles}
+                            action={<AdminMeta>Top 10</AdminMeta>}
                         />
-                        <button
-                            type="submit"
-                            className="rounded-lg px-4 py-2 text-sm font-semibold"
-                            style={{ background: 'var(--ink)', color: 'var(--bg)' }}
-                        >
-                            Filtrer
-                        </button>
-                        {(filters.type || filters.search) && (
-                            <button
-                                type="button"
+                        {topHolders.length === 0 ? (
+                            <AdminEmpty
+                                icon={Sparkles}
+                                title="Aucun solde"
+                                description="Personne ne détient encore de gemmes."
+                            />
+                        ) : (
+                            <ul className="divide-y divide-[color:var(--line-soft)]">
+                                {topHolders.map((holder, index) => (
+                                    <li key={holder.id}>
+                                        <Link
+                                            href={`/admin/gems/${holder.id}`}
+                                            className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-[color:var(--bg-soft)]"
+                                        >
+                                            <span className="font-mono w-5 shrink-0 text-xs text-[color:var(--ink-mute)]">
+                                                {index + 1}
+                                            </span>
+                                            <span className="min-w-0 flex-1 truncate text-sm font-medium text-[color:var(--ink)]">
+                                                {holder.pseudo}
+                                            </span>
+                                            <span className="font-mono inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
+                                                <Sparkles className="h-3 w-3 text-[color:var(--gold)]" />
+                                                {holder.gems.toLocaleString('fr-FR')}
+                                            </span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </AdminCard>
+                </div>
+
+                {/* Filtres */}
+                <AdminToolbar
+                    right={
+                        hasFilters ? (
+                            <AdminButton
+                                variant="ghost"
+                                size="sm"
+                                icon={X}
                                 onClick={() => {
                                     setSearch('');
-                                    router.get('/admin/gems', {}, { replace: true });
+                                    router.get('/admin/gems');
                                 }}
-                                className="text-xs underline"
-                                style={{ color: 'var(--ink-mute)' }}
                             >
-                                Réinitialiser les filtres
-                            </button>
-                        )}
-                    </form>
-                </AdminCard>
-            </div>
+                                Réinitialiser
+                            </AdminButton>
+                        ) : undefined
+                    }
+                >
+                    <AdminField label="Recherche" className="min-w-[220px] flex-1">
+                        <div className="relative">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
+                            <input
+                                type="search"
+                                placeholder="pseudo, nom, e-mail…"
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pl-9 pr-3 text-sm text-[color:var(--ink)] outline-none transition-colors placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
+                            />
+                        </div>
+                    </AdminField>
 
-            {/* ---- Journal des mouvements --------------------------- */}
-            <div className="mt-5">
+                    <AdminField label="Type de mouvement" className="w-[180px]">
+                        <AdminSelect
+                            value={filters.type ?? ''}
+                            onChange={(value) => visit({ type: value })}
+                        >
+                            <option value="">Tous</option>
+                            {byType.map((row) => (
+                                <option key={row.type} value={row.type}>
+                                    {label(row.type)}
+                                </option>
+                            ))}
+                        </AdminSelect>
+                    </AdminField>
+                </AdminToolbar>
+
+                {/* Journal des mouvements */}
                 <AdminCard padded={false}>
-                    <div className="p-6 pb-0">
-                        <AdminSectionTitle
-                            eyebrow={`${transactions.total} mouvement${transactions.total > 1 ? 's' : ''}`}
-                            title="Journal"
-                            right={
-                                filters.type ? (
-                                    <AdminBadge tone="wine">
-                                        {label(filters.type)}
-                                    </AdminBadge>
-                                ) : undefined
+                    <AdminCardHeader
+                        title={`Mouvements · ${transactions.total.toLocaleString('fr-FR')}`}
+                        icon={Coins}
+                    />
+                    {transactions.data.length === 0 ? (
+                        <AdminEmpty
+                            icon={Coins}
+                            title="Aucun mouvement"
+                            description={
+                                hasFilters
+                                    ? 'Aucun mouvement ne correspond à ces critères.'
+                                    : 'Aucune transaction de gemmes enregistrée.'
                             }
                         />
-                    </div>
-
-                    {transactions.data.length === 0 ? (
-                        <p
-                            className="px-6 pb-6 text-sm"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
-                            Aucun mouvement ne correspond à ces critères.
-                        </p>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[720px] text-left text-sm">
-                                <thead
-                                    className="border-y"
-                                    style={{
-                                        borderColor: 'var(--line)',
-                                        background: 'var(--bg-soft)',
-                                        color: 'var(--ink-mute)',
-                                    }}
-                                >
-                                    <tr>
-                                        <th className="p-4 font-medium">Date</th>
-                                        <th className="p-4 font-medium">Membre</th>
-                                        <th className="p-4 font-medium">Type</th>
-                                        <th className="p-4 font-medium">Motif</th>
-                                        <th className="p-4 text-right font-medium">
-                                            Montant
-                                        </th>
-                                        <th className="p-4 text-right font-medium">
-                                            Solde
-                                        </th>
-                                    </tr>
-                                </thead>
+                        <>
+                            <AdminTable>
+                                <AdminThead>
+                                    <AdminTh>Compte</AdminTh>
+                                    <AdminTh>Type</AdminTh>
+                                    <AdminTh>Motif</AdminTh>
+                                    <AdminTh align="right">Montant</AdminTh>
+                                    <AdminTh align="right">Solde après</AdminTh>
+                                    <AdminTh>Date</AdminTh>
+                                </AdminThead>
                                 <tbody>
-                                    {transactions.data.map((tx) => (
-                                        <tr
-                                            key={tx.id}
-                                            className="border-b last:border-0"
-                                            style={{ borderColor: 'var(--line-soft)' }}
-                                        >
-                                            <td
-                                                className="whitespace-nowrap p-4 text-xs"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                {new Date(
-                                                    tx.created_at,
-                                                ).toLocaleString('fr-FR')}
-                                            </td>
-                                            <td className="p-4">
-                                                {tx.user ? (
+                                    {transactions.data.map((transaction) => (
+                                        <AdminTr key={transaction.id}>
+                                            <AdminTd>
+                                                {transaction.user ? (
                                                     <Link
-                                                        href={`/admin/gems/${tx.user.id}`}
-                                                        className="font-medium underline decoration-dotted underline-offset-2"
+                                                        href={`/admin/gems/${transaction.user.id}`}
+                                                        className="text-sm font-semibold text-[color:var(--ink)] hover:underline"
                                                     >
-                                                        {tx.user.pseudo}
+                                                        {transaction.user.pseudo ||
+                                                            transaction.user.name}
                                                     </Link>
                                                 ) : (
-                                                    <span
-                                                        style={{
-                                                            color: 'var(--ink-mute)',
-                                                        }}
-                                                    >
-                                                        Compte supprimé
+                                                    <span className="text-sm italic text-[color:var(--ink-mute)]">
+                                                        compte supprimé
                                                     </span>
                                                 )}
-                                            </td>
-                                            <td className="p-4">{label(tx.type)}</td>
-                                            <td
-                                                className="max-w-[220px] truncate p-4"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                {tx.description ?? '—'}
-                                            </td>
-                                            <td
-                                                className="font-mono p-4 text-right font-semibold"
-                                                style={{
-                                                    color:
-                                                        tx.amount >= 0
-                                                            ? 'var(--success)'
-                                                            : 'var(--desire-deep)',
-                                                }}
-                                            >
-                                                {tx.amount > 0 ? '+' : ''}
-                                                {tx.amount.toLocaleString('fr-FR')}
-                                            </td>
-                                            <td className="font-mono p-4 text-right">
-                                                {tx.balance_after.toLocaleString(
-                                                    'fr-FR',
-                                                )}
-                                            </td>
-                                        </tr>
+                                            </AdminTd>
+                                            <AdminTd>
+                                                <AdminBadge
+                                                    tone={
+                                                        transaction.amount >= 0
+                                                            ? 'success'
+                                                            : 'neutral'
+                                                    }
+                                                >
+                                                    {label(transaction.type)}
+                                                </AdminBadge>
+                                            </AdminTd>
+                                            <AdminTd>
+                                                <p className="max-w-xs truncate text-xs text-[color:var(--ink-soft)]">
+                                                    {transaction.description ?? '—'}
+                                                </p>
+                                            </AdminTd>
+                                            <AdminTd align="right">
+                                                <span
+                                                    className={`font-mono text-sm font-semibold ${
+                                                        transaction.amount >= 0
+                                                            ? 'text-[color:var(--success)]'
+                                                            : 'text-[color:var(--destructive)]'
+                                                    }`}
+                                                >
+                                                    {transaction.amount > 0 ? '+' : ''}
+                                                    {transaction.amount.toLocaleString(
+                                                        'fr-FR',
+                                                    )}
+                                                </span>
+                                            </AdminTd>
+                                            <AdminTd align="right">
+                                                <span className="font-mono text-xs text-[color:var(--ink-soft)]">
+                                                    {transaction.balance_after.toLocaleString(
+                                                        'fr-FR',
+                                                    )}
+                                                </span>
+                                            </AdminTd>
+                                            <AdminTd>
+                                                <AdminMeta>
+                                                    {new Date(
+                                                        transaction.created_at,
+                                                    ).toLocaleDateString('fr-FR', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: '2-digit',
+                                                    })}
+                                                </AdminMeta>
+                                            </AdminTd>
+                                        </AdminTr>
                                     ))}
                                 </tbody>
-                            </table>
-                        </div>
+                            </AdminTable>
+
+                            <AdminPagination
+                                from={transactions.from}
+                                to={transactions.to}
+                                total={transactions.total}
+                                lastPage={transactions.last_page}
+                                links={transactions.links}
+                            />
+                        </>
                     )}
                 </AdminCard>
-
-                {transactions.data.length > 0 && (
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-                        <p
-                            className="font-mono text-[11px] uppercase tracking-wider"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
-                            {transactions.from}–{transactions.to} sur{' '}
-                            {transactions.total}
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                            {transactions.links.map((link, i) => (
-                                <Link
-                                    key={i}
-                                    href={link.url ?? '#'}
-                                    preserveScroll
-                                    className="inline-grid h-8 min-w-[32px] place-items-center rounded-md border px-2 text-xs font-semibold"
-                                    style={{
-                                        borderColor: link.active
-                                            ? 'var(--wine-deep)'
-                                            : 'var(--line)',
-                                        background: link.active
-                                            ? 'var(--wine-deep)'
-                                            : 'var(--paper)',
-                                        color: link.active
-                                            ? 'oklch(96% 0.02 50)'
-                                            : 'var(--ink-soft)',
-                                        pointerEvents: link.url ? undefined : 'none',
-                                        opacity: link.url ? 1 : 0.4,
-                                    }}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         </AdminLayout>
     );

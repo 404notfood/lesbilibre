@@ -2,14 +2,27 @@ import AdminLayout, {
     AdminBadge,
     AdminButton,
     AdminCard,
-    AdminKpi,
-    AdminSectionTitle,
+    AdminCardHeader,
+    AdminEmpty,
+    AdminField,
+    AdminMeta,
+    AdminTable,
+    AdminTd,
+    AdminTh,
+    AdminThead,
+    AdminTr,
 } from '@/layouts/admin-layout';
-import { Head, useForm } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Clock, Gem, Minus, Plus } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { Coins, Minus, Plus, Sparkles, UserCog } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 interface User {
@@ -28,6 +41,16 @@ interface Transaction {
     created_at: string;
 }
 
+const TYPE_LABELS: Record<string, string> = {
+    admin_add: 'Ajout admin',
+    admin_remove: 'Retrait admin',
+    purchase: 'Achat',
+    expense: 'Dépense',
+    gift: 'Cadeau',
+    reward: 'Récompense',
+    refund: 'Remboursement',
+};
+
 export default function Show({
     user,
     transactions,
@@ -35,379 +58,300 @@ export default function Show({
     user: User;
     transactions: Transaction[];
 }) {
-    const [showAddDialog, setShowAddDialog] = useState(false);
-    const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+    const [showAdd, setShowAdd] = useState(false);
+    const [showRemove, setShowRemove] = useState(false);
 
-    const addForm = useForm({
-        amount: 100,
-        description: '',
-    });
+    const addForm = useForm({ amount: 100, description: '' });
+    const removeForm = useForm({ amount: 100, description: '' });
 
-    const removeForm = useForm({
-        amount: 100,
-        description: '',
-    });
-
-    const handleAdd = (e: FormEvent) => {
-        e.preventDefault();
+    const submitAdd = (event: FormEvent) => {
+        event.preventDefault();
         addForm.post(`/admin/gems/${user.id}/add`, {
+            preserveScroll: true,
             onSuccess: () => {
                 addForm.reset();
-                setShowAddDialog(false);
+                setShowAdd(false);
             },
         });
     };
 
-    const handleRemove = (e: FormEvent) => {
-        e.preventDefault();
+    const submitRemove = (event: FormEvent) => {
+        event.preventDefault();
         removeForm.post(`/admin/gems/${user.id}/remove`, {
+            preserveScroll: true,
             onSuccess: () => {
                 removeForm.reset();
-                setShowRemoveDialog(false);
+                setShowRemove(false);
             },
         });
-    };
-
-    const isPositive = (type: string): boolean => {
-        return type.includes('add') || type === 'purchase';
-    };
-
-    const getTransactionLabel = (type: string) => {
-        const labels: Record<string, string> = {
-            admin_add: 'Ajout admin',
-            admin_remove: 'Retrait admin',
-            purchase: 'Achat',
-            expense: 'Dépense',
-            gift: 'Cadeau',
-        };
-        return labels[type] || type;
     };
 
     return (
         <AdminLayout
             title="Gestion des gemmes"
-            subtitle={user.name}
+            subtitle={`${user.name} · ${user.email}`}
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
-                { label: 'Utilisatrices', href: '/admin/users' },
-                { label: user.name, href: `/admin/users/${user.id}` },
-                { label: 'Gemmes' },
+                { label: 'Économie gemmes', href: '/admin/gems' },
+                { label: user.name },
             ]}
+            hideSearch
             actions={
                 <>
-                    <AdminButton
-                        onClick={() => setShowAddDialog(true)}
-                        variant="primary"
-                        icon={Plus}
-                    >
-                        Ajouter
+                    <AdminButton icon={UserCog} href={`/admin/users/${user.id}`}>
+                        Fiche du compte
                     </AdminButton>
                     <AdminButton
-                        onClick={() => setShowRemoveDialog(true)}
-                        variant="default"
-                        icon={Minus}
+                        variant="gold"
+                        icon={Plus}
+                        onClick={() => setShowAdd(true)}
                     >
-                        Retirer
+                        Créditer
+                    </AdminButton>
+                    <AdminButton
+                        variant="danger"
+                        icon={Minus}
+                        onClick={() => setShowRemove(true)}
+                        disabled={user.gems <= 0}
+                    >
+                        Débiter
                     </AdminButton>
                 </>
             }
         >
-            <Head title="Gestion des gemmes" />
+            <Head title={`Gemmes · ${user.name}`} />
 
-            <div className="space-y-10 max-w-4xl">
-                {/* User Balance KPIs */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="01 · Solde"
-                        title="Compte gemmes"
-                    />
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <AdminKpi
-                            label="Solde actuel"
-                            value={user.gems}
-                            icon={Gem}
-                            deltaTone="positive"
-                        />
-                        <AdminCard>
-                            <div className="editorial-caption mb-2" style={{ color: 'var(--ink-mute)' }}>
-                                Utilisatrice
+            <div className="space-y-4">
+                {/* Solde */}
+                <AdminCard>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[color:var(--blush)] text-[color:var(--wine-deep)]">
+                            <Sparkles className="h-6 w-6" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                            <div className="editorial-caption text-[color:var(--ink-mute)]">
+                                Solde actuel
                             </div>
-                            <p
-                                className="font-display text-xl font-medium"
-                                style={{ color: 'var(--ink)' }}
-                            >
-                                {user.name}
+                            <div className="font-display text-4xl font-medium tracking-tight text-[color:var(--ink)]">
+                                {user.gems.toLocaleString('fr-FR')}
+                            </div>
+                            <p className="mt-1 text-xs text-[color:var(--ink-mute)]">
+                                Chaque ajustement est enregistré dans l&apos;historique
+                                ci-dessous avec son motif.
                             </p>
-                            <p
-                                className="text-sm"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
-                                {user.email}
-                            </p>
-                        </AdminCard>
+                        </div>
                     </div>
-                </section>
+                </AdminCard>
 
-                {/* Transactions History */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="02 · Historique"
-                        title="Transactions (20 dernières)"
-                        right={
-                            <span
-                                className="font-mono inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em]"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
-                                <Clock className="h-3 w-3" />
-                                Temps réel
-                            </span>
-                        }
+                {/* Historique */}
+                <AdminCard padded={false}>
+                    <AdminCardHeader
+                        title="Historique des mouvements"
+                        icon={Coins}
+                        action={<AdminMeta>20 derniers</AdminMeta>}
                     />
-                    <AdminCard padded={false}>
-                        {transactions.length > 0 ? (
-                            <ul>
-                                {transactions.map((transaction, idx) => (
-                                    <li
-                                        key={transaction.id}
-                                        className="flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-[color:var(--bg-soft)]"
-                                        style={{
-                                            borderTop:
-                                                idx === 0
-                                                    ? 'none'
-                                                    : '1px solid var(--line-soft)',
-                                        }}
-                                    >
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p
-                                                    className="font-semibold"
-                                                    style={{ color: 'var(--ink)' }}
-                                                >
-                                                    {getTransactionLabel(transaction.type)}
-                                                </p>
-                                                <AdminBadge
-                                                    tone={
-                                                        isPositive(transaction.type)
-                                                            ? 'success'
-                                                            : 'danger'
-                                                    }
-                                                >
-                                                    {isPositive(transaction.type) ? 'Crédit' : 'Débit'}
-                                                </AdminBadge>
-                                            </div>
-                                            {transaction.description && (
-                                                <p
-                                                    className="mt-0.5 text-sm"
-                                                    style={{ color: 'var(--ink-soft)' }}
-                                                >
-                                                    {transaction.description}
-                                                </p>
-                                            )}
-                                            <p
-                                                className="font-mono mt-1 text-[10px] uppercase tracking-[0.14em]"
-                                                style={{ color: 'var(--ink-mute)' }}
+                    {transactions.length === 0 ? (
+                        <AdminEmpty
+                            icon={Coins}
+                            title="Aucun mouvement"
+                            description="Ce compte n’a encore aucune transaction de gemmes."
+                        />
+                    ) : (
+                        <AdminTable>
+                            <AdminThead>
+                                <AdminTh>Type</AdminTh>
+                                <AdminTh>Motif</AdminTh>
+                                <AdminTh align="right">Montant</AdminTh>
+                                <AdminTh align="right">Solde après</AdminTh>
+                                <AdminTh>Date</AdminTh>
+                            </AdminThead>
+                            <tbody>
+                                {transactions.map((transaction) => (
+                                    <AdminTr key={transaction.id}>
+                                        <AdminTd>
+                                            <AdminBadge
+                                                tone={
+                                                    transaction.amount >= 0
+                                                        ? 'success'
+                                                        : 'neutral'
+                                                }
                                             >
-                                                {transaction.created_at}
+                                                {TYPE_LABELS[transaction.type] ??
+                                                    transaction.type}
+                                            </AdminBadge>
+                                        </AdminTd>
+                                        <AdminTd>
+                                            <p className="max-w-sm truncate text-xs text-[color:var(--ink-soft)]">
+                                                {transaction.description || '—'}
                                             </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p
-                                                className="font-display text-xl font-medium"
-                                                style={{
-                                                    color: isPositive(transaction.type)
-                                                        ? 'var(--success)'
-                                                        : 'var(--destructive)',
-                                                }}
+                                        </AdminTd>
+                                        <AdminTd align="right">
+                                            <span
+                                                className={`font-mono text-sm font-semibold ${
+                                                    transaction.amount >= 0
+                                                        ? 'text-[color:var(--success)]'
+                                                        : 'text-[color:var(--destructive)]'
+                                                }`}
                                             >
                                                 {transaction.amount > 0 ? '+' : ''}
-                                                {transaction.amount}
-                                            </p>
-                                            <p
-                                                className="font-mono text-[10px] uppercase tracking-[0.14em]"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                Solde · {transaction.balance_after}
-                                            </p>
-                                        </div>
-                                    </li>
+                                                {transaction.amount.toLocaleString(
+                                                    'fr-FR',
+                                                )}
+                                            </span>
+                                        </AdminTd>
+                                        <AdminTd align="right">
+                                            <span className="font-mono text-xs text-[color:var(--ink-soft)]">
+                                                {transaction.balance_after.toLocaleString(
+                                                    'fr-FR',
+                                                )}
+                                            </span>
+                                        </AdminTd>
+                                        <AdminTd>
+                                            <AdminMeta>{transaction.created_at}</AdminMeta>
+                                        </AdminTd>
+                                    </AdminTr>
                                 ))}
-                            </ul>
-                        ) : (
-                            <p
-                                className="py-12 text-center text-sm"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
-                                Aucune transaction.
-                            </p>
-                        )}
-                    </AdminCard>
-                </section>
+                            </tbody>
+                        </AdminTable>
+                    )}
+                </AdminCard>
             </div>
 
-            {/* Add Gems Dialog */}
-            {showAddDialog && (
-                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                    <DialogContent>
-                        <DialogTitle
-                            className="font-display mb-4 text-2xl font-medium"
-                            style={{ color: 'var(--ink)' }}
-                        >
-                            Ajouter des gemmes
-                        </DialogTitle>
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <DialogField
-                                label="Nombre de gemmes"
-                                htmlFor="add_amount"
-                                error={addForm.errors.amount}
-                            >
+            {/* Créditer */}
+            <Dialog open={showAdd} onOpenChange={setShowAdd}>
+                <DialogContent>
+                    <form onSubmit={submitAdd}>
+                        <DialogHeader>
+                            <DialogTitle className="font-display text-2xl font-medium italic">
+                                Créditer des gemmes
+                            </DialogTitle>
+                            <DialogDescription>
+                                Le motif est conservé dans l&apos;historique du compte.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-3 py-2">
+                            <AdminField label="Quantité" error={addForm.errors.amount}>
                                 <Input
-                                    id="add_amount"
                                     type="number"
-                                    min="1"
-                                    max="10000"
+                                    min={1}
+                                    max={10000}
                                     value={addForm.data.amount}
-                                    onChange={(e) =>
-                                        addForm.setData('amount', parseInt(e.target.value))
+                                    onChange={(event) =>
+                                        addForm.setData(
+                                            'amount',
+                                            Number(event.target.value),
+                                        )
                                     }
+                                    autoFocus
                                 />
-                            </DialogField>
-                            <DialogField
-                                label="Description"
-                                htmlFor="add_description"
+                            </AdminField>
+                            <AdminField
+                                label="Motif"
                                 error={addForm.errors.description}
+                                hint="Ex : geste commercial, compensation d’un incident…"
                             >
                                 <Input
-                                    id="add_description"
+                                    type="text"
+                                    maxLength={255}
                                     value={addForm.data.description}
-                                    onChange={(e) =>
-                                        addForm.setData('description', e.target.value)
+                                    onChange={(event) =>
+                                        addForm.setData('description', event.target.value)
                                     }
-                                    placeholder="Ex: Compensation, promotion..."
+                                    placeholder="Motif de l'ajout"
                                 />
-                            </DialogField>
-                            <div className="flex gap-2">
-                                <AdminButton
-                                    type="submit"
-                                    disabled={addForm.processing}
-                                    variant="primary"
-                                >
-                                    {addForm.processing ? 'Ajout...' : 'Ajouter'}
-                                </AdminButton>
-                                <AdminButton
-                                    onClick={() => setShowAddDialog(false)}
-                                    variant="default"
-                                >
-                                    Annuler
-                                </AdminButton>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            )}
+                            </AdminField>
+                        </div>
 
-            {/* Remove Gems Dialog */}
-            {showRemoveDialog && (
-                <Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
-                    <DialogContent>
-                        <DialogTitle
-                            className="font-display mb-4 text-2xl font-medium"
-                            style={{ color: 'var(--ink)' }}
-                        >
-                            Retirer des gemmes
-                        </DialogTitle>
-                        <form onSubmit={handleRemove} className="space-y-4">
-                            <DialogField
-                                label="Nombre de gemmes"
-                                htmlFor="remove_amount"
-                                error={removeForm.errors.amount}
-                                hint={`Solde actuel : ${user.gems} gemmes`}
+                        <DialogFooter>
+                            <AdminButton onClick={() => setShowAdd(false)}>
+                                Annuler
+                            </AdminButton>
+                            <AdminButton
+                                type="submit"
+                                variant="gold"
+                                icon={Plus}
+                                disabled={
+                                    addForm.processing ||
+                                    !addForm.data.description.trim()
+                                }
                             >
+                                {addForm.processing ? 'Ajout…' : 'Créditer'}
+                            </AdminButton>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Débiter */}
+            <Dialog open={showRemove} onOpenChange={setShowRemove}>
+                <DialogContent>
+                    <form onSubmit={submitRemove}>
+                        <DialogHeader>
+                            <DialogTitle className="font-display text-2xl font-medium italic">
+                                Débiter des gemmes
+                            </DialogTitle>
+                            <DialogDescription>
+                                Solde actuel : {user.gems.toLocaleString('fr-FR')} gemmes.
+                                Un montant supérieur au solde le ramènera simplement à
+                                zéro.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-3 py-2">
+                            <AdminField label="Quantité" error={removeForm.errors.amount}>
                                 <Input
-                                    id="remove_amount"
                                     type="number"
-                                    min="1"
+                                    min={1}
                                     value={removeForm.data.amount}
-                                    onChange={(e) =>
-                                        removeForm.setData('amount', parseInt(e.target.value))
+                                    onChange={(event) =>
+                                        removeForm.setData(
+                                            'amount',
+                                            Number(event.target.value),
+                                        )
                                     }
+                                    autoFocus
                                 />
-                            </DialogField>
-                            <DialogField
-                                label="Description"
-                                htmlFor="remove_description"
+                            </AdminField>
+                            <AdminField
+                                label="Motif"
                                 error={removeForm.errors.description}
+                                hint="Ex : correction d’une erreur, abus détecté…"
                             >
                                 <Input
-                                    id="remove_description"
+                                    type="text"
+                                    maxLength={255}
                                     value={removeForm.data.description}
-                                    onChange={(e) =>
-                                        removeForm.setData('description', e.target.value)
+                                    onChange={(event) =>
+                                        removeForm.setData(
+                                            'description',
+                                            event.target.value,
+                                        )
                                     }
-                                    placeholder="Ex: Correction, sanction..."
+                                    placeholder="Motif du retrait"
                                 />
-                            </DialogField>
-                            <div className="flex gap-2">
-                                <AdminButton
-                                    type="submit"
-                                    disabled={removeForm.processing}
-                                    variant="danger"
-                                >
-                                    {removeForm.processing ? 'Retrait...' : 'Retirer'}
-                                </AdminButton>
-                                <AdminButton
-                                    onClick={() => setShowRemoveDialog(false)}
-                                    variant="default"
-                                >
-                                    Annuler
-                                </AdminButton>
-                            </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            )}
-        </AdminLayout>
-    );
-}
+                            </AdminField>
+                        </div>
 
-function DialogField({
-    label,
-    htmlFor,
-    error,
-    hint,
-    children,
-}: {
-    label: string;
-    htmlFor: string;
-    error?: string;
-    hint?: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div>
-            <Label
-                htmlFor={htmlFor}
-                className="editorial-caption mb-1.5 block"
-                style={{ color: 'var(--ink-mute)' }}
-            >
-                {label}
-            </Label>
-            {children}
-            {hint && (
-                <p
-                    className="mt-1.5 text-xs"
-                    style={{ color: 'var(--ink-mute)' }}
-                >
-                    {hint}
-                </p>
-            )}
-            {error && (
-                <p
-                    className="mt-1.5 text-xs font-medium"
-                    style={{ color: 'var(--destructive)' }}
-                >
-                    {error}
-                </p>
-            )}
-        </div>
+                        <DialogFooter>
+                            <AdminButton onClick={() => setShowRemove(false)}>
+                                Annuler
+                            </AdminButton>
+                            <AdminButton
+                                type="submit"
+                                variant="danger"
+                                icon={Minus}
+                                disabled={
+                                    removeForm.processing ||
+                                    !removeForm.data.description.trim()
+                                }
+                            >
+                                {removeForm.processing ? 'Retrait…' : 'Débiter'}
+                            </AdminButton>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </AdminLayout>
     );
 }

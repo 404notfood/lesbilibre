@@ -1,12 +1,13 @@
 import AdminLayout, {
     AdminButton,
     AdminCard,
-    AdminSectionTitle,
+    AdminCardHeader,
+    AdminField,
+    AdminSelect,
 } from '@/layouts/admin-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { User as UserIcon } from 'lucide-react';
 import { FormEvent } from 'react';
 
 interface User {
@@ -32,201 +33,135 @@ export default function Edit({ subscription }: { subscription: Subscription }) {
         expires_at: subscription.expires_at,
     });
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
         put(`/admin/subscriptions/${subscription.id}`);
     };
 
     return (
         <AdminLayout
             title="Modifier l'abonnement"
-            subtitle={`Modifier l'abonnement de ${subscription.user.name}`}
+            subtitle={`Abonnement #${subscription.id} · ${subscription.user.name}`}
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
-                { label: 'Abonnements', href: '/admin/subscriptions' },
+                { label: 'Abonnées', href: '/admin/subscriptions' },
                 {
                     label: `#${subscription.id}`,
                     href: `/admin/subscriptions/${subscription.id}`,
                 },
                 { label: 'Édition' },
             ]}
+            hideSearch
             actions={
-                <AdminButton
-                    href={`/admin/subscriptions/${subscription.id}`}
-                    variant="default"
-                >
+                <AdminButton href={`/admin/subscriptions/${subscription.id}`}>
                     Retour
                 </AdminButton>
             }
         >
-            <Head title="Modifier l'abonnement" />
+            <Head title="Modifier l'abonnement · Admin" />
 
-            <div className="space-y-10 max-w-3xl">
-                {/* User Info */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="01 · Cible"
-                        title="Utilisatrice"
-                    />
-                    <AdminCard>
-                        <div className="flex items-center justify-between gap-4">
+            <div className="max-w-3xl space-y-4">
+                <AdminCard>
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[color:var(--bg-soft)] text-[color:var(--ink-mute)]">
+                                <UserIcon className="h-4 w-4" />
+                            </span>
                             <div className="min-w-0">
-                                <p
-                                    className="font-display text-xl font-medium"
-                                    style={{ color: 'var(--ink)' }}
-                                >
+                                <p className="font-display truncate text-lg font-medium text-[color:var(--ink)]">
                                     {subscription.user.name}
                                 </p>
-                                <p
-                                    className="text-sm"
-                                    style={{ color: 'var(--ink-mute)' }}
-                                >
+                                <p className="truncate text-sm text-[color:var(--ink-mute)]">
                                     {subscription.user.email}
                                 </p>
                             </div>
-                            <AdminButton
-                                href={`/admin/users/${subscription.user.id}`}
-                                variant="default"
-                                size="sm"
-                            >
-                                Voir le profil
-                            </AdminButton>
                         </div>
-                    </AdminCard>
-                </section>
+                        <AdminButton
+                            size="sm"
+                            href={`/admin/users/${subscription.user.id}`}
+                        >
+                            Fiche du compte
+                        </AdminButton>
+                    </div>
+                </AdminCard>
 
-                {/* Edit Form */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="02 · Détails"
-                        title="Configuration de l'abonnement"
-                    />
-                    <AdminCard>
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            {/* Plan */}
-                            <FormField label="Plan" error={errors.plan} htmlFor="plan">
-                                <Select
-                                    id="plan"
+                <AdminCard padded={false}>
+                    <AdminCardHeader title="Détails de l'abonnement" />
+                    <form onSubmit={submit} className="space-y-4 p-5">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <AdminField label="Formule" error={errors.plan}>
+                                <AdminSelect
                                     value={data.plan}
-                                    onChange={(e) => setData('plan', e.target.value)}
+                                    onChange={(value) => setData('plan', value)}
                                 >
                                     <option value="monthly">Mensuel</option>
                                     <option value="yearly">Annuel</option>
-                                </Select>
-                            </FormField>
+                                </AdminSelect>
+                            </AdminField>
 
-                            {/* Amount */}
-                            <FormField label="Montant (€)" error={errors.amount} htmlFor="amount">
+                            <AdminField label="Montant (€)" error={errors.amount}>
                                 <Input
-                                    id="amount"
                                     type="number"
                                     step="0.01"
+                                    min="0"
                                     value={data.amount}
-                                    onChange={(e) =>
-                                        setData('amount', parseFloat(e.target.value))
+                                    onChange={(event) =>
+                                        setData(
+                                            'amount',
+                                            parseFloat(event.target.value) || 0,
+                                        )
                                     }
                                 />
-                            </FormField>
+                            </AdminField>
 
-                            {/* Start Date */}
-                            <FormField
-                                label="Date de début"
-                                error={errors.starts_at}
-                                htmlFor="starts_at"
-                            >
+                            <AdminField label="Date de début" error={errors.starts_at}>
                                 <Input
-                                    id="starts_at"
                                     type="date"
                                     value={data.starts_at}
-                                    onChange={(e) => setData('starts_at', e.target.value)}
+                                    onChange={(event) =>
+                                        setData('starts_at', event.target.value)
+                                    }
                                 />
-                            </FormField>
+                            </AdminField>
 
-                            {/* Expiration Date */}
-                            <FormField
-                                label="Date d'expiration"
+                            <AdminField
+                                label="Date de fin"
                                 error={errors.expires_at}
-                                htmlFor="expires_at"
-                                hint={`Durée: ${Math.ceil(
-                                    (new Date(data.expires_at).getTime() -
-                                        new Date(data.starts_at).getTime()) /
-                                        (1000 * 60 * 60 * 24 * 30)
-                                )} mois (approximatif)`}
+                                hint="Doit être postérieure à la date de début"
                             >
                                 <Input
-                                    id="expires_at"
                                     type="date"
                                     value={data.expires_at}
-                                    onChange={(e) => setData('expires_at', e.target.value)}
+                                    onChange={(event) =>
+                                        setData('expires_at', event.target.value)
+                                    }
                                 />
-                            </FormField>
+                            </AdminField>
+                        </div>
 
-                            {/* Actions */}
-                            <div
-                                className="flex gap-2 pt-4"
-                                style={{ borderTop: '1px solid var(--line-soft)' }}
+                        <div className="rounded-lg bg-[color:var(--bg-soft)] px-3 py-2.5 text-xs text-[color:var(--ink-mute)]">
+                            Enregistrer réactive le statut Premium du compte et aligne sa
+                            date d&apos;expiration sur la date de fin choisie ici.
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <AdminButton
+                                type="submit"
+                                variant="wine"
+                                disabled={processing}
                             >
-                                <AdminButton
-                                    type="submit"
-                                    disabled={processing}
-                                    variant="primary"
-                                >
-                                    {processing ? 'Modification...' : "Modifier l'abonnement"}
-                                </AdminButton>
-                                <AdminButton
-                                    href={`/admin/subscriptions/${subscription.id}`}
-                                    variant="default"
-                                >
-                                    Annuler
-                                </AdminButton>
-                            </div>
-                        </form>
-                    </AdminCard>
-                </section>
+                                {processing ? 'Enregistrement…' : 'Enregistrer'}
+                            </AdminButton>
+                            <Link
+                                href={`/admin/subscriptions/${subscription.id}`}
+                                className="inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-semibold text-[color:var(--ink-soft)] transition-colors hover:bg-[color:var(--bg-soft)]"
+                            >
+                                Annuler
+                            </Link>
+                        </div>
+                    </form>
+                </AdminCard>
             </div>
         </AdminLayout>
-    );
-}
-
-function FormField({
-    label,
-    error,
-    htmlFor,
-    hint,
-    children,
-}: {
-    label: string;
-    error?: string;
-    htmlFor: string;
-    hint?: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div>
-            <Label
-                htmlFor={htmlFor}
-                className="editorial-caption mb-1.5 block"
-                style={{ color: 'var(--ink-mute)' }}
-            >
-                {label}
-            </Label>
-            {children}
-            {hint && (
-                <p
-                    className="mt-1.5 text-xs"
-                    style={{ color: 'var(--ink-mute)' }}
-                >
-                    {hint}
-                </p>
-            )}
-            {error && (
-                <p
-                    className="mt-1.5 text-xs font-medium"
-                    style={{ color: 'var(--destructive)' }}
-                >
-                    {error}
-                </p>
-            )}
-        </div>
     );
 }

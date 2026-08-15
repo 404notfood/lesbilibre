@@ -1,281 +1,314 @@
 import AdminLayout, {
+    AdminBadge,
     AdminButton,
     AdminCard,
-    AdminSectionTitle,
+    AdminCardHeader,
+    AdminField,
+    AdminSelect,
 } from '@/layouts/admin-layout';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Search, UserCheck } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 interface User {
     id: number;
     name: string;
     email: string;
+    is_premium?: boolean;
 }
 
-export default function Create({ user }: { user: User | null }) {
-    const [userSearch, setUserSearch] = useState('');
+interface Candidate extends User {
+    pseudo: string;
+}
+
+/** Tarifs proposés par défaut selon la formule choisie. */
+const PLAN_DEFAULTS: Record<string, { amount: number; months: number }> = {
+    monthly: { amount: 9.99, months: 1 },
+    yearly: { amount: 99.99, months: 12 },
+};
+
+export default function Create({
+    user,
+    candidates = [],
+    search: initialSearch,
+}: {
+    user: User | null;
+    candidates?: Candidate[];
+    search?: string | null;
+}) {
+    const [search, setSearch] = useState(initialSearch ?? '');
     const [searching, setSearching] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
-        user_id: user?.id || '',
+        user_id: user?.id ?? '',
         plan: 'monthly',
         amount: 9.99,
         starts_at: new Date().toISOString().split('T')[0],
         duration_months: 1,
     });
 
-    const handleUserSearch = () => {
+    const runSearch = () => {
+        if (!search.trim()) {
+            return;
+        }
+
         setSearching(true);
         router.get(
             '/admin/subscriptions/create',
-            { user_id: userSearch },
-            {
-                preserveState: true,
-                onFinish: () => setSearching(false),
-            }
+            { search },
+            { preserveState: true, onFinish: () => setSearching(false) },
         );
     };
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const changePlan = (plan: string) => {
+        const preset = PLAN_DEFAULTS[plan];
+
+        setData((current) => ({
+            ...current,
+            plan,
+            amount: preset?.amount ?? current.amount,
+            duration_months: preset?.months ?? current.duration_months,
+        }));
+    };
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
         post('/admin/subscriptions');
     };
 
-    const handlePlanChange = (plan: string) => {
-        setData('plan', plan);
-        if (plan === 'monthly') {
-            setData('amount', 9.99);
-            setData('duration_months', 1);
-        } else {
-            setData('amount', 99.99);
-            setData('duration_months', 12);
+    // Aperçu de l'échéance, calculé comme côté serveur (addMonths).
+    const expiresAt = (() => {
+        const start = new Date(data.starts_at);
+
+        if (Number.isNaN(start.getTime())) {
+            return null;
         }
-    };
+
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + Number(data.duration_months || 0));
+
+        return end;
+    })();
 
     return (
         <AdminLayout
             title="Créer un abonnement"
-            subtitle="Ajouter un abonnement Premium à un compte"
+            subtitle="Accorder un accès Premium à un compte, sans passer par un paiement"
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
-                { label: 'Abonnements', href: '/admin/subscriptions' },
+                { label: 'Abonnées', href: '/admin/subscriptions' },
                 { label: 'Création' },
             ]}
-            actions={
-                <AdminButton href="/admin/subscriptions" variant="default">
-                    Retour
-                </AdminButton>
-            }
+            hideSearch
+            actions={<AdminButton href="/admin/subscriptions">Retour</AdminButton>}
         >
-            <Head title="Créer un abonnement" />
+            <Head title="Créer un abonnement · Admin" />
 
-            <div className="space-y-10 max-w-3xl">
-                {/* User Search */}
-                {!user && (
-                    <section>
-                        <AdminSectionTitle
-                            eyebrow="01 · Cible"
-                            title="Rechercher une utilisatrice"
+            <div className="max-w-3xl space-y-4">
+                {/* Étape 1 — choisir le compte */}
+                {!user ? (
+                    <AdminCard padded={false}>
+                        <AdminCardHeader
+                            title="1. Choisir le compte"
+                            icon={Search}
                         />
-                        <AdminCard>
-                            <div className="flex gap-2">
+                        <div className="p-5">
+                            <div className="flex flex-wrap gap-2">
                                 <Input
-                                    placeholder="ID de l'utilisatrice..."
-                                    value={userSearch}
-                                    onChange={(e) => setUserSearch(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleUserSearch()}
+                                    placeholder="Nom, pseudo ou e-mail…"
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                    onKeyDown={(event) =>
+                                        event.key === 'Enter' && runSearch()
+                                    }
+                                    className="min-w-[240px] flex-1"
+                                    autoFocus
                                 />
                                 <AdminButton
-                                    onClick={handleUserSearch}
-                                    disabled={searching}
+                                    onClick={runSearch}
+                                    disabled={searching || !search.trim()}
                                     variant="primary"
                                     icon={Search}
                                 >
-                                    {searching ? 'Recherche...' : 'Rechercher'}
+                                    {searching ? 'Recherche…' : 'Rechercher'}
                                 </AdminButton>
                             </div>
-                        </AdminCard>
-                    </section>
-                )}
 
-                {/* Selected User */}
-                {user && (
-                    <section>
-                        <AdminSectionTitle
-                            eyebrow="01 · Cible"
-                            title="Utilisatrice sélectionnée"
-                        />
-                        <AdminCard>
-                            <div className="flex items-center justify-between gap-4">
+                            {candidates.length > 0 && (
+                                <ul className="mt-4 divide-y divide-[color:var(--line-soft)] overflow-hidden rounded-xl border border-[color:var(--line)]">
+                                    {candidates.map((candidate) => (
+                                        <li key={candidate.id}>
+                                            <Link
+                                                href={`/admin/subscriptions/create?user_id=${candidate.id}`}
+                                                className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-[color:var(--bg-soft)]"
+                                            >
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="truncate text-sm font-semibold text-[color:var(--ink)]">
+                                                            {candidate.name}
+                                                        </span>
+                                                        {candidate.is_premium && (
+                                                            <AdminBadge tone="gold">
+                                                                Déjà Premium
+                                                            </AdminBadge>
+                                                        )}
+                                                    </div>
+                                                    <div className="truncate text-xs text-[color:var(--ink-soft)]">
+                                                        {candidate.email}
+                                                        {candidate.pseudo &&
+                                                            ` · @${candidate.pseudo}`}
+                                                    </div>
+                                                </div>
+                                                <span className="font-mono shrink-0 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--wine-deep)]">
+                                                    Choisir →
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            {initialSearch && candidates.length === 0 && (
+                                <p className="mt-4 text-sm text-[color:var(--ink-mute)]">
+                                    Aucun compte ne correspond à « {initialSearch} ».
+                                </p>
+                            )}
+                        </div>
+                    </AdminCard>
+                ) : (
+                    <AdminCard>
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex min-w-0 items-center gap-3">
+                                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[oklch(60%_0.16_160_/_0.15)] text-[color:var(--success)]">
+                                    <UserCheck className="h-4 w-4" />
+                                </span>
                                 <div className="min-w-0">
-                                    <p
-                                        className="font-display text-xl font-medium"
-                                        style={{ color: 'var(--ink)' }}
-                                    >
-                                        {user.name}
-                                    </p>
-                                    <p
-                                        className="text-sm"
-                                        style={{ color: 'var(--ink-mute)' }}
-                                    >
+                                    <div className="flex items-center gap-1.5">
+                                        <p className="font-display truncate text-lg font-medium text-[color:var(--ink)]">
+                                            {user.name}
+                                        </p>
+                                        {user.is_premium && (
+                                            <AdminBadge tone="gold">
+                                                Déjà Premium
+                                            </AdminBadge>
+                                        )}
+                                    </div>
+                                    <p className="truncate text-sm text-[color:var(--ink-mute)]">
                                         {user.email}
                                     </p>
                                 </div>
-                                <AdminButton
-                                    href="/admin/subscriptions/create"
-                                    variant="default"
-                                    size="sm"
-                                >
-                                    Changer
-                                </AdminButton>
                             </div>
-                        </AdminCard>
-                    </section>
+                            <AdminButton href="/admin/subscriptions/create" size="sm">
+                                Changer
+                            </AdminButton>
+                        </div>
+
+                        {user.is_premium && (
+                            <p className="mt-3 rounded-lg bg-[oklch(80%_0.13_75_/_0.15)] px-3 py-2 text-xs text-[oklch(42%_0.13_75)]">
+                                Ce compte a déjà un abonnement actif. En créer un nouveau
+                                annulera automatiquement le précédent.
+                            </p>
+                        )}
+                    </AdminCard>
                 )}
 
-                {/* Subscription Form */}
+                {/* Étape 2 — configurer */}
                 {user && (
-                    <section>
-                        <AdminSectionTitle
-                            eyebrow="02 · Détails"
-                            title="Configuration de l'abonnement"
-                        />
-                        <AdminCard>
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                {/* Plan */}
-                                <FormField label="Plan" error={errors.plan} htmlFor="plan">
-                                    <Select
-                                        id="plan"
+                    <AdminCard padded={false}>
+                        <AdminCardHeader title="2. Configurer l'abonnement" />
+                        <form onSubmit={submit} className="space-y-4 p-5">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <AdminField label="Formule" error={errors.plan}>
+                                    <AdminSelect
                                         value={data.plan}
-                                        onChange={(e) => handlePlanChange(e.target.value)}
+                                        onChange={changePlan}
                                     >
                                         <option value="monthly">Mensuel</option>
                                         <option value="yearly">Annuel</option>
-                                    </Select>
-                                </FormField>
+                                    </AdminSelect>
+                                </AdminField>
 
-                                {/* Amount */}
-                                <FormField label="Montant (€)" error={errors.amount} htmlFor="amount">
+                                <AdminField
+                                    label="Montant (€)"
+                                    error={errors.amount}
+                                    hint="0 € pour un accès offert"
+                                >
                                     <Input
-                                        id="amount"
                                         type="number"
                                         step="0.01"
+                                        min="0"
                                         value={data.amount}
-                                        onChange={(e) =>
-                                            setData('amount', parseFloat(e.target.value))
+                                        onChange={(event) =>
+                                            setData(
+                                                'amount',
+                                                parseFloat(event.target.value) || 0,
+                                            )
                                         }
                                     />
-                                </FormField>
+                                </AdminField>
 
-                                {/* Start Date */}
-                                <FormField
+                                <AdminField
                                     label="Date de début"
                                     error={errors.starts_at}
-                                    htmlFor="starts_at"
                                 >
                                     <Input
-                                        id="starts_at"
                                         type="date"
                                         value={data.starts_at}
-                                        onChange={(e) => setData('starts_at', e.target.value)}
-                                    />
-                                </FormField>
-
-                                {/* Duration */}
-                                <FormField
-                                    label="Durée (mois)"
-                                    error={errors.duration_months}
-                                    htmlFor="duration_months"
-                                    hint={`L'abonnement expirera le ${new Date(
-                                        new Date(data.starts_at).setMonth(
-                                            new Date(data.starts_at).getMonth() +
-                                                data.duration_months
-                                        )
-                                    ).toLocaleDateString('fr-FR')}`}
-                                >
-                                    <Input
-                                        id="duration_months"
-                                        type="number"
-                                        min="1"
-                                        max="24"
-                                        value={data.duration_months}
-                                        onChange={(e) =>
-                                            setData('duration_months', parseInt(e.target.value))
+                                        onChange={(event) =>
+                                            setData('starts_at', event.target.value)
                                         }
                                     />
-                                </FormField>
+                                </AdminField>
 
-                                {/* Actions */}
-                                <div
-                                    className="flex gap-2 pt-4"
-                                    style={{ borderTop: '1px solid var(--line-soft)' }}
+                                <AdminField
+                                    label="Durée (mois)"
+                                    error={errors.duration_months}
+                                    hint={
+                                        expiresAt
+                                            ? `Expire le ${expiresAt.toLocaleDateString('fr-FR')}`
+                                            : undefined
+                                    }
                                 >
-                                    <AdminButton
-                                        type="submit"
-                                        disabled={processing}
-                                        variant="primary"
-                                    >
-                                        {processing ? 'Création...' : "Créer l'abonnement"}
-                                    </AdminButton>
-                                    <AdminButton
-                                        href="/admin/subscriptions"
-                                        variant="default"
-                                    >
-                                        Annuler
-                                    </AdminButton>
-                                </div>
-                            </form>
-                        </AdminCard>
-                    </section>
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        max={24}
+                                        value={data.duration_months}
+                                        onChange={(event) =>
+                                            setData(
+                                                'duration_months',
+                                                Number(event.target.value),
+                                            )
+                                        }
+                                    />
+                                </AdminField>
+                            </div>
+
+                            <div className="rounded-lg bg-[color:var(--bg-soft)] px-3 py-2.5 text-xs text-[color:var(--ink-mute)]">
+                                Cet abonnement est créé manuellement : aucun prélèvement
+                                ne sera effectué et il ne se renouvellera pas
+                                automatiquement. À l&apos;échéance, la tâche{' '}
+                                <code className="font-mono">subscriptions:expire</code>{' '}
+                                retirera le statut Premium.
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                <AdminButton
+                                    type="submit"
+                                    variant="wine"
+                                    disabled={processing}
+                                >
+                                    {processing ? 'Création…' : "Créer l'abonnement"}
+                                </AdminButton>
+                                <AdminButton href="/admin/subscriptions" variant="ghost">
+                                    Annuler
+                                </AdminButton>
+                            </div>
+                        </form>
+                    </AdminCard>
                 )}
             </div>
         </AdminLayout>
-    );
-}
-
-function FormField({
-    label,
-    error,
-    htmlFor,
-    hint,
-    children,
-}: {
-    label: string;
-    error?: string;
-    htmlFor: string;
-    hint?: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div>
-            <Label
-                htmlFor={htmlFor}
-                className="editorial-caption mb-1.5 block"
-                style={{ color: 'var(--ink-mute)' }}
-            >
-                {label}
-            </Label>
-            {children}
-            {hint && (
-                <p
-                    className="mt-1.5 text-xs"
-                    style={{ color: 'var(--ink-mute)' }}
-                >
-                    {hint}
-                </p>
-            )}
-            {error && (
-                <p
-                    className="mt-1.5 text-xs font-medium"
-                    style={{ color: 'var(--destructive)' }}
-                >
-                    {error}
-                </p>
-            )}
-        </div>
     );
 }

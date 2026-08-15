@@ -113,7 +113,16 @@ class PremiumController extends Controller
             'features' => $features,
             'plans' => $plans,
             'testimonials' => $testimonials,
-            'currentSubscription' => $currentSubscription,
+            'currentSubscription' => $currentSubscription ? [
+                'id' => $currentSubscription->id,
+                'plan' => $currentSubscription->plan,
+                'amount' => (float) $currentSubscription->amount,
+                'status' => $currentSubscription->status,
+                'expires_at' => $currentSubscription->expires_at?->toISOString(),
+                // Un abonnement Stripe se résilie depuis le portail de facturation ;
+                // les autres (créés depuis la console) n'ont que la résiliation interne.
+                'managed_by_stripe' => filled($currentSubscription->stripe_customer_id),
+            ] : null,
             'isPremium' => $user->isPremium(),
         ]);
     }
@@ -200,5 +209,56 @@ class PremiumController extends Controller
         );
 
         return $url ? redirect()->away($url) : back()->with('error', 'Le portail de paiement est temporairement indisponible.');
+    }
+
+    /**
+     * Let a member end her own subscription without going through support.
+     *
+     * The subscription is marked cancelled but the premium access is kept until
+     * the date already paid for — resigning should not take away what has been
+     * bought. Stripe-backed subscriptions still need the billing portal so the
+     * recurring charge itself stops, which is why they are refused here.
+     */
+    public function cancel(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $subscription = $user->subscriptions()
+            ->where('status', 'active')
+            ->latest()
+            ->first();
+
+        if (! $subscription) {
+            return back()->with('error', 'Aucun abonnement actif à résilier.');
+        }
+
+        if (filled($subscription->stripe_customer_id)) {
+            return back()->with(
+                'error',
+                'Cet abonnement est géré par notre prestataire de paiement. Utilise « Gérer mon abonnement » pour le résilier et arrêter le prélèvement.'
+            );
+        }
+
+        $subscription->update(['status' => 'canceled']);
+
+        // L'accès reste ouvert jusqu'à l'échéance déjà réglée. Sans échéance,
+        // il s'agit d'un accès offert : il prend fin immédiatement.
+        $keepUntil = $subscription->expires_at;
+
+        if ($keepUntil?->isFuture()) {
+            $user->premium_expires_at = $keepUntil;
+        } else {
+            $user->is_premium = false;
+            $user->premium_expires_at = null;
+        }
+
+        $user->save();
+
+        return back()->with(
+            'success',
+            $keepUntil?->isFuture()
+                ? 'Abonnement résilié. Tu gardes ton accès Premium jusqu’au '.$keepUntil->format('d/m/Y').'.'
+                : 'Abonnement résilié.'
+        );
     }
 }

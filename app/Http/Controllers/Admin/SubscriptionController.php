@@ -52,14 +52,22 @@ class SubscriptionController extends Controller
                 'id' => $subscription->user->id,
                 'name' => $subscription->user->name,
                 'email' => $subscription->user->email,
+                'is_premium' => $subscription->user->is_premium,
+                'is_banned' => $subscription->user->is_banned,
             ],
             'plan' => $subscription->plan,
             'amount' => $subscription->amount,
             'status' => $subscription->status,
+            'payment_method' => $subscription->payment_method,
             'current_period_start' => $subscription->current_period_start?->format('Y-m-d H:i'),
             'current_period_end' => $subscription->current_period_end?->format('Y-m-d H:i'),
             'starts_at' => $subscription->starts_at?->format('Y-m-d'),
             'expires_at' => $subscription->expires_at?->format('Y-m-d'),
+            // Jours restants : négatif si la date est dépassée, null si aucune
+            // échéance (abonnement illimité).
+            'days_remaining' => $subscription->expires_at
+                ? (int) now()->startOfDay()->diffInDays($subscription->expires_at->startOfDay(), false)
+                : null,
             'created_at' => $subscription->created_at->diffForHumans(),
         ]);
 
@@ -77,6 +85,22 @@ class SubscriptionController extends Controller
                 'active' => Subscription::where('status', 'active')->count(),
                 'canceled' => Subscription::where('status', 'canceled')->count(),
                 'expired' => Subscription::where('status', 'expired')->count(),
+                // Encore marqués actifs alors que la date est passée : la tâche
+                // subscriptions:expire n'est pas passée (ou le cron est arrêté).
+                'stale' => Subscription::where('status', 'active')
+                    ->whereNotNull('expires_at')
+                    ->where('expires_at', '<=', now())
+                    ->count(),
+                'expiring_soon' => Subscription::where('status', 'active')
+                    ->whereNotNull('expires_at')
+                    ->whereBetween('expires_at', [now(), now()->addDays(7)])
+                    ->count(),
+                'mrr' => Subscription::where('status', 'active')
+                    ->where(function ($query) {
+                        $query->whereNull('expires_at')
+                            ->orWhere('expires_at', '>', now());
+                    })
+                    ->sum('amount'),
             ],
         ]);
     }
@@ -87,10 +111,28 @@ class SubscriptionController extends Controller
     public function create(Request $request): Response
     {
         $userId = $request->input('user_id');
-        $user = null;
+        $user = $userId ? User::find($userId) : null;
 
-        if ($userId) {
-            $user = User::find($userId);
+        // Recherche par nom, pseudo ou e-mail : retrouver un compte sans
+        // connaître son identifiant numérique.
+        $candidates = collect();
+
+        if (! $user && ($search = trim((string) $request->input('search'))) !== '') {
+            $candidates = User::query()
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('pseudo', 'like', "%{$search}%");
+                })
+                ->limit(10)
+                ->get(['id', 'name', 'email', 'pseudo', 'is_premium'])
+                ->map(fn (User $candidate) => [
+                    'id' => $candidate->id,
+                    'name' => $candidate->name,
+                    'email' => $candidate->email,
+                    'pseudo' => $candidate->pseudo,
+                    'is_premium' => $candidate->is_premium,
+                ]);
         }
 
         return Inertia::render('Admin/Subscriptions/Create', [
@@ -98,7 +140,10 @@ class SubscriptionController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'is_premium' => $user->is_premium,
             ] : null,
+            'candidates' => $candidates,
+            'search' => $request->input('search'),
         ]);
     }
 

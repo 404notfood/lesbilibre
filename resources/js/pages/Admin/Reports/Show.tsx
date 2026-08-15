@@ -2,10 +2,19 @@ import AdminLayout, {
     AdminBadge,
     AdminButton,
     AdminCard,
-    AdminSectionTitle,
+    AdminCardHeader,
+    AdminMeta,
 } from '@/layouts/admin-layout';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Head, Link, router } from '@inertiajs/react';
-import { Ban, Flag } from 'lucide-react';
+import { Ban, BadgeCheck, Flag, History, ShieldAlert, User } from 'lucide-react';
 import { useState } from 'react';
 
 type ReportStatus = 'pending' | 'reviewed' | 'actioned' | 'dismissed';
@@ -53,7 +62,7 @@ const STATUS_LABELS: Record<ReportStatus, string> = {
     pending: 'En attente',
     reviewed: 'Examiné',
     actioned: 'Sanctionné',
-    dismissed: 'Rejeté',
+    dismissed: 'Classé sans suite',
 };
 
 const STATUS_TONES: Record<
@@ -77,15 +86,25 @@ const REASON_LABELS: Record<string, string> = {
 export default function Show({ report, relatedReports }: Props) {
     const [notes, setNotes] = useState(report.admin_notes ?? '');
     const [processing, setProcessing] = useState(false);
+    const [confirmBan, setConfirmBan] = useState(false);
 
     const submit = (status: ReportStatus, banUser = false) => {
         setProcessing(true);
         router.put(
             `/admin/reports/${report.id}`,
             { status, admin_notes: notes || null, ban_user: banUser },
-            { preserveScroll: true, onFinish: () => setProcessing(false) },
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setProcessing(false);
+                    setConfirmBan(false);
+                },
+            },
         );
     };
+
+    const reportedName =
+        report.reported_user?.pseudo ?? report.reported_user?.name ?? 'ce compte';
 
     return (
         <AdminLayout
@@ -96,6 +115,7 @@ export default function Show({ report, relatedReports }: Props) {
                 { label: 'Signalements', href: '/admin/reports' },
                 { label: `#${report.id}` },
             ]}
+            hideSearch
             actions={
                 <AdminBadge tone={STATUS_TONES[report.status]}>
                     {STATUS_LABELS[report.status]}
@@ -104,184 +124,216 @@ export default function Show({ report, relatedReports }: Props) {
         >
             <Head title={`Signalement #${report.id} · Admin`} />
 
-            <div className="grid gap-5 lg:grid-cols-3">
-                <div className="flex flex-col gap-5 lg:col-span-2">
-                    <AdminCard>
-                        <AdminSectionTitle
-                            eyebrow="Motif du signalement"
+            <div className="grid gap-4 lg:grid-cols-3">
+                <div className="space-y-4 lg:col-span-2">
+                    {/* Le signalement */}
+                    <AdminCard padded={false}>
+                        <AdminCardHeader
                             title={REASON_LABELS[report.reason] ?? report.reason}
+                            icon={Flag}
+                            action={
+                                <AdminMeta>
+                                    {new Date(report.created_at).toLocaleString('fr-FR', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
+                                </AdminMeta>
+                            }
                         />
-                        <p
-                            className="text-sm leading-relaxed"
-                            style={{ color: 'var(--ink-soft)' }}
-                        >
-                            {report.description ?? 'Aucune description fournie.'}
-                        </p>
-                        <p
-                            className="font-mono mt-4 text-[10px] uppercase tracking-wider"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
-                            Déposé le{' '}
-                            {new Date(report.created_at).toLocaleString('fr-FR')}
-                        </p>
-                    </AdminCard>
-
-                    <AdminCard>
-                        <AdminSectionTitle
-                            eyebrow="Décision"
-                            title="Traiter ce signalement"
-                        />
-                        <label
-                            className="editorial-caption"
-                            style={{ color: 'var(--ink-mute)' }}
-                            htmlFor="admin-notes"
-                        >
-                            Notes internes
-                        </label>
-                        <textarea
-                            id="admin-notes"
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            rows={4}
-                            maxLength={1000}
-                            className="mt-2 w-full rounded-lg border p-3 text-sm"
-                            style={{
-                                borderColor: 'var(--line)',
-                                background: 'var(--bg-soft)',
-                                color: 'var(--ink)',
-                            }}
-                            placeholder="Contexte de la décision (visible uniquement par l'équipe)"
-                        />
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <AdminButton
-                                size="sm"
-                                disabled={processing}
-                                onClick={() => submit('reviewed')}
-                            >
-                                Marquer examiné
-                            </AdminButton>
-                            <AdminButton
-                                size="sm"
-                                disabled={processing}
-                                onClick={() => submit('dismissed')}
-                            >
-                                Rejeter
-                            </AdminButton>
-                            <AdminButton
-                                size="sm"
-                                variant="wine"
-                                disabled={processing}
-                                onClick={() => submit('actioned')}
-                            >
-                                Sanctionner
-                            </AdminButton>
-                            <AdminButton
-                                size="sm"
-                                variant="danger"
-                                icon={Ban}
-                                disabled={processing}
-                                onClick={() => {
-                                    if (
-                                        confirm(
-                                            `Bannir définitivement ${report.reported_user?.pseudo ?? 'ce compte'} ?`,
-                                        )
-                                    ) {
-                                        submit('actioned', true);
-                                    }
-                                }}
-                            >
-                                Sanctionner et bannir
-                            </AdminButton>
+                        <div className="p-5">
+                            <p className="text-sm leading-relaxed text-[color:var(--ink-soft)]">
+                                {report.description ?? (
+                                    <span className="italic text-[color:var(--ink-mute)]">
+                                        Aucune description fournie par la personne qui
+                                        signale.
+                                    </span>
+                                )}
+                            </p>
                         </div>
                     </AdminCard>
 
-                    <AdminCard>
-                        <AdminSectionTitle
-                            eyebrow={`${relatedReports.length} autre${relatedReports.length > 1 ? 's' : ''}`}
-                            title="Historique du compte signalé"
+                    {/* Décision */}
+                    <AdminCard padded={false}>
+                        <AdminCardHeader
+                            title="Traiter ce signalement"
+                            icon={ShieldAlert}
+                        />
+                        <div className="p-5">
+                            <label
+                                className="editorial-caption mb-1.5 block text-[color:var(--ink-mute)]"
+                                htmlFor="admin-notes"
+                            >
+                                Notes internes
+                            </label>
+                            <textarea
+                                id="admin-notes"
+                                value={notes}
+                                onChange={(event) => setNotes(event.target.value)}
+                                rows={4}
+                                maxLength={1000}
+                                placeholder="Contexte de la décision (visible uniquement par l'équipe)"
+                                className="w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--bg-soft)] p-3 text-sm text-[color:var(--ink)] outline-none transition-colors focus:border-[color:var(--desire)]"
+                            />
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <AdminButton
+                                    size="sm"
+                                    disabled={processing}
+                                    onClick={() => submit('reviewed')}
+                                >
+                                    Marquer examiné
+                                </AdminButton>
+                                <AdminButton
+                                    size="sm"
+                                    disabled={processing}
+                                    onClick={() => submit('dismissed')}
+                                >
+                                    Classer sans suite
+                                </AdminButton>
+                                <AdminButton
+                                    size="sm"
+                                    variant="wine"
+                                    disabled={processing}
+                                    onClick={() => submit('actioned')}
+                                >
+                                    Sanctionner
+                                </AdminButton>
+                                <AdminButton
+                                    size="sm"
+                                    variant="danger"
+                                    icon={Ban}
+                                    disabled={processing || !report.reported_user}
+                                    onClick={() => setConfirmBan(true)}
+                                >
+                                    Sanctionner et bannir
+                                </AdminButton>
+                            </div>
+                            <p className="mt-3 text-[11px] text-[color:var(--ink-mute)]">
+                                Chaque décision est enregistrée au journal de modération
+                                avec ton nom.
+                            </p>
+                        </div>
+                    </AdminCard>
+
+                    {/* Antécédents */}
+                    <AdminCard padded={false}>
+                        <AdminCardHeader
+                            title={`Antécédents du compte visé · ${relatedReports.length}`}
+                            icon={History}
                         />
                         {relatedReports.length === 0 ? (
-                            <p className="text-sm" style={{ color: 'var(--ink-mute)' }}>
-                                Aucun autre signalement contre ce compte.
+                            <p className="px-5 py-6 text-sm text-[color:var(--ink-mute)]">
+                                Aucun autre signalement contre ce compte. C&apos;est une
+                                première plainte.
                             </p>
                         ) : (
-                            <div className="flex flex-col gap-2">
+                            <ul>
                                 {relatedReports.map((related) => (
-                                    <Link
+                                    <li
                                         key={related.id}
-                                        href={`/admin/reports/${related.id}`}
-                                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm transition-colors hover:border-[color:var(--wine)]"
-                                        style={{ borderColor: 'var(--line)' }}
+                                        className="border-b border-[color:var(--line-soft)] last:border-b-0"
                                     >
-                                        <span className="flex flex-wrap items-center gap-2">
-                                            <AdminBadge
-                                                tone={STATUS_TONES[related.status]}
-                                            >
-                                                {STATUS_LABELS[related.status]}
-                                            </AdminBadge>
-                                            <span>
-                                                {REASON_LABELS[related.reason] ??
-                                                    related.reason}
-                                            </span>
-                                            <span style={{ color: 'var(--ink-mute)' }}>
-                                                par{' '}
-                                                {related.reporter?.pseudo ??
-                                                    'Compte supprimé'}
-                                            </span>
-                                        </span>
-                                        <span
-                                            className="font-mono text-[10px] uppercase tracking-wider"
-                                            style={{ color: 'var(--ink-mute)' }}
+                                        <Link
+                                            href={`/admin/reports/${related.id}`}
+                                            className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm transition-colors hover:bg-[color:var(--bg-soft)]"
                                         >
-                                            {new Date(
-                                                related.created_at,
-                                            ).toLocaleDateString('fr-FR')}
-                                        </span>
-                                    </Link>
+                                            <span className="flex flex-wrap items-center gap-2">
+                                                <AdminBadge
+                                                    tone={STATUS_TONES[related.status]}
+                                                >
+                                                    {STATUS_LABELS[related.status]}
+                                                </AdminBadge>
+                                                <span className="text-[color:var(--ink)]">
+                                                    {REASON_LABELS[related.reason] ??
+                                                        related.reason}
+                                                </span>
+                                                <span className="text-[color:var(--ink-mute)]">
+                                                    par{' '}
+                                                    {related.reporter?.pseudo ??
+                                                        'compte supprimé'}
+                                                </span>
+                                            </span>
+                                            <AdminMeta>
+                                                {new Date(
+                                                    related.created_at,
+                                                ).toLocaleDateString('fr-FR')}
+                                            </AdminMeta>
+                                        </Link>
+                                    </li>
                                 ))}
-                            </div>
+                            </ul>
                         )}
                     </AdminCard>
                 </div>
 
-                <div className="flex flex-col gap-5">
+                {/* Colonne latérale : les deux comptes */}
+                <div className="space-y-4">
                     <PartyCard
-                        eyebrow="Signalée par"
-                        user={report.reporter}
-                        tone="neutral"
-                    />
-                    <PartyCard
-                        eyebrow="Compte signalé"
+                        title="Compte visé"
                         user={report.reported_user}
                         tone="danger"
                     />
+                    <PartyCard
+                        title="A signalé"
+                        user={report.reporter}
+                        tone="neutral"
+                    />
                 </div>
             </div>
+
+            <Dialog open={confirmBan} onOpenChange={setConfirmBan}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-display text-2xl font-medium italic text-[color:var(--destructive)]">
+                            Bannir {reportedName}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Le signalement passera en « sanctionné » et le compte sera
+                            banni immédiatement, avec « {REASON_LABELS[report.reason] ??
+                            report.reason} » comme motif. La membre perdra l&apos;accès à
+                            la plateforme.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <AdminButton onClick={() => setConfirmBan(false)}>
+                            Annuler
+                        </AdminButton>
+                        <AdminButton
+                            variant="danger"
+                            icon={Ban}
+                            disabled={processing}
+                            onClick={() => submit('actioned', true)}
+                        >
+                            {processing ? 'Bannissement…' : 'Confirmer le ban'}
+                        </AdminButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }
 
+/** Carte d'identité d'une des deux parties du signalement. */
 function PartyCard({
-    eyebrow,
+    title,
     user,
     tone,
 }: {
-    eyebrow: string;
+    title: string;
     user: ReportUser | null;
-    tone: 'neutral' | 'danger';
+    tone: 'danger' | 'neutral';
 }) {
     if (!user) {
         return (
             <AdminCard>
-                <div
-                    className="editorial-caption mb-2"
-                    style={{ color: 'var(--ink-mute)' }}
-                >
-                    {eyebrow}
+                <div className="editorial-caption mb-2 text-[color:var(--ink-mute)]">
+                    {title}
                 </div>
-                <p className="text-sm" style={{ color: 'var(--ink-mute)' }}>
-                    Compte supprimé
+                <p className="text-sm italic text-[color:var(--ink-mute)]">
+                    Compte supprimé depuis le signalement.
                 </p>
             </AdminCard>
         );
@@ -289,68 +341,57 @@ function PartyCard({
 
     return (
         <AdminCard>
-            <div
-                className="editorial-caption mb-2"
-                style={{ color: 'var(--ink-mute)' }}
-            >
-                {eyebrow}
+            <div className="editorial-caption mb-2 text-[color:var(--ink-mute)]">
+                {title}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
                 <div
-                    className="font-display grid h-11 w-11 shrink-0 place-items-center rounded-full text-base font-medium italic"
-                    style={{
-                        background:
-                            tone === 'danger' ? 'var(--blush)' : 'var(--bg-soft)',
-                        color: 'var(--wine-deep)',
-                    }}
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${
+                        tone === 'danger'
+                            ? 'bg-[oklch(62%_0.19_10_/_0.15)] text-[color:var(--destructive)]'
+                            : 'bg-[color:var(--bg-soft)] text-[color:var(--ink-mute)]'
+                    }`}
                 >
-                    {user.pseudo.slice(0, 2).toUpperCase()}
+                    <User className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <Link
-                        href={`/admin/users/${user.id}`}
-                        className="block truncate font-semibold underline decoration-dotted underline-offset-2"
-                    >
-                        {user.pseudo}
-                    </Link>
+                    <div className="font-display truncate text-base font-semibold text-[color:var(--ink)]">
+                        {user.pseudo || user.name}
+                    </div>
                     {user.email && (
-                        <div
-                            className="truncate text-xs"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
+                        <div className="truncate text-xs text-[color:var(--ink-soft)]">
                             {user.email}
                         </div>
+                    )}
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                        {user.is_verified && (
+                            <AdminBadge tone="success">
+                                <BadgeCheck className="h-2.5 w-2.5" />
+                                Vérifiée
+                            </AdminBadge>
+                        )}
+                        {user.is_banned && (
+                            <AdminBadge tone="danger">
+                                <Ban className="h-2.5 w-2.5" />
+                                Bannie
+                            </AdminBadge>
+                        )}
+                    </div>
+                    {user.profile?.city && (
+                        <p className="mt-1.5 text-xs text-[color:var(--ink-mute)]">
+                            {user.profile.city}
+                        </p>
                     )}
                 </div>
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-1.5">
-                {user.is_banned && <AdminBadge tone="danger">Banni</AdminBadge>}
-                {user.is_verified && <AdminBadge tone="success">Vérifié</AdminBadge>}
-                {user.profile?.city && (
-                    <AdminBadge tone="neutral">{user.profile.city}</AdminBadge>
-                )}
-            </div>
-
-            {user.profile?.bio && (
-                <p
-                    className="mt-3 line-clamp-4 text-xs leading-relaxed"
-                    style={{ color: 'var(--ink-soft)' }}
-                >
-                    {user.profile.bio}
-                </p>
-            )}
-
-            <div className="mt-4">
-                <AdminButton
-                    href={`/admin/users/${user.id}`}
-                    size="sm"
-                    variant="ghost"
-                    icon={Flag}
-                >
-                    Voir la fiche complète
-                </AdminButton>
-            </div>
+            <AdminButton
+                size="sm"
+                className="mt-3 w-full"
+                href={`/admin/users/${user.id}`}
+            >
+                Ouvrir la fiche
+            </AdminButton>
         </AdminCard>
     );
 }

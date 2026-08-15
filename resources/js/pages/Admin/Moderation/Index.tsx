@@ -2,20 +2,31 @@ import AdminLayout, {
     AdminBadge,
     AdminButton,
     AdminCard,
+    AdminCardHeader,
+    AdminEmpty,
     AdminKpi,
-    AdminSectionTitle,
+    AdminMeta,
 } from '@/layouts/admin-layout';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     BadgeCheck,
     CheckCircle,
-    Eye,
     Flag,
+    History,
     Image as ImageIcon,
-    ShieldAlert,
     ShieldCheck,
     XCircle,
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface Photo {
     id: number;
@@ -48,6 +59,28 @@ interface Stats {
     resolved_reports_today: number;
 }
 
+/** Cible d'un rejet en attente de motif. */
+interface RejectTarget {
+    kind: 'photo' | 'verification';
+    id: number;
+    name: string;
+}
+
+const REJECT_COPY = {
+    photo: {
+        title: 'Rejeter cette photo',
+        description:
+            'Le motif est transmis à la membre et conservé au journal de modération.',
+        placeholder: 'Ex : visage non visible, contenu interdit, photo de groupe…',
+    },
+    verification: {
+        title: 'Rejeter cette vérification',
+        description:
+            'Le motif est transmis à la membre pour qu’elle puisse réessayer correctement.',
+        placeholder: 'Ex : geste demandé non reproduit, photo floue, visage masqué…',
+    },
+} as const;
+
 export default function Index({
     pendingPhotos,
     pendingVerifications,
@@ -59,335 +92,372 @@ export default function Index({
     openReports: ReportRow[];
     stats: Stats;
 }) {
-    const handleApprovePhoto = (id: number) =>
-        router.post(`/admin/photos/${id}/approve`, {}, { preserveScroll: true });
+    const [rejecting, setRejecting] = useState<RejectTarget | null>(null);
+    const [reason, setReason] = useState('');
+    const [busy, setBusy] = useState(false);
 
-    const handleRejectPhoto = (id: number) => {
-        const reason = prompt('Raison du rejet :');
-        if (reason) {
-            router.post(
-                `/admin/photos/${id}/reject`,
-                { rejection_reason: reason },
-                { preserveScroll: true },
-            );
+    const totalPending =
+        stats.pending_photos + stats.pending_verifications + stats.open_reports;
+
+    const approve = (kind: 'photos' | 'verifications', id: number) =>
+        router.post(`/admin/${kind}/${id}/approve`, {}, { preserveScroll: true });
+
+    const confirmReject = () => {
+        if (!rejecting || !reason.trim()) {
+            return;
         }
-    };
 
-    const handleApproveVerif = (id: number) =>
-        router.post(`/admin/verifications/${id}/approve`, {}, { preserveScroll: true });
+        const endpoint =
+            rejecting.kind === 'photo'
+                ? `/admin/photos/${rejecting.id}/reject`
+                : `/admin/verifications/${rejecting.id}/reject`;
 
-    const handleRejectVerif = (id: number) => {
-        const reason = prompt('Raison du rejet :');
-        if (reason) {
-            router.post(
-                `/admin/verifications/${id}/reject`,
-                { rejection_reason: reason },
-                { preserveScroll: true },
-            );
-        }
+        setBusy(true);
+        router.post(
+            endpoint,
+            { rejection_reason: reason },
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    setBusy(false);
+                    setRejecting(null);
+                    setReason('');
+                },
+            },
+        );
     };
 
     return (
         <AdminLayout
             title="Modération"
-            subtitle="File d'attente : photos, vérifications, signalements"
+            subtitle={
+                totalPending > 0
+                    ? `${totalPending} élément${totalPending > 1 ? 's' : ''} en attente de décision`
+                    : 'Aucune décision en attente'
+            }
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
                 { label: 'Modération' },
             ]}
+            actions={
+                <AdminButton icon={History} href="/admin/moderation/audit">
+                    Journal des décisions
+                </AdminButton>
+            }
         >
             <Head title="Modération · Admin" />
 
-            <div className="space-y-8">
-                {/* KPIs */}
-                <section>
-                    <AdminSectionTitle eyebrow="01 · État" title="Files d'attente" />
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <AdminKpi
-                            label="Photos en attente"
-                            value={stats.pending_photos}
-                            icon={ImageIcon}
-                            deltaTone={stats.pending_photos > 0 ? 'warning' : 'neutral'}
-                        />
-                        <AdminKpi
-                            label="Vérifications"
-                            value={stats.pending_verifications}
-                            icon={BadgeCheck}
-                            deltaTone={
-                                stats.pending_verifications > 0 ? 'warning' : 'neutral'
-                            }
-                        />
-                        <AdminKpi
-                            label="Signalements ouverts"
-                            value={stats.open_reports}
-                            icon={Flag}
-                            deltaTone={stats.open_reports > 0 ? 'warning' : 'neutral'}
-                            href="/admin/reports"
-                        />
-                        <AdminKpi
-                            label="Traités aujourd'hui"
-                            value={stats.resolved_reports_today}
+            <div className="space-y-6">
+                {/* Indicateurs */}
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <AdminKpi
+                        label="Photos en attente"
+                        value={stats.pending_photos}
+                        icon={ImageIcon}
+                        href="/admin/photos/pending"
+                    />
+                    <AdminKpi
+                        label="Vérifications"
+                        value={stats.pending_verifications}
+                        icon={BadgeCheck}
+                        href="/admin/verifications"
+                    />
+                    <AdminKpi
+                        label="Signalements ouverts"
+                        value={stats.open_reports}
+                        icon={Flag}
+                        href="/admin/reports"
+                    />
+                    <AdminKpi
+                        label="Traités aujourd’hui"
+                        value={stats.resolved_reports_today}
+                        deltaTone="positive"
+                        hint="Signalements clôturés"
+                        icon={CheckCircle}
+                    />
+                </div>
+
+                {totalPending === 0 && (
+                    <AdminCard>
+                        <AdminEmpty
                             icon={ShieldCheck}
-                            deltaTone="positive"
+                            title="Tout est à jour"
+                            description="Aucune photo, vérification ou plainte n’attend de décision. Reviens plus tard."
                         />
-                    </div>
-                </section>
+                    </AdminCard>
+                )}
 
                 {/* Photos */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="02 · Photos"
-                        title={`Photos en attente (${stats.pending_photos})`}
-                        right={
-                            stats.pending_photos > pendingPhotos.length ? (
-                                <AdminButton
-                                    variant="default"
-                                    size="sm"
-                                    href="/admin/photos/pending"
-                                >
-                                    Tout voir →
-                                </AdminButton>
-                            ) : undefined
-                        }
-                    />
-                    {pendingPhotos.length === 0 ? (
-                        <EmptyQueue
+                {pendingPhotos.length > 0 && (
+                    <AdminCard padded={false}>
+                        <AdminCardHeader
+                            title={`Photos à valider · ${stats.pending_photos}`}
                             icon={ImageIcon}
-                            label="Aucune photo en attente."
-                        />
-                    ) : (
-                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-                            {pendingPhotos.map((photo) => (
-                                <ModerationTile
-                                    key={photo.id}
-                                    imagePath={photo.path}
-                                    userName={photo.user.name}
-                                    date={photo.created_at}
-                                    overlay={
-                                        photo.is_naughty ? (
-                                            <AdminBadge tone="danger">18+</AdminBadge>
-                                        ) : undefined
-                                    }
-                                    onApprove={() => handleApprovePhoto(photo.id)}
-                                    onReject={() => handleRejectPhoto(photo.id)}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </section>
-
-                {/* Verifications */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="03 · Vérifications"
-                        title={`Vérifications selfie (${stats.pending_verifications})`}
-                        right={
-                            stats.pending_verifications > pendingVerifications.length ? (
-                                <AdminButton
-                                    variant="default"
-                                    size="sm"
-                                    href="/admin/verifications"
+                            action={
+                                <Link
+                                    href="/admin/photos/pending"
+                                    className="ghost-link text-xs font-medium text-[color:var(--wine-deep)]"
                                 >
-                                    Tout voir →
-                                </AdminButton>
-                            ) : undefined
-                        }
-                    />
-                    {pendingVerifications.length === 0 ? (
-                        <EmptyQueue
-                            icon={BadgeCheck}
-                            label="Aucune vérification en attente."
+                                    File complète →
+                                </Link>
+                            }
                         />
-                    ) : (
-                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-                            {pendingVerifications.map((v) => (
-                                <ModerationTile
-                                    key={v.id}
-                                    imagePath={v.path}
-                                    userName={v.user.name}
-                                    date={v.created_at}
-                                    onApprove={() => handleApproveVerif(v.id)}
-                                    onReject={() => handleRejectVerif(v.id)}
-                                />
+                        <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {pendingPhotos.map((photo) => (
+                                <figure
+                                    key={photo.id}
+                                    className="overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color:var(--bg-soft)]"
+                                >
+                                    <div className="relative aspect-[4/5]">
+                                        <img
+                                            src={photo.path}
+                                            alt=""
+                                            loading="lazy"
+                                            className="h-full w-full object-cover"
+                                        />
+                                        {photo.is_naughty && (
+                                            <span className="absolute left-2 top-2">
+                                                <AdminBadge tone="danger">
+                                                    Coquine
+                                                </AdminBadge>
+                                            </span>
+                                        )}
+                                    </div>
+                                    <figcaption className="flex flex-col gap-2 p-3">
+                                        <div className="min-w-0">
+                                            <Link
+                                                href={`/admin/users/${photo.user.id}`}
+                                                className="block truncate text-sm font-semibold text-[color:var(--ink)] hover:underline"
+                                            >
+                                                {photo.user.name}
+                                            </Link>
+                                            <AdminMeta>{photo.created_at}</AdminMeta>
+                                        </div>
+                                        <div className="flex gap-1.5">
+                                            <AdminButton
+                                                size="sm"
+                                                variant="success"
+                                                icon={CheckCircle}
+                                                className="flex-1"
+                                                onClick={() =>
+                                                    approve('photos', photo.id)
+                                                }
+                                            >
+                                                Valider
+                                            </AdminButton>
+                                            <AdminButton
+                                                size="sm"
+                                                variant="danger"
+                                                icon={XCircle}
+                                                className="flex-1"
+                                                onClick={() =>
+                                                    setRejecting({
+                                                        kind: 'photo',
+                                                        id: photo.id,
+                                                        name: photo.user.name,
+                                                    })
+                                                }
+                                            >
+                                                Rejeter
+                                            </AdminButton>
+                                        </div>
+                                    </figcaption>
+                                </figure>
                             ))}
                         </div>
-                    )}
-                </section>
+                    </AdminCard>
+                )}
 
-                {/* Reports */}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="04 · Signalements"
-                        title={`Signalements ouverts (${stats.open_reports})`}
-                        right={
-                            stats.open_reports > openReports.length ? (
-                                <AdminButton variant="default" size="sm" href="/admin/reports">
-                                    Tout voir →
-                                </AdminButton>
-                            ) : undefined
-                        }
-                    />
-                    {openReports.length === 0 ? (
-                        <EmptyQueue icon={Flag} label="Aucun signalement ouvert." />
-                    ) : (
-                        <div className="space-y-3">
-                            {openReports.map((r) => (
-                                <AdminCard key={r.id}>
-                                    <div className="flex flex-wrap items-start justify-between gap-4">
+                {/* Vérifications */}
+                {pendingVerifications.length > 0 && (
+                    <AdminCard padded={false}>
+                        <AdminCardHeader
+                            title={`Vérifications · ${stats.pending_verifications}`}
+                            icon={BadgeCheck}
+                            action={
+                                <Link
+                                    href="/admin/verifications"
+                                    className="ghost-link text-xs font-medium text-[color:var(--wine-deep)]"
+                                >
+                                    File complète →
+                                </Link>
+                            }
+                        />
+                        <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {pendingVerifications.map((verification) => (
+                                <figure
+                                    key={verification.id}
+                                    className="overflow-hidden rounded-xl border border-[color:var(--line)] bg-[color:var(--bg-soft)]"
+                                >
+                                    <div className="aspect-[4/5]">
+                                        <img
+                                            src={verification.path}
+                                            alt=""
+                                            loading="lazy"
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <figcaption className="flex flex-col gap-2 p-3">
+                                        <div className="min-w-0">
+                                            <Link
+                                                href={`/admin/users/${verification.user.id}`}
+                                                className="block truncate text-sm font-semibold text-[color:var(--ink)] hover:underline"
+                                            >
+                                                {verification.user.name}
+                                            </Link>
+                                            <AdminMeta>
+                                                {verification.created_at}
+                                            </AdminMeta>
+                                        </div>
+                                        <div className="flex gap-1.5">
+                                            <AdminButton
+                                                size="sm"
+                                                variant="success"
+                                                icon={CheckCircle}
+                                                className="flex-1"
+                                                onClick={() =>
+                                                    approve(
+                                                        'verifications',
+                                                        verification.id,
+                                                    )
+                                                }
+                                            >
+                                                Valider
+                                            </AdminButton>
+                                            <AdminButton
+                                                size="sm"
+                                                variant="danger"
+                                                icon={XCircle}
+                                                className="flex-1"
+                                                onClick={() =>
+                                                    setRejecting({
+                                                        kind: 'verification',
+                                                        id: verification.id,
+                                                        name: verification.user.name,
+                                                    })
+                                                }
+                                            >
+                                                Rejeter
+                                            </AdminButton>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            ))}
+                        </div>
+                    </AdminCard>
+                )}
+
+                {/* Signalements */}
+                {openReports.length > 0 && (
+                    <AdminCard padded={false}>
+                        <AdminCardHeader
+                            title={`Signalements ouverts · ${stats.open_reports}`}
+                            icon={Flag}
+                            action={
+                                <Link
+                                    href="/admin/reports"
+                                    className="ghost-link text-xs font-medium text-[color:var(--wine-deep)]"
+                                >
+                                    Tous voir →
+                                </Link>
+                            }
+                        />
+                        <ul>
+                            {openReports.map((report) => (
+                                <li
+                                    key={report.id}
+                                    className="border-b border-[color:var(--line-soft)] last:border-b-0"
+                                >
+                                    <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-3.5">
                                         <div className="min-w-0 flex-1">
-                                            <div className="mb-2 flex items-center gap-2 flex-wrap">
-                                                <span className="font-display text-base font-semibold">
-                                                    {r.reporter.name}
-                                                </span>
-                                                <span
-                                                    className="font-mono text-[10px] uppercase tracking-wider"
-                                                    style={{ color: 'var(--ink-mute)' }}
+                                            <div className="flex flex-wrap items-center gap-1.5 text-sm">
+                                                <Link
+                                                    href={`/admin/users/${report.reporter.id}`}
+                                                    className="font-semibold hover:underline"
                                                 >
-                                                    a signalé
+                                                    {report.reporter.name}
+                                                </Link>
+                                                <span className="text-[color:var(--ink-mute)]">
+                                                    signale
                                                 </span>
-                                                <span className="font-display text-base font-semibold">
-                                                    {r.reported.name}
-                                                </span>
-                                                <AdminBadge tone="danger">{r.reason}</AdminBadge>
+                                                <Link
+                                                    href={`/admin/users/${report.reported.id}`}
+                                                    className="font-semibold hover:underline"
+                                                >
+                                                    {report.reported.name}
+                                                </Link>
+                                                <AdminBadge tone="warning">
+                                                    {report.reason}
+                                                </AdminBadge>
                                             </div>
-                                            {r.description && (
-                                                <p
-                                                    className="text-sm leading-relaxed"
-                                                    style={{ color: 'var(--ink-soft)' }}
-                                                >
-                                                    « {r.description} »
+                                            {report.description && (
+                                                <p className="mt-1 line-clamp-2 text-xs text-[color:var(--ink-soft)]">
+                                                    {report.description}
                                                 </p>
                                             )}
+                                            <AdminMeta>{report.created_at}</AdminMeta>
                                         </div>
-                                        <div className="flex flex-col items-end gap-2">
-                                            <span
-                                                className="font-mono text-[10px] uppercase tracking-wider"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                {r.created_at}
-                                            </span>
-                                            <div className="flex gap-2">
-                                                <AdminButton
-                                                    variant="default"
-                                                    size="sm"
-                                                    icon={Eye}
-                                                    href={`/admin/reports/${r.id}`}
-                                                >
-                                                    Examiner
-                                                </AdminButton>
-                                                <AdminButton
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    href={`/admin/users/${r.reported.id}`}
-                                                >
-                                                    Profil
-                                                </AdminButton>
-                                            </div>
-                                        </div>
+                                        <AdminButton
+                                            size="sm"
+                                            href={`/admin/reports/${report.id}`}
+                                        >
+                                            Examiner
+                                        </AdminButton>
                                     </div>
-                                </AdminCard>
+                                </li>
                             ))}
-                        </div>
-                    )}
-                </section>
+                        </ul>
+                    </AdminCard>
+                )}
             </div>
-        </AdminLayout>
-    );
-}
 
-/* ---------- Sub-components ---------- */
-
-function ModerationTile({
-    imagePath,
-    userName,
-    date,
-    overlay,
-    onApprove,
-    onReject,
-}: {
-    imagePath: string;
-    userName: string;
-    date: string;
-    overlay?: React.ReactNode;
-    onApprove: () => void;
-    onReject: () => void;
-}): JSX.Element {
-    return (
-        <div
-            className="overflow-hidden rounded-2xl border"
-            style={{
-                borderColor: 'var(--line)',
-                background: 'var(--paper)',
-            }}
-        >
-            <div
-                className="reveal-tile relative aspect-square"
-                style={{ background: 'var(--bg-soft)' }}
+            {/* Motif de rejet */}
+            <Dialog
+                open={rejecting !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setRejecting(null);
+                        setReason('');
+                    }
+                }}
             >
-                <img
-                    src={imagePath}
-                    alt={`Photo de ${userName}`}
-                    className="reveal-bg h-full w-full object-cover"
-                    loading="lazy"
-                />
-                {overlay && <div className="absolute right-2 top-2">{overlay}</div>}
-            </div>
-            <div className="px-3 pb-3 pt-2">
-                <div className="font-display text-sm font-semibold leading-tight">
-                    {userName}
-                </div>
-                <div
-                    className="font-mono mb-2 mt-0.5 text-[10px] uppercase tracking-wider"
-                    style={{ color: 'var(--ink-mute)' }}
-                >
-                    {date}
-                </div>
-                <div className="flex gap-1.5">
-                    <button
-                        type="button"
-                        onClick={onApprove}
-                        className="font-mono flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-[10px] font-semibold uppercase tracking-wider text-white transition-all hover:-translate-y-px"
-                        style={{ background: 'var(--success)' }}
-                    >
-                        <CheckCircle className="h-3 w-3" />
-                        OK
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onReject}
-                        className="font-mono flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-[10px] font-semibold uppercase tracking-wider text-white transition-all hover:-translate-y-px"
-                        style={{ background: 'var(--destructive)' }}
-                    >
-                        <XCircle className="h-3 w-3" />
-                        Rejet
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function EmptyQueue({
-    icon: Icon,
-    label,
-}: {
-    icon: typeof ShieldAlert;
-    label: string;
-}): JSX.Element {
-    return (
-        <AdminCard>
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-                <Icon
-                    className="h-8 w-8 opacity-30"
-                    style={{ color: 'var(--ink-mute)' }}
-                />
-                <p
-                    className="font-display text-base font-medium italic"
-                    style={{ color: 'var(--ink-mute)' }}
-                >
-                    {label}
-                </p>
-            </div>
-        </AdminCard>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-display text-2xl font-medium italic">
+                            {rejecting && REJECT_COPY[rejecting.kind].title}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {rejecting && (
+                                <>
+                                    Compte concerné : <strong>{rejecting.name}</strong>.{' '}
+                                    {REJECT_COPY[rejecting.kind].description}
+                                </>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Textarea
+                        value={reason}
+                        onChange={(event) => setReason(event.target.value)}
+                        placeholder={
+                            rejecting ? REJECT_COPY[rejecting.kind].placeholder : ''
+                        }
+                        rows={3}
+                        autoFocus
+                    />
+                    <DialogFooter>
+                        <AdminButton onClick={() => setRejecting(null)}>
+                            Annuler
+                        </AdminButton>
+                        <AdminButton
+                            variant="danger"
+                            onClick={confirmReject}
+                            disabled={busy || !reason.trim()}
+                        >
+                            {busy ? 'Envoi…' : 'Confirmer le rejet'}
+                        </AdminButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </AdminLayout>
     );
 }

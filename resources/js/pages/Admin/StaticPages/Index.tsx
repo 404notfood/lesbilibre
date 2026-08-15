@@ -1,11 +1,11 @@
 import AdminLayout, {
     AdminBadge,
-    AdminButton,
     AdminCard,
-    AdminSectionTitle,
+    AdminCardHeader,
+    AdminEmpty,
 } from '@/layouts/admin-layout';
-import { Head, Link } from '@inertiajs/react';
-import { ExternalLink, Plus } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import { ExternalLink, FileText, Info } from 'lucide-react';
 
 interface StaticPage {
     name: string;
@@ -24,74 +24,61 @@ export default function Index({ pages }: Props) {
             subtitle={`${pages.length} page${pages.length > 1 ? 's' : ''} publiée${pages.length > 1 ? 's' : ''}`}
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
-                { label: 'Contenu', href: '/admin/static-pages' },
                 { label: 'Pages statiques' },
             ]}
-            actions={
-                <AdminButton
-                    href="/admin/static-pages/create"
-                    variant="primary"
-                    icon={Plus}
-                >
-                    Nouvelle page
-                </AdminButton>
-            }
+            hideSearch
         >
-            <Head title="Pages statiques" />
+            <Head title="Pages statiques · Admin" />
 
-            <section>
-                <AdminSectionTitle
-                    eyebrow="01 · Inventaire"
-                    title="Contenu éditorial"
-                />
+            <div className="max-w-3xl space-y-4">
                 <AdminCard padded={false}>
+                    <AdminCardHeader title="Contenu éditorial" icon={FileText} />
                     {pages.length === 0 ? (
-                        <div
-                            className="px-6 py-12 text-center text-sm"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
-                            Aucune page statique pour le moment.
-                        </div>
+                        <AdminEmpty
+                            icon={FileText}
+                            title="Aucune page statique"
+                            description="Aucune page légale n’est déclarée."
+                        />
                     ) : (
-                        <ul>
-                            {pages.map((page, idx) => (
+                        <ul className="divide-y divide-[color:var(--line-soft)]">
+                            {pages.map((page) => (
                                 <li
                                     key={page.slug}
-                                    className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-[color:var(--bg-soft)]"
-                                    style={{
-                                        borderTop:
-                                            idx === 0
-                                                ? 'none'
-                                                : '1px solid var(--line-soft)',
-                                    }}
+                                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5"
                                 >
                                     <div className="min-w-0">
-                                        <p
-                                            className="font-semibold"
-                                            style={{ color: 'var(--ink)' }}
-                                        >
+                                        <p className="font-semibold text-[color:var(--ink)]">
                                             {page.name}
                                         </p>
-                                        <div className="mt-1 flex items-center gap-2">
-                                            <AdminBadge tone="neutral">
-                                                {page.slug}
-                                            </AdminBadge>
+                                        <div className="mt-1">
+                                            <AdminBadge>{page.slug}</AdminBadge>
                                         </div>
                                     </div>
-                                    <Link
+                                    <a
                                         href={page.url}
-                                        className="ghost-link font-mono inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em]"
-                                        style={{ color: 'var(--wine-deep)' }}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="ghost-link font-mono inline-flex shrink-0 items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-[color:var(--wine-deep)]"
                                     >
                                         Voir la page
                                         <ExternalLink className="h-3 w-3" />
-                                    </Link>
+                                    </a>
                                 </li>
                             ))}
                         </ul>
                     )}
                 </AdminCard>
-            </section>
+
+                <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg-soft)] px-5 py-4">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--ink-mute)]" />
+                    <p className="text-xs text-[color:var(--ink-soft)]">
+                        Ces pages sont rendues par des gabarits du code source : leur
+                        contenu se modifie dans les fichiers du projet, pas depuis cette
+                        console. Cette liste sert de rappel de ce qui est publié et de
+                        raccourci pour vérifier le rendu.
+                    </p>
+                </div>
+            </div>
         </AdminLayout>
     );
 }

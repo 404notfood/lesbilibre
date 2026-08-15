@@ -2,9 +2,12 @@ import AdminLayout, {
     AdminBadge,
     AdminButton,
     AdminCard,
+    AdminEmpty,
+    AdminMeta,
+    AdminPagination,
 } from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, ShieldCheck, X } from 'lucide-react';
+import { Check, Lock, ShieldCheck, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface VerificationUser {
@@ -23,16 +26,13 @@ interface Verification {
     user: VerificationUser | null;
 }
 
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
 interface Props {
     verifications: {
         data: Verification[];
-        links: PaginationLink[];
+        from: number | null;
+        to: number | null;
+        last_page: number;
+        links: Array<{ url: string | null; label: string; active: boolean }>;
         total: number;
     };
 }
@@ -47,6 +47,7 @@ export default function Index({ verifications }: Props) {
                 { label: 'Modération', href: '/admin/moderation' },
                 { label: 'Vérifications' },
             ]}
+            hideSearch
             actions={
                 <AdminBadge tone={verifications.total > 0 ? 'warning' : 'success'}>
                     {verifications.total} en attente
@@ -55,80 +56,64 @@ export default function Index({ verifications }: Props) {
         >
             <Head title="Vérifications · Admin" />
 
-            <AdminCard className="mb-5">
-                <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>
-                    Vérifiez que le code affiché sous chaque photo correspond bien à
-                    celui écrit sur la feuille tenue par la personne. Un code absent ou
-                    différent signale une photo qui n&apos;a pas été prise pour cette
-                    demande — refusez-la.
-                </p>
-                <p className="mt-2 text-sm" style={{ color: 'var(--ink-soft)' }}>
-                    Ces selfies sont des données d&apos;identité sensibles. Ils sont
-                    servis uniquement à la modération, jamais publiés, et ne doivent pas
-                    être téléchargés ni partagés hors de cette console.
-                </p>
-            </AdminCard>
-
-            {verifications.data.length === 0 ? (
-                <AdminCard>
-                    <div className="flex flex-col items-center gap-3 py-16 text-center">
-                        <div
-                            className="grid h-14 w-14 place-items-center rounded-full"
-                            style={{
-                                background: 'var(--blush)',
-                                color: 'var(--wine-deep)',
-                            }}
-                        >
-                            <ShieldCheck className="h-6 w-6" />
-                        </div>
-                        <h2 className="font-display text-2xl font-medium italic">
-                            File vide
-                        </h2>
-                        <p
-                            className="max-w-md text-sm"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
-                            Toutes les demandes de vérification ont été traitées.
+            <div className="space-y-4">
+                {/* Consigne de modération + rappel RGPD */}
+                <div className="flex flex-wrap items-start gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--paper)] p-5">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color:var(--blush)] text-[color:var(--wine-deep)]">
+                        <Lock className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1 space-y-2">
+                        <p className="text-sm text-[color:var(--ink-soft)]">
+                            Vérifie que le code affiché sous chaque photo correspond bien
+                            à celui écrit sur la feuille tenue par la personne. Un code
+                            absent ou différent signale une photo qui n&apos;a pas été
+                            prise pour cette demande — refuse-la.
+                        </p>
+                        <p className="text-sm text-[color:var(--ink-mute)]">
+                            Ces selfies sont des données d&apos;identité sensibles. Ils
+                            sont servis uniquement à la modération, jamais publiés, et ne
+                            doivent pas être téléchargés ni partagés hors de cette
+                            console.
                         </p>
                     </div>
-                </AdminCard>
-            ) : (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {verifications.data.map((verification) => (
-                        <VerificationCard
-                            key={verification.id}
-                            verification={verification}
-                        />
-                    ))}
                 </div>
-            )}
 
-            {verifications.links.length > 3 && (
-                <div className="mt-6 flex flex-wrap justify-center gap-1">
-                    {verifications.links.map((link, i) => (
-                        <Link
-                            key={i}
-                            href={link.url ?? '#'}
-                            preserveScroll
-                            className="inline-grid h-8 min-w-[32px] place-items-center rounded-md border px-2 text-xs font-semibold"
-                            style={{
-                                borderColor: link.active
-                                    ? 'var(--wine-deep)'
-                                    : 'var(--line)',
-                                background: link.active
-                                    ? 'var(--wine-deep)'
-                                    : 'var(--paper)',
-                                color: link.active
-                                    ? 'oklch(96% 0.02 50)'
-                                    : 'var(--ink-soft)',
-                                pointerEvents: link.url ? undefined : 'none',
-                                opacity: link.url ? 1 : 0.4,
-                            }}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
+                {verifications.data.length === 0 ? (
+                    <AdminCard padded={false}>
+                        <AdminEmpty
+                            icon={ShieldCheck}
+                            title="File vide"
+                            description="Toutes les demandes de vérification ont été traitées."
+                            action={
+                                <AdminButton size="sm" href="/admin/moderation">
+                                    Retour à la modération
+                                </AdminButton>
+                            }
                         />
-                    ))}
-                </div>
-            )}
+                    </AdminCard>
+                ) : (
+                    <>
+                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                            {verifications.data.map((verification) => (
+                                <VerificationCard
+                                    key={verification.id}
+                                    verification={verification}
+                                />
+                            ))}
+                        </div>
+
+                        <AdminCard padded={false}>
+                            <AdminPagination
+                                from={verifications.from}
+                                to={verifications.to}
+                                total={verifications.total}
+                                lastPage={verifications.last_page}
+                                links={verifications.links}
+                            />
+                        </AdminCard>
+                    </>
+                )}
+            </div>
         </AdminLayout>
     );
 }
@@ -151,6 +136,7 @@ function VerificationCard({ verification }: { verification: Verification }) {
         if (!reason.trim()) {
             return;
         }
+
         setProcessing(true);
         router.post(
             `/admin/verifications/${verification.id}/reject`,
@@ -161,10 +147,7 @@ function VerificationCard({ verification }: { verification: Verification }) {
 
     return (
         <AdminCard padded={false}>
-            <div
-                className="relative aspect-[4/5] overflow-hidden"
-                style={{ background: 'var(--bg-soft)' }}
-            >
+            <div className="aspect-[4/5] overflow-hidden bg-[color:var(--bg-soft)]">
                 <img
                     src={verification.image_url}
                     alt={`Selfie de vérification de ${verification.user?.pseudo ?? 'un compte supprimé'}`}
@@ -178,50 +161,42 @@ function VerificationCard({ verification }: { verification: Verification }) {
                     {verification.user ? (
                         <Link
                             href={`/admin/users/${verification.user.id}`}
-                            className="block truncate text-sm font-semibold underline decoration-dotted underline-offset-2"
+                            className="block truncate text-sm font-semibold text-[color:var(--ink)] underline decoration-dotted underline-offset-2"
                         >
-                            {verification.user.pseudo}
+                            {verification.user.pseudo || verification.user.name}
                         </Link>
                     ) : (
-                        <span
-                            className="text-sm font-semibold"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
+                        <span className="text-sm font-semibold text-[color:var(--ink-mute)]">
                             Compte supprimé
                         </span>
                     )}
-                    <p
-                        className="font-mono mt-1 text-[10px] uppercase tracking-wider"
-                        style={{ color: 'var(--ink-mute)' }}
-                    >
-                        {new Date(verification.created_at).toLocaleString('fr-FR')}
-                    </p>
+                    <AdminMeta>
+                        {new Date(verification.created_at).toLocaleString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        })}
+                    </AdminMeta>
                 </div>
 
                 <div
-                    className="rounded-lg border px-3 py-2 text-center"
-                    style={{
-                        borderColor: verification.challenge_code
-                            ? 'var(--line)'
-                            : 'var(--desire)',
-                        background: 'var(--bg-soft)',
-                    }}
+                    className={`rounded-lg border bg-[color:var(--bg-soft)] px-3 py-2 text-center ${
+                        verification.challenge_code
+                            ? 'border-[color:var(--line)]'
+                            : 'border-[color:var(--desire)]'
+                    }`}
                 >
-                    <div
-                        className="editorial-caption mb-1"
-                        style={{ color: 'var(--ink-mute)' }}
-                    >
+                    <div className="editorial-caption mb-1 text-[color:var(--ink-mute)]">
                         Code attendu
                     </div>
                     {verification.challenge_code ? (
-                        <p className="font-mono break-all text-lg font-bold tracking-[0.2em]">
+                        <p className="font-mono break-all text-lg font-bold tracking-[0.2em] text-[color:var(--ink)]">
                             {verification.challenge_code}
                         </p>
                     ) : (
-                        <p
-                            className="text-xs font-semibold"
-                            style={{ color: 'var(--desire-deep)' }}
-                        >
+                        <p className="text-xs font-semibold text-[color:var(--desire-deep)]">
                             Demande antérieure au dispositif
                         </p>
                     )}
@@ -231,17 +206,12 @@ function VerificationCard({ verification }: { verification: Verification }) {
                     <div className="flex flex-col gap-2">
                         <textarea
                             value={reason}
-                            onChange={(e) => setReason(e.target.value)}
+                            onChange={(event) => setReason(event.target.value)}
                             rows={3}
                             maxLength={1000}
                             autoFocus
-                            className="w-full rounded-lg border p-2 text-xs"
-                            style={{
-                                borderColor: 'var(--line)',
-                                background: 'var(--bg-soft)',
-                                color: 'var(--ink)',
-                            }}
                             placeholder="Motif du refus (communiqué à l'utilisatrice)"
+                            className="w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--bg-soft)] p-2 text-xs text-[color:var(--ink)] outline-none focus:border-[color:var(--desire)]"
                         />
                         <div className="flex gap-2">
                             <AdminButton
@@ -256,7 +226,10 @@ function VerificationCard({ verification }: { verification: Verification }) {
                                 size="sm"
                                 variant="ghost"
                                 disabled={processing}
-                                onClick={() => setRejecting(false)}
+                                onClick={() => {
+                                    setRejecting(false);
+                                    setReason('');
+                                }}
                             >
                                 Annuler
                             </AdminButton>
@@ -266,8 +239,9 @@ function VerificationCard({ verification }: { verification: Verification }) {
                     <div className="flex gap-2">
                         <AdminButton
                             size="sm"
-                            variant="wine"
+                            variant="success"
                             icon={Check}
+                            className="flex-1"
                             disabled={processing}
                             onClick={approve}
                         >
@@ -275,7 +249,9 @@ function VerificationCard({ verification }: { verification: Verification }) {
                         </AdminButton>
                         <AdminButton
                             size="sm"
+                            variant="danger"
                             icon={X}
+                            className="flex-1"
                             disabled={processing}
                             onClick={() => setRejecting(true)}
                         >

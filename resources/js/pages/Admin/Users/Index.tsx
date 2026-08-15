@@ -2,13 +2,30 @@ import AdminLayout, {
     AdminBadge,
     AdminButton,
     AdminCard,
+    AdminEmpty,
+    AdminField,
+    AdminMeta,
+    AdminPagination,
+    AdminSelect,
+    AdminTable,
+    AdminTd,
+    AdminTh,
+    AdminThead,
+    AdminToolbar,
+    AdminTr,
 } from '@/layouts/admin-layout';
-import { Head, Link, router } from '@inertiajs/react';
-import { Input } from '@/components/ui/input';
-import { BadgeCheck, ChevronDown, ChevronUp, Search, Sparkles, UserMinus } from 'lucide-react';
-import { useState } from 'react';
+import { Link, router } from '@inertiajs/react';
+import {
+    BadgeCheck,
+    Search,
+    Sparkles,
+    UserMinus,
+    Users as UsersIcon,
+    X,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
-interface User {
+interface UserRow {
     id: number;
     name: string;
     email: string;
@@ -27,21 +44,12 @@ interface User {
 
 interface Pagination {
     current_page: number;
-    data: User[];
-    first_page_url: string;
-    from: number;
+    data: UserRow[];
+    from: number | null;
     last_page: number;
-    last_page_url: string;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-    next_page_url: string | null;
-    path: string;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
     per_page: number;
-    prev_page_url: string | null;
-    to: number;
+    to: number | null;
     total: number;
 }
 
@@ -52,6 +60,13 @@ interface Filters {
     sort_direction: string;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+    premium: 'Premium',
+    verified: 'Vérifiées',
+    banned: 'Bannies',
+    active: 'Actives (7 j)',
+};
+
 export default function Index({
     users,
     filters,
@@ -59,204 +74,188 @@ export default function Index({
     users: Pagination;
     filters: Filters;
 }) {
-    const [search, setSearch] = useState(filters.search || '');
-    const [status, setStatus] = useState(filters.status || '');
+    const [search, setSearch] = useState(filters.search ?? '');
+    const isFirstRender = useRef(true);
 
-    const submit = (overrides: Record<string, string | number> = {}) => {
+    const visit = (params: Record<string, string>) => {
         router.get(
             '/admin/users',
-            { search, status, ...overrides },
-            { preserveState: true, preserveScroll: true },
+            {
+                search: params.search ?? search,
+                status: params.status ?? filters.status ?? '',
+                sort_by: params.sort_by ?? filters.sort_by,
+                sort_direction: params.sort_direction ?? filters.sort_direction,
+            },
+            { preserveState: true, preserveScroll: true, replace: true },
         );
     };
 
-    const handleSort = (field: string) => {
+    // Recherche au fil de la frappe, sans marteler le serveur.
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            if (search !== (filters.search ?? '')) {
+                visit({ search });
+            }
+        }, 350);
+
+        return () => clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
+
+    const sort = (field: string) => {
         const direction =
             filters.sort_by === field && filters.sort_direction === 'asc'
                 ? 'desc'
                 : 'asc';
-        submit({ sort_by: field, sort_direction: direction });
+        visit({ sort_by: field, sort_direction: direction });
     };
 
-    const SortIcon = ({ field }: { field: string }) => {
-        if (filters.sort_by !== field) return null;
-        return filters.sort_direction === 'asc' ? (
-            <ChevronUp className="inline h-3 w-3" />
-        ) : (
-            <ChevronDown className="inline h-3 w-3" />
-        );
-    };
+    const hasFilters = Boolean(filters.search || filters.status);
 
     return (
         <AdminLayout
             title="Utilisatrices"
-            subtitle={`${users.total.toLocaleString('fr-FR')} compte${users.total > 1 ? 's' : ''} au total`}
+            subtitle={`${users.total.toLocaleString('fr-FR')} compte${users.total > 1 ? 's' : ''}${hasFilters ? ' correspondant aux filtres' : ' au total'}`}
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
                 { label: 'Utilisatrices' },
             ]}
+            hideSearch
         >
-            <Head title="Utilisatrices · Admin" />
-
-            <div className="space-y-6">
-                {/* Filters */}
-                <AdminCard>
-                    <div className="flex flex-wrap items-end gap-3">
-                        <div className="min-w-[260px] flex-1">
-                            <label
-                                className="editorial-caption mb-1.5 block"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
-                                Recherche
-                            </label>
-                            <div className="relative">
-                                <Search
-                                    className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                                    style={{ color: 'var(--ink-mute)' }}
-                                />
-                                <Input
-                                    type="text"
-                                    placeholder="nom, email, pseudo…"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && submit()}
-                                    className="pl-9"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="min-w-[180px]">
-                            <label
-                                className="editorial-caption mb-1.5 block"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
-                                Statut
-                            </label>
-                            <select
-                                value={status}
-                                onChange={(e) => {
-                                    setStatus(e.target.value);
-                                    submit({ status: e.target.value });
-                                }}
-                                className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                                style={{
-                                    borderColor: 'var(--line)',
-                                    color: 'var(--ink)',
-                                }}
-                            >
-                                <option value="">Toutes</option>
-                                <option value="premium">Premium</option>
-                                <option value="verified">Vérifiées</option>
-                                <option value="banned">Bannies</option>
-                                <option value="active">Actives (7j)</option>
-                            </select>
-                        </div>
-
-                        <AdminButton variant="primary" icon={Search} onClick={() => submit()}>
-                            Filtrer
-                        </AdminButton>
-
-                        {(search || status) && (
+            <div className="space-y-4">
+                <AdminToolbar
+                    right={
+                        hasFilters ? (
                             <AdminButton
                                 variant="ghost"
+                                size="sm"
+                                icon={X}
                                 onClick={() => {
                                     setSearch('');
-                                    setStatus('');
-                                    router.get('/admin/users', {});
+                                    router.get('/admin/users');
                                 }}
                             >
                                 Réinitialiser
                             </AdminButton>
-                        )}
-                    </div>
-                </AdminCard>
+                        ) : undefined
+                    }
+                >
+                    <AdminField label="Recherche" className="min-w-[240px] flex-1">
+                        <div className="relative">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
+                            <input
+                                type="search"
+                                autoFocus
+                                placeholder="nom, e-mail, pseudo…"
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pl-9 pr-3 text-sm text-[color:var(--ink)] outline-none transition-colors placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
+                            />
+                        </div>
+                    </AdminField>
 
-                {/* Table */}
+                    <AdminField label="Statut" className="w-[170px]">
+                        <AdminSelect
+                            value={filters.status ?? ''}
+                            onChange={(value) => visit({ status: value })}
+                        >
+                            <option value="">Toutes</option>
+                            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                                <option key={value} value={value}>
+                                    {label}
+                                </option>
+                            ))}
+                        </AdminSelect>
+                    </AdminField>
+                </AdminToolbar>
+
                 <AdminCard padded={false}>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr
-                                    className="border-b"
-                                    style={{
-                                        borderColor: 'var(--line)',
-                                        background: 'var(--bg-soft)',
-                                    }}
-                                >
-                                    <SortableTh
-                                        label="Utilisatrice"
-                                        field="name"
+                    {users.data.length === 0 ? (
+                        <AdminEmpty
+                            icon={UsersIcon}
+                            title="Aucune utilisatrice trouvée"
+                            description={
+                                hasFilters
+                                    ? 'Aucun compte ne correspond à ces critères. Essaie d’élargir la recherche.'
+                                    : 'La plateforme ne compte encore aucun profil.'
+                            }
+                            action={
+                                hasFilters ? (
+                                    <AdminButton
+                                        size="sm"
+                                        onClick={() => {
+                                            setSearch('');
+                                            router.get('/admin/users');
+                                        }}
+                                    >
+                                        Réinitialiser les filtres
+                                    </AdminButton>
+                                ) : undefined
+                            }
+                        />
+                    ) : (
+                        <>
+                            <AdminTable>
+                                <AdminThead>
+                                    <AdminTh
+                                        onSort={() => sort('name')}
                                         active={filters.sort_by === 'name'}
-                                        onClick={() => handleSort('name')}
-                                    />
-                                    <Th>Email</Th>
-                                    <Th>Statut</Th>
-                                    <Th>Ressources</Th>
-                                    <SortableTh
-                                        label="Dernière activité"
-                                        field="last_activity_at"
+                                        direction={filters.sort_direction}
+                                    >
+                                        Utilisatrice
+                                    </AdminTh>
+                                    <AdminTh>Statut</AdminTh>
+                                    <AdminTh align="right">Gemmes</AdminTh>
+                                    <AdminTh
+                                        onSort={() => sort('last_activity_at')}
                                         active={filters.sort_by === 'last_activity_at'}
-                                        onClick={() => handleSort('last_activity_at')}
-                                    />
-                                    <SortableTh
-                                        label="Inscription"
-                                        field="created_at"
+                                        direction={filters.sort_direction}
+                                    >
+                                        Dernière activité
+                                    </AdminTh>
+                                    <AdminTh
+                                        onSort={() => sort('created_at')}
                                         active={filters.sort_by === 'created_at'}
-                                        onClick={() => handleSort('created_at')}
-                                    />
-                                    <th className="px-4 py-3 text-right" />
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.data.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={7}
-                                            className="px-6 py-16 text-center"
-                                            style={{ color: 'var(--ink-mute)' }}
-                                        >
-                                            Aucune utilisatrice ne correspond à ces filtres.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    users.data.map((user) => (
-                                        <tr
-                                            key={user.id}
-                                            className="border-b transition-colors last:border-b-0"
-                                            style={{ borderColor: 'var(--line-soft)' }}
-                                        >
-                                            <td className="px-4 py-3.5">
-                                                <div className="font-display text-base font-semibold leading-tight">
-                                                    {user.name}
-                                                </div>
-                                                {user.pseudo && (
-                                                    <div
-                                                        className="font-mono text-[10px] uppercase tracking-wider"
-                                                        style={{ color: 'var(--ink-mute)' }}
-                                                    >
-                                                        @{user.pseudo}
+                                        direction={filters.sort_direction}
+                                    >
+                                        Inscription
+                                    </AdminTh>
+                                    <AdminTh align="right">Action</AdminTh>
+                                </AdminThead>
+                                <tbody>
+                                    {users.data.map((user) => (
+                                        <AdminTr key={user.id}>
+                                            <AdminTd>
+                                                <Link
+                                                    href={`/admin/users/${user.id}`}
+                                                    className="block"
+                                                >
+                                                    <div className="font-display text-[15px] font-semibold leading-tight text-[color:var(--ink)]">
+                                                        {user.name}
                                                     </div>
-                                                )}
-                                                {user.city && (
-                                                    <div
-                                                        className="mt-0.5 text-xs"
-                                                        style={{ color: 'var(--ink-mute)' }}
-                                                    >
-                                                        {user.city}
+                                                    <div className="mt-0.5 truncate text-xs text-[color:var(--ink-soft)]">
+                                                        {user.email}
+                                                    </div>
+                                                    <div className="mt-0.5 text-[11px] text-[color:var(--ink-mute)]">
+                                                        {user.pseudo && `@${user.pseudo}`}
+                                                        {user.city &&
+                                                            `${user.pseudo ? ' · ' : ''}${user.city}`}
                                                         {user.age ? ` · ${user.age} ans` : ''}
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td
-                                                className="px-4 py-3.5 text-xs"
-                                                style={{ color: 'var(--ink-soft)' }}
-                                            >
-                                                {user.email}
-                                            </td>
-                                            <td className="px-4 py-3.5">
+                                                </Link>
+                                            </AdminTd>
+                                            <AdminTd>
                                                 <div className="flex flex-wrap gap-1">
                                                     {user.is_premium && (
-                                                        <AdminBadge tone="gold">Premium</AdminBadge>
+                                                        <AdminBadge tone="gold">
+                                                            Premium
+                                                        </AdminBadge>
                                                     )}
                                                     {user.is_verified && (
                                                         <AdminBadge tone="success">
@@ -273,135 +272,58 @@ export default function Index({
                                                     {!user.is_premium &&
                                                         !user.is_verified &&
                                                         !user.is_banned && (
-                                                            <AdminBadge>—</AdminBadge>
+                                                            <span className="text-xs text-[color:var(--ink-mute)]">
+                                                                —
+                                                            </span>
                                                         )}
                                                 </div>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                <div className="flex items-center gap-4">
-                                                    <span
-                                                        className="font-mono inline-flex items-center gap-1 text-xs"
-                                                        style={{ color: 'var(--ink-soft)' }}
+                                                {user.is_banned && user.ban_reason && (
+                                                    <p
+                                                        className="mt-1 max-w-[220px] truncate text-[11px] text-[color:var(--ink-mute)]"
+                                                        title={user.ban_reason}
                                                     >
-                                                        <Sparkles
-                                                            className="h-3 w-3"
-                                                            style={{ color: 'var(--gold)' }}
-                                                        />
-                                                        {user.gems_balance}
-                                                    </span>
-                                                    <span
-                                                        className="font-mono inline-flex items-center gap-1 text-xs"
-                                                        style={{ color: 'var(--ink-soft)' }}
-                                                    >
-                                                        <BadgeCheck
-                                                            className="h-3 w-3"
-                                                            style={{ color: 'var(--wine-deep)' }}
-                                                        />
-                                                        {user.badge_points}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td
-                                                className="font-mono px-4 py-3.5 text-[11px] uppercase tracking-wider"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                {user.last_activity_at || '—'}
-                                            </td>
-                                            <td
-                                                className="font-mono px-4 py-3.5 text-[11px] uppercase tracking-wider"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                {user.created_at}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-right">
-                                                <Link
+                                                        {user.ban_reason}
+                                                    </p>
+                                                )}
+                                            </AdminTd>
+                                            <AdminTd align="right">
+                                                <span className="font-mono inline-flex items-center gap-1 text-xs text-[color:var(--ink-soft)]">
+                                                    <Sparkles className="h-3 w-3 text-[color:var(--gold)]" />
+                                                    {user.gems_balance.toLocaleString('fr-FR')}
+                                                </span>
+                                            </AdminTd>
+                                            <AdminTd>
+                                                <AdminMeta>
+                                                    {user.last_activity_at ?? 'jamais'}
+                                                </AdminMeta>
+                                            </AdminTd>
+                                            <AdminTd>
+                                                <AdminMeta>{user.created_at}</AdminMeta>
+                                            </AdminTd>
+                                            <AdminTd align="right">
+                                                <AdminButton
+                                                    size="sm"
                                                     href={`/admin/users/${user.id}`}
-                                                    className="font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors"
-                                                    style={{ color: 'var(--wine-deep)' }}
                                                 >
-                                                    Ouvrir →
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                    Ouvrir
+                                                </AdminButton>
+                                            </AdminTd>
+                                        </AdminTr>
+                                    ))}
+                                </tbody>
+                            </AdminTable>
 
-                    {/* Pagination */}
-                    {users.last_page > 1 && (
-                        <div
-                            className="flex flex-wrap items-center justify-between gap-3 border-t px-6 py-4"
-                            style={{
-                                borderColor: 'var(--line)',
-                                background: 'var(--bg-soft)',
-                            }}
-                        >
-                            <p
-                                className="editorial-caption"
-                                style={{ color: 'var(--ink-mute)' }}
-                            >
-                                {users.from}–{users.to} sur {users.total.toLocaleString('fr-FR')}
-                            </p>
-                            <div className="flex flex-wrap gap-1">
-                                {users.links.map((link, index) => (
-                                    <button
-                                        key={index}
-                                        type="button"
-                                        disabled={!link.url}
-                                        onClick={() => link.url && router.visit(link.url)}
-                                        className="font-mono rounded-md px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors disabled:opacity-40"
-                                        style={{
-                                            background: link.active
-                                                ? 'var(--ink)'
-                                                : 'transparent',
-                                            color: link.active ? 'var(--bg)' : 'var(--ink-soft)',
-                                            border: link.active
-                                                ? 'none'
-                                                : '1px solid var(--line)',
-                                        }}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
+                            <AdminPagination
+                                from={users.from}
+                                to={users.to}
+                                total={users.total}
+                                lastPage={users.last_page}
+                                links={users.links}
+                            />
+                        </>
                     )}
                 </AdminCard>
             </div>
         </AdminLayout>
-    );
-}
-
-/* ---------- Sub-components ---------- */
-function Th({ children }: { children: React.ReactNode }): JSX.Element {
-    return (
-        <th
-            className="editorial-caption px-4 py-3 text-left"
-            style={{ color: 'var(--ink-mute)' }}
-        >
-            {children}
-        </th>
-    );
-}
-
-function SortableTh({
-    label,
-    active,
-    onClick,
-}: {
-    label: string;
-    field: string;
-    active: boolean;
-    onClick: () => void;
-}): JSX.Element {
-    return (
-        <th
-            onClick={onClick}
-            className="editorial-caption cursor-pointer px-4 py-3 text-left transition-colors hover:text-[color:var(--ink)]"
-            style={{ color: active ? 'var(--ink)' : 'var(--ink-mute)' }}
-        >
-            {label}
-        </th>
     );
 }

@@ -77,6 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('premium/checkout/success', [\App\Http\Controllers\PremiumController::class, 'checkoutSuccess'])->name('premium.checkout.success');
     Route::get('premium/checkout/cancel', [\App\Http\Controllers\PremiumController::class, 'checkoutCancel'])->name('premium.checkout.cancel');
     Route::post('premium/billing-portal', [\App\Http\Controllers\PremiumController::class, 'billingPortal'])->name('premium.billing-portal')->middleware('throttle:3,1');
+    Route::post('premium/cancel', [\App\Http\Controllers\PremiumController::class, 'cancel'])->name('premium.cancel')->middleware('throttle:3,1');
 
     // Conversation routes
     Route::get('conversations', [\App\Http\Controllers\ConversationController::class, 'index'])->name('conversations.index');

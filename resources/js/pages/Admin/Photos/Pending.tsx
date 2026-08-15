@@ -2,6 +2,9 @@ import AdminLayout, {
     AdminBadge,
     AdminButton,
     AdminCard,
+    AdminEmpty,
+    AdminMeta,
+    AdminPagination,
 } from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { Check, ImageOff, X } from 'lucide-react';
@@ -19,20 +22,19 @@ interface Photo {
     path: string;
     thumbnail_path: string | null;
     is_naughty: boolean;
+    /** La membre demande à en faire sa photo de profil : à traiter en priorité. */
+    awaiting_avatar: boolean;
     created_at: string;
     user: PhotoUser | null;
-}
-
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
 }
 
 interface Props {
     photos: {
         data: Photo[];
-        links: PaginationLink[];
+        from: number | null;
+        to: number | null;
+        last_page: number;
+        links: Array<{ url: string | null; label: string; active: boolean }>;
         total: number;
     };
 }
@@ -41,12 +43,13 @@ export default function Pending({ photos }: Props) {
     return (
         <AdminLayout
             title="Photos en attente"
-            subtitle="Valider ou refuser les photos avant publication sur les profils"
+            subtitle="Valider ou refuser les photos avant leur publication sur les profils"
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
                 { label: 'Modération', href: '/admin/moderation' },
                 { label: 'Photos' },
             ]}
+            hideSearch
             actions={
                 <AdminBadge tone={photos.total > 0 ? 'warning' : 'success'}>
                     {photos.total} en attente
@@ -56,60 +59,35 @@ export default function Pending({ photos }: Props) {
             <Head title="Photos en attente · Admin" />
 
             {photos.data.length === 0 ? (
-                <AdminCard>
-                    <div className="flex flex-col items-center gap-3 py-16 text-center">
-                        <div
-                            className="grid h-14 w-14 place-items-center rounded-full"
-                            style={{
-                                background: 'var(--blush)',
-                                color: 'var(--wine-deep)',
-                            }}
-                        >
-                            <ImageOff className="h-6 w-6" />
-                        </div>
-                        <h2 className="font-display text-2xl font-medium italic">
-                            File vide
-                        </h2>
-                        <p
-                            className="max-w-md text-sm"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
-                            Toutes les photos soumises ont été traitées.
-                        </p>
-                    </div>
+                <AdminCard padded={false}>
+                    <AdminEmpty
+                        icon={ImageOff}
+                        title="File vide"
+                        description="Toutes les photos soumises ont été traitées."
+                        action={
+                            <AdminButton size="sm" href="/admin/moderation">
+                                Retour à la modération
+                            </AdminButton>
+                        }
+                    />
                 </AdminCard>
             ) : (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {photos.data.map((photo) => (
-                        <PhotoCard key={photo.id} photo={photo} />
-                    ))}
-                </div>
-            )}
+                <div className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                        {photos.data.map((photo) => (
+                            <PhotoCard key={photo.id} photo={photo} />
+                        ))}
+                    </div>
 
-            {photos.links.length > 3 && (
-                <div className="mt-6 flex flex-wrap justify-center gap-1">
-                    {photos.links.map((link, i) => (
-                        <Link
-                            key={i}
-                            href={link.url ?? '#'}
-                            preserveScroll
-                            className="inline-grid h-8 min-w-[32px] place-items-center rounded-md border px-2 text-xs font-semibold"
-                            style={{
-                                borderColor: link.active
-                                    ? 'var(--wine-deep)'
-                                    : 'var(--line)',
-                                background: link.active
-                                    ? 'var(--wine-deep)'
-                                    : 'var(--paper)',
-                                color: link.active
-                                    ? 'oklch(96% 0.02 50)'
-                                    : 'var(--ink-soft)',
-                                pointerEvents: link.url ? undefined : 'none',
-                                opacity: link.url ? 1 : 0.4,
-                            }}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
+                    <AdminCard padded={false}>
+                        <AdminPagination
+                            from={photos.from}
+                            to={photos.to}
+                            total={photos.total}
+                            lastPage={photos.last_page}
+                            links={photos.links}
                         />
-                    ))}
+                    </AdminCard>
                 </div>
             )}
         </AdminLayout>
@@ -134,6 +112,7 @@ function PhotoCard({ photo }: { photo: Photo }) {
         if (!reason.trim()) {
             return;
         }
+
         setProcessing(true);
         router.post(
             `/admin/photos/${photo.id}/reject`,
@@ -144,21 +123,21 @@ function PhotoCard({ photo }: { photo: Photo }) {
 
     return (
         <AdminCard padded={false}>
-            <div
-                className="relative aspect-[4/5] overflow-hidden"
-                style={{ background: 'var(--bg-soft)' }}
-            >
+            <div className="relative aspect-[4/5] overflow-hidden bg-[color:var(--bg-soft)]">
                 <img
                     src={photo.thumbnail_path ?? photo.path}
                     alt={`Photo soumise par ${photo.user?.pseudo ?? 'un compte supprimé'}`}
                     className="h-full w-full object-cover"
                     loading="lazy"
                 />
-                {photo.is_naughty && (
-                    <div className="absolute left-3 top-3">
+                <div className="absolute inset-x-3 top-3 flex flex-wrap gap-1">
+                    {photo.awaiting_avatar && (
+                        <AdminBadge tone="gold">Demande d&apos;avatar</AdminBadge>
+                    )}
+                    {photo.is_naughty && (
                         <AdminBadge tone="danger">Contenu coquin</AdminBadge>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             <div className="flex flex-col gap-3 p-4">
@@ -166,41 +145,36 @@ function PhotoCard({ photo }: { photo: Photo }) {
                     {photo.user ? (
                         <Link
                             href={`/admin/users/${photo.user.id}`}
-                            className="block truncate text-sm font-semibold underline decoration-dotted underline-offset-2"
+                            className="block truncate text-sm font-semibold text-[color:var(--ink)] underline decoration-dotted underline-offset-2"
                         >
-                            {photo.user.pseudo}
+                            {photo.user.pseudo || photo.user.name}
                         </Link>
                     ) : (
-                        <span
-                            className="text-sm font-semibold"
-                            style={{ color: 'var(--ink-mute)' }}
-                        >
+                        <span className="text-sm font-semibold text-[color:var(--ink-mute)]">
                             Compte supprimé
                         </span>
                     )}
-                    <p
-                        className="font-mono mt-1 text-[10px] uppercase tracking-wider"
-                        style={{ color: 'var(--ink-mute)' }}
-                    >
-                        {new Date(photo.created_at).toLocaleString('fr-FR')}
-                    </p>
+                    <AdminMeta>
+                        {new Date(photo.created_at).toLocaleString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                        })}
+                    </AdminMeta>
                 </div>
 
                 {rejecting ? (
                     <div className="flex flex-col gap-2">
                         <textarea
                             value={reason}
-                            onChange={(e) => setReason(e.target.value)}
+                            onChange={(event) => setReason(event.target.value)}
                             rows={3}
                             maxLength={500}
                             autoFocus
-                            className="w-full rounded-lg border p-2 text-xs"
-                            style={{
-                                borderColor: 'var(--line)',
-                                background: 'var(--bg-soft)',
-                                color: 'var(--ink)',
-                            }}
                             placeholder="Motif du refus (communiqué à l'utilisatrice)"
+                            className="w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--bg-soft)] p-2 text-xs text-[color:var(--ink)] outline-none focus:border-[color:var(--desire)]"
                         />
                         <div className="flex gap-2">
                             <AdminButton
@@ -215,7 +189,10 @@ function PhotoCard({ photo }: { photo: Photo }) {
                                 size="sm"
                                 variant="ghost"
                                 disabled={processing}
-                                onClick={() => setRejecting(false)}
+                                onClick={() => {
+                                    setRejecting(false);
+                                    setReason('');
+                                }}
                             >
                                 Annuler
                             </AdminButton>
@@ -225,8 +202,9 @@ function PhotoCard({ photo }: { photo: Photo }) {
                     <div className="flex gap-2">
                         <AdminButton
                             size="sm"
-                            variant="wine"
+                            variant="success"
                             icon={Check}
+                            className="flex-1"
                             disabled={processing}
                             onClick={approve}
                         >
@@ -234,7 +212,9 @@ function PhotoCard({ photo }: { photo: Photo }) {
                         </AdminButton>
                         <AdminButton
                             size="sm"
+                            variant="danger"
                             icon={X}
+                            className="flex-1"
                             disabled={processing}
                             onClick={() => setRejecting(true)}
                         >

@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::create
- * @see app/Http/Controllers/Admin/SubscriptionController.php:87
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:111
  * @route '/admin/subscriptions/create'
  */
 export const create = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ create.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::create
- * @see app/Http/Controllers/Admin/SubscriptionController.php:87
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:111
  * @route '/admin/subscriptions/create'
  */
 create.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ create.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::create
- * @see app/Http/Controllers/Admin/SubscriptionController.php:87
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:111
  * @route '/admin/subscriptions/create'
  */
 create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::create
- * @see app/Http/Controllers/Admin/SubscriptionController.php:87
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:111
  * @route '/admin/subscriptions/create'
  */
 create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::create
- * @see app/Http/Controllers/Admin/SubscriptionController.php:87
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:111
  * @route '/admin/subscriptions/create'
  */
     const createForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::create
- * @see app/Http/Controllers/Admin/SubscriptionController.php:87
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:111
  * @route '/admin/subscriptions/create'
  */
         createForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::create
- * @see app/Http/Controllers/Admin/SubscriptionController.php:87
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:111
  * @route '/admin/subscriptions/create'
  */
         createForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     create.form = createForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::store
- * @see app/Http/Controllers/Admin/SubscriptionController.php:108
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:153
  * @route '/admin/subscriptions'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::store
- * @see app/Http/Controllers/Admin/SubscriptionController.php:108
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:153
  * @route '/admin/subscriptions'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -181,7 +181,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::store
- * @see app/Http/Controllers/Admin/SubscriptionController.php:108
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:153
  * @route '/admin/subscriptions'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -191,7 +191,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::store
- * @see app/Http/Controllers/Admin/SubscriptionController.php:108
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:153
  * @route '/admin/subscriptions'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -201,7 +201,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::store
- * @see app/Http/Controllers/Admin/SubscriptionController.php:108
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:153
  * @route '/admin/subscriptions'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -212,7 +212,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::show
- * @see app/Http/Controllers/Admin/SubscriptionController.php:155
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:200
  * @route '/admin/subscriptions/{subscription}'
  */
 export const show = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -227,7 +227,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::show
- * @see app/Http/Controllers/Admin/SubscriptionController.php:155
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:200
  * @route '/admin/subscriptions/{subscription}'
  */
 show.url = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -260,7 +260,7 @@ show.url = (args: { subscription: number | { id: number } } | [subscription: num
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::show
- * @see app/Http/Controllers/Admin/SubscriptionController.php:155
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:200
  * @route '/admin/subscriptions/{subscription}'
  */
 show.get = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -269,7 +269,7 @@ show.get = (args: { subscription: number | { id: number } } | [subscription: num
 })
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::show
- * @see app/Http/Controllers/Admin/SubscriptionController.php:155
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:200
  * @route '/admin/subscriptions/{subscription}'
  */
 show.head = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -279,7 +279,7 @@ show.head = (args: { subscription: number | { id: number } } | [subscription: nu
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::show
- * @see app/Http/Controllers/Admin/SubscriptionController.php:155
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:200
  * @route '/admin/subscriptions/{subscription}'
  */
     const showForm = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -289,7 +289,7 @@ show.head = (args: { subscription: number | { id: number } } | [subscription: nu
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::show
- * @see app/Http/Controllers/Admin/SubscriptionController.php:155
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:200
  * @route '/admin/subscriptions/{subscription}'
  */
         showForm.get = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -298,7 +298,7 @@ show.head = (args: { subscription: number | { id: number } } | [subscription: nu
         })
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::show
- * @see app/Http/Controllers/Admin/SubscriptionController.php:155
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:200
  * @route '/admin/subscriptions/{subscription}'
  */
         showForm.head = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -314,7 +314,7 @@ show.head = (args: { subscription: number | { id: number } } | [subscription: nu
     show.form = showForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::edit
- * @see app/Http/Controllers/Admin/SubscriptionController.php:187
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:232
  * @route '/admin/subscriptions/{subscription}/edit'
  */
 export const edit = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -329,7 +329,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::edit
- * @see app/Http/Controllers/Admin/SubscriptionController.php:187
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:232
  * @route '/admin/subscriptions/{subscription}/edit'
  */
 edit.url = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -362,7 +362,7 @@ edit.url = (args: { subscription: number | { id: number } } | [subscription: num
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::edit
- * @see app/Http/Controllers/Admin/SubscriptionController.php:187
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:232
  * @route '/admin/subscriptions/{subscription}/edit'
  */
 edit.get = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -371,7 +371,7 @@ edit.get = (args: { subscription: number | { id: number } } | [subscription: num
 })
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::edit
- * @see app/Http/Controllers/Admin/SubscriptionController.php:187
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:232
  * @route '/admin/subscriptions/{subscription}/edit'
  */
 edit.head = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -381,7 +381,7 @@ edit.head = (args: { subscription: number | { id: number } } | [subscription: nu
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::edit
- * @see app/Http/Controllers/Admin/SubscriptionController.php:187
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:232
  * @route '/admin/subscriptions/{subscription}/edit'
  */
     const editForm = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -391,7 +391,7 @@ edit.head = (args: { subscription: number | { id: number } } | [subscription: nu
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::edit
- * @see app/Http/Controllers/Admin/SubscriptionController.php:187
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:232
  * @route '/admin/subscriptions/{subscription}/edit'
  */
         editForm.get = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -400,7 +400,7 @@ edit.head = (args: { subscription: number | { id: number } } | [subscription: nu
         })
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::edit
- * @see app/Http/Controllers/Admin/SubscriptionController.php:187
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:232
  * @route '/admin/subscriptions/{subscription}/edit'
  */
         editForm.head = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -416,7 +416,7 @@ edit.head = (args: { subscription: number | { id: number } } | [subscription: nu
     edit.form = editForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::update
- * @see app/Http/Controllers/Admin/SubscriptionController.php:210
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:255
  * @route '/admin/subscriptions/{subscription}'
  */
 export const update = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -431,7 +431,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::update
- * @see app/Http/Controllers/Admin/SubscriptionController.php:210
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:255
  * @route '/admin/subscriptions/{subscription}'
  */
 update.url = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -464,7 +464,7 @@ update.url = (args: { subscription: number | { id: number } } | [subscription: n
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::update
- * @see app/Http/Controllers/Admin/SubscriptionController.php:210
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:255
  * @route '/admin/subscriptions/{subscription}'
  */
 update.put = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -474,7 +474,7 @@ update.put = (args: { subscription: number | { id: number } } | [subscription: n
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::update
- * @see app/Http/Controllers/Admin/SubscriptionController.php:210
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:255
  * @route '/admin/subscriptions/{subscription}'
  */
     const updateForm = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -489,7 +489,7 @@ update.put = (args: { subscription: number | { id: number } } | [subscription: n
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::update
- * @see app/Http/Controllers/Admin/SubscriptionController.php:210
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:255
  * @route '/admin/subscriptions/{subscription}'
  */
         updateForm.put = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -505,7 +505,7 @@ update.put = (args: { subscription: number | { id: number } } | [subscription: n
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::extend
- * @see app/Http/Controllers/Admin/SubscriptionController.php:241
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:286
  * @route '/admin/subscriptions/{subscription}/extend'
  */
 export const extend = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -520,7 +520,7 @@ extend.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::extend
- * @see app/Http/Controllers/Admin/SubscriptionController.php:241
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:286
  * @route '/admin/subscriptions/{subscription}/extend'
  */
 extend.url = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -553,7 +553,7 @@ extend.url = (args: { subscription: number | { id: number } } | [subscription: n
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::extend
- * @see app/Http/Controllers/Admin/SubscriptionController.php:241
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:286
  * @route '/admin/subscriptions/{subscription}/extend'
  */
 extend.post = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -563,7 +563,7 @@ extend.post = (args: { subscription: number | { id: number } } | [subscription: 
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::extend
- * @see app/Http/Controllers/Admin/SubscriptionController.php:241
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:286
  * @route '/admin/subscriptions/{subscription}/extend'
  */
     const extendForm = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -573,7 +573,7 @@ extend.post = (args: { subscription: number | { id: number } } | [subscription: 
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::extend
- * @see app/Http/Controllers/Admin/SubscriptionController.php:241
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:286
  * @route '/admin/subscriptions/{subscription}/extend'
  */
         extendForm.post = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -584,7 +584,7 @@ extend.post = (args: { subscription: number | { id: number } } | [subscription: 
     extend.form = extendForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::cancel
- * @see app/Http/Controllers/Admin/SubscriptionController.php:268
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:313
  * @route '/admin/subscriptions/{subscription}/cancel'
  */
 export const cancel = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -599,7 +599,7 @@ cancel.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::cancel
- * @see app/Http/Controllers/Admin/SubscriptionController.php:268
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:313
  * @route '/admin/subscriptions/{subscription}/cancel'
  */
 cancel.url = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -632,7 +632,7 @@ cancel.url = (args: { subscription: number | { id: number } } | [subscription: n
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::cancel
- * @see app/Http/Controllers/Admin/SubscriptionController.php:268
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:313
  * @route '/admin/subscriptions/{subscription}/cancel'
  */
 cancel.post = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -642,7 +642,7 @@ cancel.post = (args: { subscription: number | { id: number } } | [subscription: 
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::cancel
- * @see app/Http/Controllers/Admin/SubscriptionController.php:268
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:313
  * @route '/admin/subscriptions/{subscription}/cancel'
  */
     const cancelForm = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -652,7 +652,7 @@ cancel.post = (args: { subscription: number | { id: number } } | [subscription: 
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::cancel
- * @see app/Http/Controllers/Admin/SubscriptionController.php:268
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:313
  * @route '/admin/subscriptions/{subscription}/cancel'
  */
         cancelForm.post = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -663,7 +663,7 @@ cancel.post = (args: { subscription: number | { id: number } } | [subscription: 
     cancel.form = cancelForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::reactivate
- * @see app/Http/Controllers/Admin/SubscriptionController.php:294
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:339
  * @route '/admin/subscriptions/{subscription}/reactivate'
  */
 export const reactivate = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -678,7 +678,7 @@ reactivate.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::reactivate
- * @see app/Http/Controllers/Admin/SubscriptionController.php:294
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:339
  * @route '/admin/subscriptions/{subscription}/reactivate'
  */
 reactivate.url = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -711,7 +711,7 @@ reactivate.url = (args: { subscription: number | { id: number } } | [subscriptio
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::reactivate
- * @see app/Http/Controllers/Admin/SubscriptionController.php:294
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:339
  * @route '/admin/subscriptions/{subscription}/reactivate'
  */
 reactivate.post = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -721,7 +721,7 @@ reactivate.post = (args: { subscription: number | { id: number } } | [subscripti
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::reactivate
- * @see app/Http/Controllers/Admin/SubscriptionController.php:294
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:339
  * @route '/admin/subscriptions/{subscription}/reactivate'
  */
     const reactivateForm = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -731,7 +731,7 @@ reactivate.post = (args: { subscription: number | { id: number } } | [subscripti
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::reactivate
- * @see app/Http/Controllers/Admin/SubscriptionController.php:294
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:339
  * @route '/admin/subscriptions/{subscription}/reactivate'
  */
         reactivateForm.post = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -742,7 +742,7 @@ reactivate.post = (args: { subscription: number | { id: number } } | [subscripti
     reactivate.form = reactivateForm
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::destroy
- * @see app/Http/Controllers/Admin/SubscriptionController.php:313
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:358
  * @route '/admin/subscriptions/{subscription}'
  */
 export const destroy = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -757,7 +757,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::destroy
- * @see app/Http/Controllers/Admin/SubscriptionController.php:313
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:358
  * @route '/admin/subscriptions/{subscription}'
  */
 destroy.url = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -790,7 +790,7 @@ destroy.url = (args: { subscription: number | { id: number } } | [subscription: 
 
 /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::destroy
- * @see app/Http/Controllers/Admin/SubscriptionController.php:313
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:358
  * @route '/admin/subscriptions/{subscription}'
  */
 destroy.delete = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -800,7 +800,7 @@ destroy.delete = (args: { subscription: number | { id: number } } | [subscriptio
 
     /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::destroy
- * @see app/Http/Controllers/Admin/SubscriptionController.php:313
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:358
  * @route '/admin/subscriptions/{subscription}'
  */
     const destroyForm = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -815,7 +815,7 @@ destroy.delete = (args: { subscription: number | { id: number } } | [subscriptio
 
             /**
 * @see \App\Http\Controllers\Admin\SubscriptionController::destroy
- * @see app/Http/Controllers/Admin/SubscriptionController.php:313
+ * @see app/Http/Controllers/Admin/SubscriptionController.php:358
  * @route '/admin/subscriptions/{subscription}'
  */
         destroyForm.delete = (args: { subscription: number | { id: number } } | [subscription: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
