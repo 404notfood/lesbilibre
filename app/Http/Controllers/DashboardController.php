@@ -76,10 +76,9 @@ class DashboardController extends Controller
         if (! empty($filters['quick_filter'])) {
             switch ($filters['quick_filter']) {
                 case 'nearby':
-                    // Override search radius to 10km for nearby filter
+                    // Restreint le rayon sans imposer le tri : celui-ci reste
+                    // le choix de l'utilisatrice via les onglets.
                     $filters['search_radius'] = 10;
-                    // Force distance sorting
-                    $filters['sort_by'] = 'distance';
                     break;
                 case 'online':
                     $query->where('last_login_at', '>=', now()->subMinutes(15));

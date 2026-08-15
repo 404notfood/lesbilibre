@@ -60,7 +60,24 @@ class DashboardTest extends TestCase
 
         $this->assertEquals('nearby', $filters['quick_filter']);
         $this->assertEquals(10, $filters['search_radius']);
-        $this->assertEquals('distance', $filters['sort_by']);
+    }
+
+    public function test_quick_filters_do_not_override_the_chosen_sort(): void
+    {
+        $user = User::factory()->create();
+        Profile::create([
+            'user_id' => $user->id,
+            'date_of_birth' => now()->subYears(25),
+            'is_discoverable' => true,
+        ]);
+
+        $filters = $this->actingAs($user)
+            ->get(route('dashboard', ['quick_filter' => 'nearby', 'sort_by' => 'recent']))
+            ->assertOk()
+            ->viewData('page')['props']['filters'];
+
+        $this->assertEquals('recent', $filters['sort_by'], 'Le tri choisi doit survivre au filtre.');
+        $this->assertEquals(10, $filters['search_radius']);
     }
 
     public function test_looking_for_quick_filter_narrows_the_results(): void

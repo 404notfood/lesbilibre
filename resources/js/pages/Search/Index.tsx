@@ -511,50 +511,54 @@ export default function Index({
 
                 {/* Résultats */}
                 {results.data.length > 0 ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                         {results.data.map((user) => (
                             <Card key={user.id} className="overflow-hidden transition-all hover:shadow-lg group">
                                 <Link href={`/profile/${user.id}`}>
-                                    <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-950 dark:to-purple-950">
+                                    <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-950 dark:to-purple-950">
                                         {user.photos?.[0] ? (
                                             <img
                                                 src={user.photos[0].url}
                                                 alt={user.name}
-                                                className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-300"
+                                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
                                             />
                                         ) : (
-                                            <div className="flex h-full items-center justify-center text-6xl font-bold text-pink-300">
+                                            <div className="flex h-full items-center justify-center text-4xl font-bold text-pink-300">
                                                 {user.name.charAt(0)}
                                             </div>
                                         )}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
 
                                         {/* Badges */}
-                                        <div className="absolute top-3 right-3 flex flex-col gap-2">
+                                        <div className="absolute top-1.5 right-1.5 flex flex-col items-end gap-1">
                                             {user.is_verified && (
-                                                <Badge className="bg-blue-500 text-white border-0">
-                                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                                <Badge className="bg-blue-500 text-white border-0 px-1.5 py-0 text-[10px]">
+                                                    <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
                                                     Vérifiée
                                                 </Badge>
                                             )}
                                             {user.distance != null && (
-                                                <Badge variant="secondary" className="bg-white/90">
-                                                    <MapPin className="h-3 w-3 mr-1" />
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="bg-white/90 px-1.5 py-0 text-[10px]"
+                                                >
+                                                    <MapPin className="h-2.5 w-2.5 mr-0.5" />
                                                     {user.distance < 1
-                                                        ? 'Moins d\'1 km'
+                                                        ? '< 1 km'
                                                         : `${Math.round(user.distance)} km`}
                                                 </Badge>
                                             )}
                                         </div>
 
                                         {/* Info au bas */}
-                                        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                            <h3 className="text-2xl font-bold">
-                                                {user.name}, {user.profile?.age || 'N/A'}
+                                        <div className="absolute bottom-0 left-0 right-0 p-2.5 text-white">
+                                            <h3 className="truncate text-sm font-bold">
+                                                {user.name}
+                                                {user.profile?.age ? `, ${user.profile.age}` : ''}
                                             </h3>
                                             {user.profile?.city && (
-                                                <p className="flex items-center gap-1 text-sm text-white/90">
-                                                    <MapPin className="h-4 w-4" />
+                                                <p className="flex items-center gap-1 truncate text-xs text-white/90">
+                                                    <MapPin className="h-3 w-3 shrink-0" />
                                                     {user.profile.city}
                                                 </p>
                                             )}
@@ -562,12 +566,13 @@ export default function Index({
                                     </div>
                                 </Link>
 
-                                <CardFooter className="p-4">
+                                <CardFooter className="p-2">
                                     <Button
-                                        className="w-full btn-gradient"
+                                        size="sm"
+                                        className="w-full btn-gradient text-xs"
                                         onClick={() => handleLike(user.id)}
                                     >
-                                        <Heart className="h-5 w-5 mr-2" />
+                                        <Heart className="h-3.5 w-3.5 mr-1.5" />
                                         J'aime
                                     </Button>
                                 </CardFooter>

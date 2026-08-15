@@ -58,16 +58,7 @@ interface DashboardProps {
 }
 
 type VibeKey = 'coup' | 'live' | 'new';
-type MoodKey =
-    | 'nearby'
-    | 'online'
-    | 'photos'
-    | 'verified'
-    | 'relationship'
-    | 'dating'
-    | 'friendship'
-    | 'casual'
-    | 'open';
+type MoodKey = 'nearby' | 'online' | 'photos' | 'verified';
 
 const VIBES: { id: VibeKey; label: string; icon: typeof Sparkles; sortBy: string; hot?: boolean }[] = [
     { id: 'coup', label: 'Les plus compatibles', icon: Sparkles, sortBy: 'compatibility', hot: true },
@@ -76,15 +67,10 @@ const VIBES: { id: VibeKey; label: string; icon: typeof Sparkles; sortBy: string
 ];
 
 const MOODS: { id: MoodKey; label: string; quickFilter: string }[] = [
-    { id: 'nearby', label: 'Près de moi', quickFilter: 'nearby' },
+    { id: 'nearby', label: 'À moins de 10 km', quickFilter: 'nearby' },
     { id: 'online', label: 'En ligne', quickFilter: 'online' },
     { id: 'photos', label: 'Avec photos', quickFilter: 'photos' },
     { id: 'verified', label: 'Vérifiée', quickFilter: 'verified' },
-    { id: 'relationship', label: 'Relation sérieuse', quickFilter: 'relationship' },
-    { id: 'dating', label: 'Rencontres amoureuses', quickFilter: 'dating' },
-    { id: 'friendship', label: 'Amitié', quickFilter: 'friendship' },
-    { id: 'casual', label: 'Rencontres légères', quickFilter: 'casual' },
-    { id: 'open', label: 'Ouverte à tout', quickFilter: 'open' },
 ];
 
 export default function Dashboard({
@@ -98,6 +84,7 @@ export default function Dashboard({
     const [vibe, setVibe] = useState<VibeKey>(
         () => VIBES.find((v) => v.sortBy === filters.sort_by)?.id ?? 'coup',
     );
+    const [currentSortBy, setCurrentSortBy] = useState(filters.sort_by || 'compatibility');
     const [mood, setMood] = useState<MoodKey | null>(null);
     const [passedProfileIds, setPassedProfileIds] = useState<number[]>([]);
     const [rewardState, setRewardState] = useState<RewardState | null>(null);
@@ -127,6 +114,7 @@ export default function Dashboard({
         }
 
         setVibe(v);
+        setCurrentSortBy(target.sortBy);
         router.get(
             '/dashboard',
             { sort_by: target.sortBy, quick_filter: activeFilter, search: searchQuery },
@@ -136,21 +124,39 @@ export default function Dashboard({
 
     const handleMood = (m: MoodKey): void => {
         const next = mood === m ? null : m;
-        setMood(next);
         const target = MOODS.find((x) => x.id === m);
-        if (target?.quickFilter) {
-            const newFilter = next ? target.quickFilter : '';
-            setActiveFilter(newFilter);
-            router.get(
-                '/dashboard',
-                { quick_filter: newFilter },
-                { preserveState: true, preserveScroll: true },
-            );
+
+        if (!target) {
+            return;
         }
+
+        const newFilter = next ? target.quickFilter : '';
+        setMood(next);
+        setActiveFilter(newFilter);
+
+        // Le tri doit suivre le filtre : sans lui, chaque clic repartait sur
+        // le tri par défaut du serveur et l'onglet actif devenait faux.
+        router.get(
+            '/dashboard',
+            { quick_filter: newFilter, sort_by: currentSortBy, search: searchQuery },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     const handleAdvancedSearch = (): void => {
         router.visit('/search');
+    };
+
+    const handleSurprise = (): void => {
+        setVibe('coup');
+        setCurrentSortBy('random');
+        setMood(null);
+        setActiveFilter('');
+        router.get(
+            '/dashboard',
+            { sort_by: 'random' },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     const handleLike = (profileId: number): void => {
@@ -221,6 +227,7 @@ export default function Dashboard({
                     value={searchQuery}
                     onChange={setSearchQuery}
                     onAdvanced={handleAdvancedSearch}
+                    onSurprise={handleSurprise}
                 />
 
                 {/* ===========================================
@@ -298,13 +305,12 @@ export default function Dashboard({
                             compatibilité émotionnelle.
                         </div>
                     </div>
-                    <button
-                        type="button"
-                        className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground/65"
-                    >
-                        <span>Trier par</span>
-                        <span className="font-semibold text-foreground">Compatibilité</span>
-                    </button>
+                    <span className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground/65">
+                        <span>Trié par</span>
+                        <span className="font-semibold text-foreground">
+                            {VIBES.find((v) => v.id === vibe)?.label ?? 'Compatibilité'}
+                        </span>
+                    </span>
                 </div>
 
                 {/* ===========================================
@@ -613,10 +619,12 @@ function SearchRow({
     value,
     onChange,
     onAdvanced,
+    onSurprise,
 }: {
     value: string;
     onChange: (v: string) => void;
     onAdvanced: () => void;
+    onSurprise: () => void;
 }): JSX.Element {
     return (
         <div className="mb-4 flex items-center gap-2.5 rounded-2xl border border-border bg-card p-2">
@@ -642,7 +650,7 @@ function SearchRow({
                 type="button"
                 className="flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold text-white transition-transform hover:-translate-y-px"
                 style={{ background: 'var(--desire)' }}
-                onClick={() => router.reload({ only: ['profiles'] })}
+                onClick={onSurprise}
             >
                 <Flame className="h-3 w-3" />
                 Surprends-moi
