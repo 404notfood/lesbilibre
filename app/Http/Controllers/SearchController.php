@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\NaughtyInterest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -49,8 +48,7 @@ class SearchController extends Controller
             'has_photo' => ['nullable', 'boolean'],
             'is_verified' => ['nullable', 'boolean'],
             'naughty_mode' => ['nullable', 'boolean'],
-            'naughty_interests' => ['nullable', 'array'],
-            'naughty_interests.*' => ['integer', 'exists:naughty_interests,id'],
+            'has_private_gallery' => ['nullable', 'boolean'],
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string'],
             'sort_by' => ['nullable', 'in:distance,newest,activity,popular'],
@@ -63,16 +61,11 @@ class SearchController extends Controller
 
         $results = $query->paginate(20)->withQueryString();
 
-        $acceptsNaughty = $this->acceptsNaughtyContent($request->user());
-
         return Inertia::render('Search/Index', [
             'filters' => $filters,
             'results' => $results,
             'profileOptions' => config('profile-options'),
-            'canFilterNaughty' => $acceptsNaughty,
-            'naughtyInterests' => $acceptsNaughty
-                ? NaughtyInterest::query()->orderBy('name')->get(['id', 'name'])
-                : [],
+            'canFilterNaughty' => $this->acceptsNaughtyContent($request->user()),
         ]);
     }
 
@@ -199,14 +192,11 @@ class SearchController extends Controller
                 $query->whereHas('profile', fn ($q) => $q->where('is_naughty_mode', true));
             }
 
-            if (! empty($filters['naughty_interests'])) {
-                $query->whereHas('profile', function ($q) use ($filters) {
-                    $q->whereHas(
-                        'naughtyInterests',
-                        fn ($interests) => $interests->whereIn('naughty_interests.id', $filters['naughty_interests']),
-                        '=',
-                        count($filters['naughty_interests'])
-                    );
+            if (! empty($filters['has_private_gallery'])) {
+                $query->whereHas('photos', function ($q) {
+                    $q->where('is_approved', true)
+                        ->where('moderation_status', '!=', 'rejected')
+                        ->where('is_naughty', true);
                 });
             }
         }

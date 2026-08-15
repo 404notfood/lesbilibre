@@ -69,13 +69,8 @@ interface Filters {
     has_photo?: boolean;
     is_verified?: boolean;
     naughty_mode?: boolean;
-    naughty_interests?: number[];
+    has_private_gallery?: boolean;
     sort_by?: string;
-}
-
-interface NaughtyInterest {
-    id: number;
-    name: string;
 }
 
 interface ProfileOptions {
@@ -98,13 +93,11 @@ export default function Index({
     filters,
     profileOptions,
     canFilterNaughty = false,
-    naughtyInterests = [],
 }: {
     results: { data: UserData[]; total: number };
     filters: Filters;
     profileOptions: ProfileOptions;
     canFilterNaughty?: boolean;
-    naughtyInterests?: NaughtyInterest[];
 }) {
     const [showFilters, setShowFilters] = useState(true);
     const [localFilters, setLocalFilters] = useState<Filters>(filters);
@@ -450,72 +443,51 @@ export default function Index({
                                         </div>
 
                                         {canFilterNaughty && (
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id="naughty_mode"
-                                                    checked={localFilters.naughty_mode || false}
-                                                    onCheckedChange={(checked) =>
-                                                        handleFilterChange('naughty_mode', checked)
-                                                    }
-                                                />
-                                                <Label
-                                                    htmlFor="naughty_mode"
-                                                    className="cursor-pointer"
-                                                >
-                                                    Profils en mode coquin
-                                                </Label>
-                                            </div>
+                                            <>
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="naughty_mode"
+                                                        checked={localFilters.naughty_mode || false}
+                                                        onCheckedChange={(checked) =>
+                                                            handleFilterChange(
+                                                                'naughty_mode',
+                                                                checked
+                                                            )
+                                                        }
+                                                    />
+                                                    <Label
+                                                        htmlFor="naughty_mode"
+                                                        className="cursor-pointer"
+                                                    >
+                                                        Profils en mode coquin
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="has_private_gallery"
+                                                        checked={
+                                                            localFilters.has_private_gallery || false
+                                                        }
+                                                        onCheckedChange={(checked) =>
+                                                            handleFilterChange(
+                                                                'has_private_gallery',
+                                                                checked
+                                                            )
+                                                        }
+                                                    />
+                                                    <Label
+                                                        htmlFor="has_private_gallery"
+                                                        className="cursor-pointer"
+                                                    >
+                                                        Avec galerie privée
+                                                    </Label>
+                                                </div>
+                                            </>
                                         )}
                                     </div>
                                 </div>
 
-                                {canFilterNaughty && naughtyInterests.length > 0 && (
-                                    <div>
-                                        <h3 className="text-sm font-semibold mb-3">
-                                            Envies coquines
-                                        </h3>
-                                        <div className="flex flex-wrap gap-3">
-                                            {naughtyInterests.map((interest) => {
-                                                const selected =
-                                                    localFilters.naughty_interests?.includes(
-                                                        interest.id
-                                                    ) || false;
-
-                                                return (
-                                                    <div
-                                                        key={interest.id}
-                                                        className="flex items-center space-x-2"
-                                                    >
-                                                        <Checkbox
-                                                            id={`naughty_interest_${interest.id}`}
-                                                            checked={selected}
-                                                            onCheckedChange={(checked) => {
-                                                                const current =
-                                                                    localFilters.naughty_interests ??
-                                                                    [];
-                                                                handleFilterChange(
-                                                                    'naughty_interests',
-                                                                    checked
-                                                                        ? [...current, interest.id]
-                                                                        : current.filter(
-                                                                              (id) =>
-                                                                                  id !== interest.id
-                                                                          )
-                                                                );
-                                                            }}
-                                                        />
-                                                        <Label
-                                                            htmlFor={`naughty_interest_${interest.id}`}
-                                                            className="cursor-pointer"
-                                                        >
-                                                            {interest.name}
-                                                        </Label>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
 
                                 <div className="flex gap-2 pt-4">
                                     <Button type="submit" className="flex-1 btn-gradient">
