@@ -24,12 +24,28 @@ class UploadPhotoRequest extends FormRequest
         return [
             'photo' => [
                 'required',
-                'image',
-                'mimes:jpeg,png,jpg',
-                'max:10240', // 10MB max
+                'file',
+                'mimes:jpeg,png,jpg,mp4,mov,webm',
+                'max:102400', // 100 Mo : une vidéo courte pèse bien plus qu'une photo
             ],
             'is_naughty' => ['boolean'],
+            'is_private' => ['boolean'],
         ];
+    }
+
+    /**
+     * Une vidéo coquine est toujours privée : aucun floutage vidéo n'est
+     * produit, la restriction d'accès est donc le seul verrou possible.
+     */
+    protected function prepareForValidation(): void
+    {
+        $file = $this->file('photo');
+        $isVideo = $file !== null
+            && in_array(strtolower($file->getClientOriginalExtension()), ['mp4', 'mov', 'webm'], true);
+
+        if ($isVideo && $this->boolean('is_naughty')) {
+            $this->merge(['is_private' => true]);
+        }
     }
 
     /**
@@ -40,10 +56,10 @@ class UploadPhotoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'photo.required' => 'Veuillez sélectionner une photo.',
-            'photo.image' => 'Le fichier doit être une image.',
-            'photo.mimes' => 'L\'image doit être au format JPEG, PNG ou JPG.',
-            'photo.max' => 'L\'image ne peut pas dépasser 10 Mo.',
+            'photo.required' => 'Veuillez sélectionner une photo ou une vidéo.',
+            'photo.file' => 'Le fichier envoyé est invalide.',
+            'photo.mimes' => 'Formats acceptés : JPEG, PNG, JPG, MP4, MOV ou WEBM.',
+            'photo.max' => 'Le fichier ne peut pas dépasser 100 Mo.',
         ];
     }
 }

@@ -12,12 +12,15 @@ class GalleryAccessRequest extends Model
         'owner_user_id',
         'status',
         'gems_cost',
+        'revoked_at',
+        'revoked_by',
     ];
 
     protected function casts(): array
     {
         return [
             'gems_cost' => 'integer',
+            'revoked_at' => 'datetime',
         ];
     }
 

@@ -17,6 +17,7 @@ import {
     GraduationCap,
     Heart,
     Languages,
+    Lock,
     MapPin,
     MessageCircle,
     Shield,
@@ -59,6 +60,13 @@ interface UserData {
     profile?: Profile;
 }
 
+interface GalleryState {
+    photo_count: number;
+    has_access: boolean;
+    request_status: 'pending' | 'accepted' | 'rejected' | null;
+    viewer_accepts_naughty: boolean;
+}
+
 interface ProfileOptions {
     sexual_orientation: Record<string, string>;
     relationship_status: Record<string, string>;
@@ -79,6 +87,7 @@ export default function View({
     user,
     photos = [],
     viewerAcceptsNaughty = false,
+    gallery = null,
     hasLiked,
     hasMatched,
     hasBlocked,
@@ -88,6 +97,7 @@ export default function View({
     user: UserData;
     photos?: Photo[];
     viewerAcceptsNaughty?: boolean;
+    gallery?: GalleryState | null;
     hasLiked: boolean;
     hasMatched: boolean;
     hasBlocked: boolean;
@@ -99,6 +109,19 @@ export default function View({
     const [processingLike, setProcessingLike] = useState(false);
     const [processingMessage, setProcessingMessage] = useState(false);
     const [processingBlock, setProcessingBlock] = useState(false);
+    const [requestingAccess, setRequestingAccess] = useState(false);
+
+    const handleRequestGalleryAccess = () => {
+        setRequestingAccess(true);
+        router.post(
+            `/gallery-access/request/${user.id}`,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setRequestingAccess(false),
+            }
+        );
+    };
 
     const primaryPhoto = photos.find((p) => p.is_primary) || photos[0];
     const otherPhotos = photos.filter((p) => p.id !== primaryPhoto?.id);
@@ -368,19 +391,86 @@ export default function View({
                                                 className="reveal-bg h-full w-full select-none object-cover"
                                             />
                                             {photo.is_blurred && (
-                                                <span
-                                                    className="absolute inset-x-0 bottom-0 px-2 py-1 text-center text-[10px] font-semibold text-white"
+                                                <div
+                                                    className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center"
                                                     style={{
                                                         background:
-                                                            'oklch(0% 0 0 / 0.55)',
+                                                            'oklch(28% 0.12 15 / 0.82)',
                                                     }}
                                                 >
-                                                    Contenu coquin
-                                                </span>
+                                                    <Lock className="h-5 w-5 text-white" />
+                                                    <span className="px-2 text-[11px] font-semibold uppercase tracking-wide text-white">
+                                                        Contenu coquin
+                                                    </span>
+                                                    <span className="px-2 text-[10px] text-white/80">
+                                                        Galerie privée
+                                                    </span>
+                                                </div>
                                             )}
                                         </div>
                                     ))}
                                 </div>
+
+                                {gallery && gallery.photo_count > 0 && !gallery.has_access && (
+                                    <div
+                                        className="mt-4 rounded-xl border p-4 text-center"
+                                        style={{ borderColor: 'var(--line)' }}
+                                    >
+                                        <Lock
+                                            className="mx-auto h-5 w-5"
+                                            style={{ color: 'var(--ink-mute)' }}
+                                        />
+                                        <p className="mt-2 text-sm font-semibold">
+                                            {gallery.photo_count} photo
+                                            {gallery.photo_count > 1 ? 's' : ''} en galerie
+                                            privée
+                                        </p>
+
+                                        {!gallery.viewer_accepts_naughty ? (
+                                            <p
+                                                className="mt-1 text-xs"
+                                                style={{ color: 'var(--ink-mute)' }}
+                                            >
+                                                Activez le mode coquin dans votre profil pour
+                                                pouvoir y accéder.
+                                            </p>
+                                        ) : gallery.request_status === 'pending' ? (
+                                            <p
+                                                className="mt-1 text-xs"
+                                                style={{ color: 'var(--ink-mute)' }}
+                                            >
+                                                Demande envoyée — en attente de réponse.
+                                            </p>
+                                        ) : gallery.request_status === 'rejected' ? (
+                                            <p
+                                                className="mt-1 text-xs"
+                                                style={{ color: 'var(--ink-mute)' }}
+                                            >
+                                                Votre demande a été refusée.
+                                            </p>
+                                        ) : (
+                                            <>
+                                                <p
+                                                    className="mt-1 text-xs"
+                                                    style={{ color: 'var(--ink-mute)' }}
+                                                >
+                                                    Demandez l&apos;accès pour voir ces photos.
+                                                </p>
+                                                <Button
+                                                    size="sm"
+                                                    className="mt-3"
+                                                    disabled={requestingAccess}
+                                                    onClick={handleRequestGalleryAccess}
+                                                >
+                                                    <Lock className="mr-2 h-4 w-4" />
+                                                    {requestingAccess
+                                                        ? 'Envoi...'
+                                                        : "Demander l'accès"}
+                                                </Button>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
                             </Section>
                         )}
 

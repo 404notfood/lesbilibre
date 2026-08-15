@@ -34,7 +34,11 @@ class PhotoStreamController extends Controller
         abort_if(! $isOwner && $photo->moderation_status === 'rejected', 404);
 
         $viewerAcceptsNaughty = (bool) $viewer->profile?->is_naughty_mode;
-        $blur = $photo->is_naughty && ! $isOwner && ! $viewerAcceptsNaughty;
+        $blur = $photo->isObscuredFor(
+            isOwner: $isOwner,
+            viewerAcceptsNaughty: $viewerAcceptsNaughty,
+            hasGalleryAccess: $owner->grantsGalleryAccessTo($viewer),
+        );
         $thumb = $request->boolean('thumb') && $photo->thumbnail_path;
 
         // Re-encoding on every request would be wasteful: the result only

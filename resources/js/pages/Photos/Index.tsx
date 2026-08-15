@@ -5,6 +5,7 @@ import {
     EyeOff,
     ImagePlus,
     Info,
+    Lock,
     Star,
     Trash2,
     UploadCloud,
@@ -28,7 +29,8 @@ const MAX_PHOTOS = 10;
 export default function Index({ photos }: { photos: Photo[] }) {
     const [uploading, setUploading] = useState(false);
     const [dragging, setDragging] = useState(false);
-    const [markAsSensitive, setMarkAsSensitive] = useState(false);
+    const [markAsNaughty, setMarkAsNaughty] = useState(false);
+    const [markAsPrivate, setMarkAsPrivate] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -38,19 +40,30 @@ export default function Index({ photos }: { photos: Photo[] }) {
     const isFull = remaining <= 0;
 
     const upload = (file: File) => {
-        if (!file.type.startsWith('image/')) {
-            setError('Le fichier doit être une image (JPEG ou PNG).');
+        const isVideo = file.type.startsWith('video/');
+        const isImage = file.type.startsWith('image/');
+
+        if (!isImage && !isVideo) {
+            setError('Le fichier doit être une image (JPEG, PNG) ou une vidéo (MP4, MOV, WEBM).');
             return;
         }
-        if (file.size > 10 * 1024 * 1024) {
-            setError('L’image ne peut pas dépasser 10 Mo.');
+
+        const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            setError(
+                isVideo
+                    ? 'La vidéo ne peut pas dépasser 100 Mo.'
+                    : 'L’image ne peut pas dépasser 10 Mo.'
+            );
             return;
         }
 
         setError(null);
         const formData = new FormData();
         formData.append('photo', file);
-        formData.append('is_naughty', markAsSensitive ? '1' : '0');
+        formData.append('is_naughty', markAsNaughty ? '1' : '0');
+        // Une vidéo coquine est toujours privée : pas de floutage vidéo possible.
+        formData.append('is_private', markAsPrivate || (isVideo && markAsNaughty) ? '1' : '0');
 
         setUploading(true);
         router.post('/photos', formData, {
@@ -58,7 +71,8 @@ export default function Index({ photos }: { photos: Photo[] }) {
             preserveScroll: true,
             onFinish: () => {
                 setUploading(false);
-                setMarkAsSensitive(false);
+                setMarkAsNaughty(false);
+                setMarkAsPrivate(false);
                 if (inputRef.current) {
                     inputRef.current.value = '';
                 }
@@ -193,21 +207,41 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                 >
                                     <input
                                         type="checkbox"
-                                        checked={markAsSensitive}
-                                        onChange={(e) =>
-                                            setMarkAsSensitive(e.target.checked)
-                                        }
+                                        checked={markAsNaughty}
+                                        onChange={(e) => setMarkAsNaughty(e.target.checked)}
                                         disabled={uploading}
                                     />
                                     <EyeOff className="h-3.5 w-3.5" />
-                                    Photo coquine — floutée jusqu’à accès accordé
+                                    Contenu coquin — flouté sans mode coquin
                                 </label>
+
+                                <label
+                                    className="mt-1 inline-flex cursor-pointer items-center gap-2 text-xs"
+                                    style={{ color: 'var(--ink-soft)' }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={markAsPrivate}
+                                        onChange={(e) => setMarkAsPrivate(e.target.checked)}
+                                        disabled={uploading}
+                                    />
+                                    <Lock className="h-3.5 w-3.5" />
+                                    Galerie privée — accès sur demande
+                                </label>
+
+                                <p
+                                    className="mt-1 text-[11px]"
+                                    style={{ color: 'var(--ink-mute)' }}
+                                >
+                                    Les vidéos coquines sont automatiquement mises en galerie
+                                    privée.
+                                </p>
 
                                 <input
                                     ref={inputRef}
                                     type="file"
                                     className="hidden"
-                                    accept="image/jpeg,image/png"
+                                    accept="image/jpeg,image/png,video/mp4,video/quicktime,video/webm"
                                     onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) upload(file);

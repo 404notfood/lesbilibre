@@ -96,7 +96,7 @@ class ProfileController extends Controller
         // pas de celle qui a publié la photo.
         $viewerAcceptsNaughty = (bool) $request->user()->profile?->is_naughty_mode;
 
-        // Les photos sensibles restent dans la liste : la route média les sert
+        // Les photos coquines restent dans la liste : la route média les sert
         // floutées si la visiteuse n'a pas consenti, plutôt que de les masquer.
         $user = \App\Models\User::with(['profile', 'photos' => function ($query) {
             $query->where('is_approved', true)
@@ -105,6 +105,8 @@ class ProfileController extends Controller
         }])->findOrFail($userId);
 
         abort_unless($request->user()->canInteractWith($user), 404);
+
+        $hasGalleryAccess = $user->grantsGalleryAccessTo($request->user());
 
         ProfileView::firstOrCreate([
             'viewer_id' => $request->user()->id,
@@ -156,17 +158,49 @@ class ProfileController extends Controller
             'photos' => $user->photos->map(fn (\App\Models\Photo $photo) => [
                 'id' => $photo->id,
                 'url' => $photo->viewUrl(),
+                'media_type' => $photo->media_type,
+                'duration' => $photo->duration,
                 'is_primary' => $photo->is_primary,
                 'is_naughty' => $photo->is_naughty,
-                'is_blurred' => $photo->is_naughty && ! $viewerAcceptsNaughty,
+                'is_private' => $photo->is_private,
+                'is_blurred' => $photo->isObscuredFor(
+                    isOwner: false,
+                    viewerAcceptsNaughty: $viewerAcceptsNaughty,
+                    hasGalleryAccess: $hasGalleryAccess,
+                ),
             ]),
             'viewerAcceptsNaughty' => $viewerAcceptsNaughty,
+            'gallery' => $this->buildGalleryState($request->user(), $user),
             'hasLiked' => $hasLiked,
             'hasMatched' => $hasMatched,
             'hasBlocked' => $hasBlocked,
             'matchScore' => $matchScore,
             'profileOptions' => config('profile-options'),
         ]);
+    }
+
+    /**
+     * État de la galerie privée d'un profil vis-à-vis de sa visiteuse :
+     * combien de photos y sont, si l'accès est accordé, et où en est la demande.
+     *
+     * @return array{photo_count: int, has_access: bool, request_status: string|null, viewer_accepts_naughty: bool}
+     */
+    protected function buildGalleryState(\App\Models\User $viewer, \App\Models\User $owner): array
+    {
+        $privateCount = $owner->photos->where('is_private', true)->count();
+
+        $pendingRequest = $owner->galleryAccessRequestsReceived()
+            ->where('requester_user_id', $viewer->id)
+            ->whereNull('revoked_at')
+            ->latest()
+            ->first();
+
+        return [
+            'photo_count' => $privateCount,
+            'has_access' => $owner->grantsGalleryAccessTo($viewer),
+            'request_status' => $pendingRequest?->status,
+            'viewer_accepts_naughty' => (bool) $viewer->profile?->is_naughty_mode,
+        ];
     }
 
     /**

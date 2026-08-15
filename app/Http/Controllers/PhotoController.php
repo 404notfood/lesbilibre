@@ -7,6 +7,7 @@ use App\Jobs\ModeratePhoto;
 use App\Models\Photo;
 use App\Services\ModerationAuditService;
 use App\Services\PhotoProcessingService;
+use App\Services\VideoProcessingService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,29 +57,55 @@ class PhotoController extends Controller
             return redirect()->back()->with('error', 'Vous avez atteint la limite de 10 photos.');
         }
 
-        $processed = app(PhotoProcessingService::class)->storePublicPhoto($request->file('photo'));
+        $file = $request->file('photo');
+        $isVideo = in_array(strtolower($file->getClientOriginalExtension()), ['mp4', 'mov', 'webm'], true);
+        $isNaughty = $request->boolean('is_naughty');
 
-        if (Photo::where('user_id', $user->id)->where('content_hash', $processed['content_hash'])->exists()) {
-            return redirect()->back()->with('error', 'Cette image a déjà été ajoutée à votre profil.');
+        // Aucun floutage n'est produit pour une vidéo : une vidéo coquine ne
+        // peut être protégée que par la galerie privée.
+        $isPrivate = $request->boolean('is_private') || ($isVideo && $isNaughty);
+
+        if ($isVideo) {
+            $videos = app(VideoProcessingService::class);
+
+            if (! $videos->isAvailable()) {
+                return redirect()->back()->with('error', 'L’envoi de vidéos est momentanément indisponible.');
+            }
+
+            $stored = $videos->storeGalleryVideo($file);
+        } else {
+            $stored = app(PhotoProcessingService::class)->storePublicPhoto($file);
         }
 
-        // Les photos de galerie sont publiées immédiatement : la modération se
+        if (Photo::where('user_id', $user->id)->where('content_hash', $stored['content_hash'])->exists()) {
+            return redirect()->back()->with('error', 'Ce média a déjà été ajouté à votre profil.');
+        }
+
+        // Les médias de galerie sont publiés immédiatement : la modération se
         // fait a posteriori (file admin + signalements). Seule la photo de
         // profil exige une validation préalable, via setPrimary().
         $photo = Photo::create([
             'user_id' => $user->id,
-            'path' => $processed['path'],
-            'content_hash' => $processed['content_hash'],
-            'thumbnail_path' => $processed['thumbnail_path'],
+            'media_type' => $isVideo ? 'video' : 'photo',
+            'path' => $stored['path'],
+            'content_hash' => $stored['content_hash'],
+            'thumbnail_path' => $stored['thumbnail_path'],
+            'duration' => $stored['duration'] ?? null,
             'moderation_status' => 'pending',
             'is_approved' => true,
-            'is_naughty' => $request->boolean('is_naughty'),
+            'is_naughty' => $isNaughty,
+            'is_private' => $isPrivate,
             'order' => $user->photos()->max('order') + 1,
         ]);
 
-        ModeratePhoto::dispatch($photo->id);
+        if (! $isVideo) {
+            ModeratePhoto::dispatch($photo->id);
+        }
 
-        return redirect()->back()->with('success', 'Photo ajoutée à votre galerie.');
+        return redirect()->back()->with(
+            'success',
+            $isVideo ? 'Vidéo ajoutée à votre galerie.' : 'Photo ajoutée à votre galerie.'
+        );
     }
 
     /**

@@ -13,14 +13,17 @@ class Photo extends Model
 
     protected $fillable = [
         'user_id',
+        'media_type',
         'path',
         'content_hash',
         'moderation_status',
         'thumbnail_path',
+        'duration',
         'is_primary',
         'avatar_requested_at',
         'is_approved',
         'is_naughty',
+        'is_private',
         'order',
         'rejection_reason',
     ];
@@ -32,8 +35,15 @@ class Photo extends Model
             'avatar_requested_at' => 'datetime',
             'is_approved' => 'boolean',
             'is_naughty' => 'boolean',
+            'is_private' => 'boolean',
+            'duration' => 'integer',
             'order' => 'integer',
         ];
+    }
+
+    public function isVideo(): bool
+    {
+        return $this->media_type === 'video';
     }
 
     /**
@@ -44,6 +54,29 @@ class Photo extends Model
         return $this->is_approved
             && $this->moderation_status !== 'rejected'
             && ($viewerAcceptsNaughty || ! $this->is_naughty);
+    }
+
+    /**
+     * Faut-il masquer ce média à cette visiteuse ?
+     *
+     * Deux verrous indépendants, chacun suffisant :
+     *  - coquin  : tant que la visiteuse n'a pas activé son mode coquin ;
+     *  - privé   : tant que sa propriétaire n'a pas accordé l'accès.
+     *
+     * Source unique de la règle : la route média et l'affichage du profil
+     * doivent tous deux passer par ici, sinon ils divergent.
+     */
+    public function isObscuredFor(bool $isOwner, bool $viewerAcceptsNaughty, bool $hasGalleryAccess): bool
+    {
+        if ($isOwner) {
+            return false;
+        }
+
+        if ($this->is_naughty && ! $viewerAcceptsNaughty) {
+            return true;
+        }
+
+        return $this->is_private && ! $hasGalleryAccess;
     }
 
     /**

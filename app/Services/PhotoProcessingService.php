@@ -13,6 +13,9 @@ class PhotoProcessingService
 
     private const THUMBNAIL_SIZE = 600;
 
+    /** Largeur intermédiaire d'une photo masquée : plus elle est basse, moins l'image reste lisible. */
+    private const OBSCURED_WIDTH = 16;
+
     public const RENDER_CACHE_DIRECTORY = 'photo-cache';
 
     /** Six hours, matching the lifetime the rendered images had in the cache store. */
@@ -175,11 +178,15 @@ class PhotoProcessingService
     {
         $width = imagesx($image);
         $height = imagesy($image);
-        $shrunk = imagescale($image, max(1, (int) round($width / 24)));
+
+        // Largeur cible fixe plutôt qu'un ratio : un ratio laissait ~83 px de
+        // détail sur une photo de 2000 px, largement assez pour reconnaître la
+        // scène. 16 px ne conservent que des aplats de couleur.
+        $shrunk = imagescale($image, self::OBSCURED_WIDTH);
 
         if ($shrunk === false) {
             // Fall back to repeated blurring rather than serving a sharp image.
-            for ($i = 0; $i < 40; $i++) {
+            for ($i = 0; $i < 60; $i++) {
                 imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR);
             }
 
@@ -194,9 +201,12 @@ class PhotoProcessingService
             throw new RuntimeException('Impossible de flouter cette image.');
         }
 
-        for ($i = 0; $i < 3; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             imagefilter($restored, IMG_FILTER_GAUSSIAN_BLUR);
         }
+
+        // Assombrir légèrement : le flou seul laisse deviner les zones de peau.
+        imagefilter($restored, IMG_FILTER_BRIGHTNESS, -25);
 
         return $restored;
     }

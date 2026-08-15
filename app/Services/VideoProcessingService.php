@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -120,6 +121,34 @@ class VideoProcessingService
             @unlink($videoTarget);
             @unlink($posterTarget);
         }
+    }
+
+    /**
+     * Stocke une vidéo de galerie : transcodage, poster et empreinte.
+     *
+     * Contrairement aux médias éphémères, le fichier reste sur le disque privé
+     * et n'est servi qu'à travers une route contrôlée.
+     *
+     * @return array{path: string, thumbnail_path: string, content_hash: string, duration: int|null}
+     */
+    public function storeGalleryVideo(UploadedFile $file, string $disk = 'local'): array
+    {
+        if (! $this->isAvailable()) {
+            throw new RuntimeException('ffmpeg n’est pas disponible sur ce serveur.');
+        }
+
+        $contentHash = hash_file('sha256', $file->getRealPath());
+        $duration = $this->durationOf($file->getRealPath());
+
+        $temporaryPath = $file->store('gallery-tmp', $disk);
+        $transcoded = $this->transcode($temporaryPath, $disk);
+
+        return [
+            'path' => $transcoded['path'],
+            'thumbnail_path' => $transcoded['thumbnail_path'],
+            'content_hash' => $contentHash,
+            'duration' => $duration !== null ? (int) round($duration) : null,
+        ];
     }
 
     private function run(array $command): void

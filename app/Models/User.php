@@ -256,6 +256,28 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Whether $viewer has been granted access to this user's private gallery.
+     *
+     * A revoked grant no longer counts, and the owner always sees their own.
+     */
+    public function grantsGalleryAccessTo(?self $viewer): bool
+    {
+        if ($viewer === null) {
+            return false;
+        }
+
+        if ($viewer->id === $this->id) {
+            return true;
+        }
+
+        return $this->galleryAccessRequestsReceived()
+            ->where('requester_user_id', $viewer->id)
+            ->where('status', 'accepted')
+            ->whereNull('revoked_at')
+            ->exists();
+    }
+
+    /**
      * Get the user's subscriptions.
      */
     public function subscriptions(): HasMany
