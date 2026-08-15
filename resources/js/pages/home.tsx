@@ -139,13 +139,13 @@ function SiteHeader(): JSX.Element {
 
                 <nav className="hidden items-center gap-10 md:flex">
                     <a href="#manifesto" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
-                        Manifeste
+                        Le concept
                     </a>
                     <a href="#voices" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
-                        Voix
+                        Elles témoignent
                     </a>
                     <a href="#how-it-works" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
-                        Rituel
+                        Les 4 étapes
                     </a>
                     <a href="#faq" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
                         Questions
@@ -897,8 +897,8 @@ function SiteFooter(): JSX.Element {
                     <FooterCol
                         title="Le site"
                         links={[
-                            { label: 'Manifeste', href: '#manifesto' },
-                            { label: 'Comment ça marche', href: '#how-it-works' },
+                            { label: 'Le concept', href: '#manifesto' },
+                            { label: 'Les 4 étapes', href: '#how-it-works' },
                             { label: 'Premium', href: '/premium' },
                             { label: 'Boutique', href: '/shop' },
                         ]}
