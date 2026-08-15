@@ -127,7 +127,9 @@ function SiteHeader(): JSX.Element {
             className={`fixed top-0 z-50 w-full transition-all duration-700 ${
                 scrolled
                     ? 'border-b border-border/40 bg-background/80 backdrop-blur-xl'
-                    : 'border-b border-transparent'
+                    : // Sans fond, les liens se noyaient dans le hero sombre : un
+                      // voile dégradé les détache sans masquer l'image.
+                      'border-b border-transparent bg-gradient-to-b from-background/70 to-transparent backdrop-blur-sm'
             }`}
         >
             <div className="container-editorial flex h-20 items-center justify-between">
@@ -136,16 +138,16 @@ function SiteHeader(): JSX.Element {
                 </Link>
 
                 <nav className="hidden items-center gap-10 md:flex">
-                    <a href="#manifesto" className="ghost-link editorial-caption opacity-80 transition hover:opacity-100">
+                    <a href="#manifesto" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
                         Manifeste
                     </a>
-                    <a href="#voices" className="ghost-link editorial-caption opacity-80 transition hover:opacity-100">
+                    <a href="#voices" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
                         Voix
                     </a>
-                    <a href="#how-it-works" className="ghost-link editorial-caption opacity-80 transition hover:opacity-100">
+                    <a href="#how-it-works" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
                         Rituel
                     </a>
-                    <a href="#faq" className="ghost-link editorial-caption opacity-80 transition hover:opacity-100">
+                    <a href="#faq" className="ghost-link editorial-caption opacity-95 transition hover:opacity-100">
                         Questions
                     </a>
                 </nav>
@@ -153,7 +155,7 @@ function SiteHeader(): JSX.Element {
                 <div className="flex items-center gap-3">
                     <Link
                         href="/login"
-                        className="hidden text-sm font-medium opacity-80 transition hover:opacity-100 sm:inline-block"
+                        className="hidden rounded-full border border-foreground/25 px-4 py-2 text-sm font-semibold transition hover:border-foreground/60 hover:bg-foreground/10 sm:inline-block"
                     >
                         Connexion
                     </Link>
