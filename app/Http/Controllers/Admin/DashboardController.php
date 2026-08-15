@@ -32,6 +32,12 @@ class DashboardController extends Controller
         $newUsersToday = User::whereDate('created_at', today())->count();
         $newUsersThisWeek = User::where('created_at', '>=', now()->subWeek())->count();
         $newUsersThisMonth = User::where('created_at', '>=', now()->subMonth())->count();
+
+        // Semaine précédente, pour donner un sens aux chiffres de la semaine.
+        $newUsersPreviousWeek = User::whereBetween('created_at', [
+            now()->subWeeks(2),
+            now()->subWeek(),
+        ])->count();
         $premiumUsers = User::where('is_premium', true)->count();
         $verifiedUsers = User::where('is_verified', true)->count();
         $bannedUsers = User::where('is_banned', true)->count();
@@ -40,6 +46,15 @@ class DashboardController extends Controller
         $totalMatches = UserMatch::count();
         $matchesToday = UserMatch::whereDate('created_at', today())->count();
         $matchesThisWeek = UserMatch::where('created_at', '>=', now()->subWeek())->count();
+        $matchesPreviousWeek = UserMatch::whereBetween('created_at', [
+            now()->subWeeks(2),
+            now()->subWeek(),
+        ])->count();
+        $messagesThisWeek = DB::table('messages')->where('created_at', '>=', now()->subWeek())->count();
+        $messagesPreviousWeek = DB::table('messages')->whereBetween('created_at', [
+            now()->subWeeks(2),
+            now()->subWeek(),
+        ])->count();
         $totalLikes = Like::count();
         $likesToday = Like::whereDate('created_at', today())->count();
         $totalMessages = DB::table('messages')->count();
@@ -67,28 +82,39 @@ class DashboardController extends Controller
             ->where('created_at', '>=', now()->startOfMonth())
             ->sum('price');
 
-        // User growth chart data (last 30 days)
-        $userGrowth = User::select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
-            ->where('created_at', '>=', now()->subDays(30))
+        // User growth chart data (last 30 days), zero-filled so the curve has
+        // one point per day even when nobody signed up.
+        $signupsByDay = User::select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+            ->where('created_at', '>=', now()->subDays(29)->startOfDay())
             ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->map(fn ($item) => [
-                'date' => $item->date,
-                'count' => $item->count,
-            ]);
+            ->pluck('count', 'date');
 
-        // Activity chart data (last 7 days)
-        $activityData = collect(range(0, 6))->map(function ($daysAgo) {
-            $date = now()->subDays($daysAgo);
+        $userGrowth = collect(range(29, 0))->map(function ($daysAgo) use ($signupsByDay) {
+            $date = now()->subDays($daysAgo)->format('Y-m-d');
 
             return [
-                'date' => $date->format('Y-m-d'),
-                'matches' => UserMatch::whereDate('created_at', $date)->count(),
-                'likes' => Like::whereDate('created_at', $date)->count(),
-                'messages' => DB::table('messages')->whereDate('created_at', $date)->count(),
+                'date' => $date,
+                'count' => (int) ($signupsByDay[$date] ?? 0),
             ];
-        })->reverse()->values();
+        })->values();
+
+        // Activity chart data (last 7 days) — grouped once per metric instead
+        // of one query per day and per metric.
+        $since = now()->subDays(6)->startOfDay();
+        $matchesByDay = $this->countByDay(UserMatch::query(), $since);
+        $likesByDay = $this->countByDay(Like::query(), $since);
+        $messagesByDay = $this->countByDay(DB::table('messages'), $since);
+
+        $activityData = collect(range(6, 0))->map(function ($daysAgo) use ($matchesByDay, $likesByDay, $messagesByDay) {
+            $date = now()->subDays($daysAgo)->format('Y-m-d');
+
+            return [
+                'date' => $date,
+                'matches' => (int) ($matchesByDay[$date] ?? 0),
+                'likes' => (int) ($likesByDay[$date] ?? 0),
+                'messages' => (int) ($messagesByDay[$date] ?? 0),
+            ];
+        })->values();
 
         // Recent reports
         $recentReports = Report::with(['reporter', 'reportedUser'])
@@ -130,6 +156,7 @@ class DashboardController extends Controller
                     'active_month' => $activeThisMonth,
                     'new_today' => $newUsersToday,
                     'new_week' => $newUsersThisWeek,
+                    'new_previous_week' => $newUsersPreviousWeek,
                     'new_month' => $newUsersThisMonth,
                     'premium' => $premiumUsers,
                     'verified' => $verifiedUsers,
@@ -139,10 +166,13 @@ class DashboardController extends Controller
                     'total_matches' => $totalMatches,
                     'matches_today' => $matchesToday,
                     'matches_week' => $matchesThisWeek,
+                    'matches_previous_week' => $matchesPreviousWeek,
                     'total_likes' => $totalLikes,
                     'likes_today' => $likesToday,
                     'total_messages' => $totalMessages,
                     'messages_today' => $messagesToday,
+                    'messages_week' => $messagesThisWeek,
+                    'messages_previous_week' => $messagesPreviousWeek,
                     'total_conversations' => $totalConversations,
                 ],
                 'moderation' => [
@@ -166,5 +196,20 @@ class DashboardController extends Controller
             'recent_reports' => $recentReports,
             'recent_users' => $recentUsers,
         ]);
+    }
+
+    /**
+     * Compte les enregistrements par jour depuis une date, en une seule requête.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<*>|\Illuminate\Database\Query\Builder  $query
+     * @return \Illuminate\Support\Collection<string, int>
+     */
+    private function countByDay($query, \Carbon\CarbonInterface $since): \Illuminate\Support\Collection
+    {
+        return $query
+            ->where('created_at', '>=', $since)
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('date')
+            ->pluck('aggregate', 'date');
     }
 }

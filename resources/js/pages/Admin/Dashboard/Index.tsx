@@ -1,19 +1,27 @@
 import AdminLayout, {
+    AdminAreaChart,
     AdminBadge,
     AdminCard,
+    AdminCardHeader,
+    AdminChartLegend,
+    AdminEmpty,
     AdminKpi,
+    AdminMeta,
+    AdminMeter,
     AdminSectionTitle,
 } from '@/layouts/admin-layout';
 import { Link } from '@inertiajs/react';
 import {
     AlertTriangle,
+    ArrowRight,
     BadgeCheck,
     Coins,
     CreditCard,
-    DollarSign,
+    Flag,
     Heart,
+    Image as ImageIcon,
     MessageCircle,
-    ShieldAlert,
+    ShieldCheck,
     Sparkles,
     UserCheck,
     UserMinus,
@@ -28,6 +36,7 @@ interface Stats {
         active_month: number;
         new_today: number;
         new_week: number;
+        new_previous_week: number;
         new_month: number;
         premium: number;
         verified: number;
@@ -37,10 +46,13 @@ interface Stats {
         total_matches: number;
         matches_today: number;
         matches_week: number;
+        matches_previous_week: number;
         total_likes: number;
         likes_today: number;
         total_messages: number;
         messages_today: number;
+        messages_week: number;
+        messages_previous_week: number;
         total_conversations: number;
     };
     moderation: {
@@ -88,9 +100,42 @@ interface UserRow {
     city: string | null;
 }
 
+/** Formate une date ISO en libellé court « 12 août ». */
+function shortDate(iso: string): string {
+    const date = new Date(`${iso}T00:00:00`);
+
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+/** Variation en pourcentage entre deux périodes, formatée pour l'affichage. */
+function trend(
+    current: number,
+    previous: number,
+): { label: string; tone: 'positive' | 'negative' | 'neutral' } {
+    if (previous === 0) {
+        return current > 0
+            ? { label: `+${current.toLocaleString('fr-FR')} vs 0`, tone: 'positive' }
+            : { label: 'stable', tone: 'neutral' };
+    }
+
+    const delta = Math.round(((current - previous) / previous) * 100);
+
+    if (delta === 0) {
+        return { label: 'stable', tone: 'neutral' };
+    }
+
+    return {
+        label: `${delta > 0 ? '+' : ''}${delta}% vs semaine précédente`,
+        tone: delta > 0 ? 'positive' : 'negative',
+    };
+}
+
+const euro = (value: number): string =>
+    `${value.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} €`;
+
 export default function Index({
     stats,
-    charts: _charts,
+    charts,
     recent_reports,
     recent_users,
 }: {
@@ -99,287 +144,421 @@ export default function Index({
     recent_reports: ReportRow[];
     recent_users: UserRow[];
 }) {
+    const { users, engagement, moderation, revenue } = stats;
+
     const totalMod =
-        stats.moderation.pending_photos +
-        stats.moderation.pending_verifications +
-        stats.moderation.open_reports;
+        moderation.pending_photos +
+        moderation.pending_verifications +
+        moderation.open_reports;
+
+    const growthSeries = charts.user_growth.map((point) => point.count);
+    const usersTrend = trend(users.new_week, users.new_previous_week);
+    const matchesTrend = trend(engagement.matches_week, engagement.matches_previous_week);
+    const messagesTrend = trend(
+        engagement.messages_week,
+        engagement.messages_previous_week,
+    );
+
+    // Taux de conversion like → match : indicateur de santé du matching.
+    const matchRate =
+        engagement.total_likes > 0
+            ? Math.round((engagement.total_matches / engagement.total_likes) * 100)
+            : 0;
 
     return (
         <AdminLayout
             title="Vue d'ensemble"
             subtitle="État de la plateforme en temps réel"
-            breadcrumbs={[{ label: 'Admin', href: '/admin/dashboard' }, { label: 'Vue d’ensemble' }]}
+            breadcrumbs={[
+                { label: 'Admin', href: '/admin/dashboard' },
+                { label: "Vue d'ensemble" },
+            ]}
         >
             <div className="space-y-8">
-                {/* ===========================================
-                 * MOD ALERT (priority block, only if alerts)
-                 * =========================================*/}
-                {totalMod > 0 && (
-                    <section
-                        className="relative overflow-hidden rounded-2xl p-6 text-[oklch(96%_0.02_50)]"
-                        style={{
-                            background:
-                                'linear-gradient(135deg, var(--wine) 0%, var(--wine-deep) 100%)',
-                        }}
-                    >
+                {/* ==========================================================
+                 * 00 · File d'attente de modération (prioritaire)
+                 * ========================================================*/}
+                {totalMod > 0 ? (
+                    <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[color:var(--wine)] to-[color:var(--wine-deep)] p-5 text-white sm:p-6">
                         <div
                             aria-hidden
-                            className="absolute -right-12 -top-12 h-48 w-48 rounded-full opacity-30"
+                            className="absolute -right-16 -top-16 h-52 w-52 rounded-full opacity-40"
                             style={{
                                 background:
-                                    'radial-gradient(circle, var(--desire) 0%, transparent 65%)',
+                                    'radial-gradient(circle, var(--desire) 0%, transparent 68%)',
                             }}
                         />
-                        <div className="relative flex flex-wrap items-end justify-between gap-6">
+                        <div className="relative flex flex-wrap items-end justify-between gap-5">
                             <div className="min-w-0 flex-1">
-                                <div className="editorial-eyebrow mb-2 opacity-70">
-                                    <span className="inline-flex items-center gap-2">
-                                        <AlertTriangle className="h-3 w-3" />
-                                        Modération · action requise
-                                    </span>
+                                <div className="editorial-eyebrow mb-2 inline-flex items-center gap-2 text-white/70">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    Action requise
                                 </div>
-                                <h2 className="font-display text-3xl font-medium leading-tight md:text-4xl">
-                                    <em
-                                        className="italic"
-                                        style={{ color: 'var(--gold)' }}
-                                    >
+                                <h2 className="font-display text-2xl font-medium leading-tight md:text-3xl">
+                                    <em className="italic text-[color:var(--gold)]">
                                         {totalMod}
                                     </em>{' '}
-                                    élément{totalMod > 1 ? 's' : ''} en attente.
+                                    élément{totalMod > 1 ? 's' : ''} en attente de
+                                    décision.
                                 </h2>
-                                <p className="mt-2 text-sm opacity-75">
-                                    Les utilisatrices attendent ta décision.
-                                </p>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {stats.moderation.pending_photos > 0 && (
+                                {moderation.pending_photos > 0 && (
                                     <ModChip
                                         href="/admin/photos/pending"
-                                        count={stats.moderation.pending_photos}
+                                        count={moderation.pending_photos}
                                         label="photos"
+                                        icon={ImageIcon}
                                     />
                                 )}
-                                {stats.moderation.pending_verifications > 0 && (
+                                {moderation.pending_verifications > 0 && (
                                     <ModChip
                                         href="/admin/verifications"
-                                        count={stats.moderation.pending_verifications}
+                                        count={moderation.pending_verifications}
                                         label="vérifications"
+                                        icon={ShieldCheck}
                                     />
                                 )}
-                                {stats.moderation.open_reports > 0 && (
+                                {moderation.open_reports > 0 && (
                                     <ModChip
                                         href="/admin/reports"
-                                        count={stats.moderation.open_reports}
+                                        count={moderation.open_reports}
                                         label="signalements"
+                                        icon={Flag}
                                     />
                                 )}
                             </div>
                         </div>
                     </section>
+                ) : (
+                    <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--paper)] px-5 py-4">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[oklch(60%_0.16_160_/_0.15)]">
+                            <ShieldCheck className="h-4 w-4 text-[color:var(--success)]" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                            <p className="font-display text-base font-semibold">
+                                File de modération vide
+                            </p>
+                            <p className="text-sm text-[color:var(--ink-mute)]">
+                                Aucune photo, vérification ou plainte n&apos;attend de
+                                décision.
+                            </p>
+                        </div>
+                    </section>
                 )}
 
-                {/* ===========================================
-                 * KPIs principaux — 4 colonnes
-                 * =========================================*/}
+                {/* ==========================================================
+                 * 01 · Indicateurs clés
+                 * ========================================================*/}
                 <section>
-                    <AdminSectionTitle
-                        eyebrow="01 · Indicateurs clés"
-                        title="Plateforme"
-                    />
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <AdminSectionTitle eyebrow="01 · Indicateurs clés" title="Plateforme" />
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         <AdminKpi
                             label="Utilisatrices"
-                            value={stats.users.total}
-                            delta={`+${stats.users.new_today} aujourd’hui`}
+                            value={users.total}
+                            delta={usersTrend.label}
+                            deltaTone={usersTrend.tone}
+                            hint={`${users.new_today} inscription${users.new_today > 1 ? 's' : ''} aujourd’hui`}
                             icon={Users}
                             href="/admin/users"
+                            series={growthSeries}
                         />
                         <AdminKpi
                             label="Matches"
-                            value={stats.engagement.total_matches}
-                            delta={`+${stats.engagement.matches_today} aujourd’hui`}
+                            value={engagement.total_matches}
+                            delta={matchesTrend.label}
+                            deltaTone={matchesTrend.tone}
+                            hint={`${matchRate}% des likes deviennent un match`}
                             icon={Heart}
                         />
                         <AdminKpi
                             label="Messages"
-                            value={stats.engagement.total_messages}
-                            delta={`+${stats.engagement.messages_today} aujourd’hui`}
+                            value={engagement.total_messages}
+                            delta={messagesTrend.label}
+                            deltaTone={messagesTrend.tone}
+                            hint={`${engagement.total_conversations.toLocaleString('fr-FR')} conversations`}
                             icon={MessageCircle}
                         />
                         <AdminKpi
                             label="Abonnements actifs"
-                            value={stats.revenue.active_subscriptions}
-                            delta={`${stats.users.premium} Premium`}
-                            deltaTone="neutral"
+                            value={revenue.active_subscriptions}
+                            hint={`${users.premium.toLocaleString('fr-FR')} comptes Premium`}
                             icon={CreditCard}
                             href="/admin/subscriptions"
                         />
                     </div>
                 </section>
 
-                {/* ===========================================
-                 * Détails utilisatrices — grid
-                 * =========================================*/}
-                <section>
-                    <AdminSectionTitle
-                        eyebrow="02 · Audience"
-                        title="Activité des utilisatrices"
-                    />
-                    <AdminCard>
-                        <div className="grid gap-x-6 gap-y-5 sm:grid-cols-3">
-                            <UserStat
-                                label="Actives aujourd’hui"
-                                value={stats.users.active_today}
+                {/* ==========================================================
+                 * 02 · Courbes
+                 * ========================================================*/}
+                <section className="grid gap-4 lg:grid-cols-5">
+                    <AdminCard className="lg:col-span-3" padded={false}>
+                        <AdminCardHeader
+                            title="Inscriptions"
+                            icon={Users}
+                            action={<AdminMeta>30 derniers jours</AdminMeta>}
+                        />
+                        <div className="p-5">
+                            <AdminAreaChart
+                                labels={charts.user_growth.map((point) =>
+                                    shortDate(point.date),
+                                )}
+                                series={[
+                                    {
+                                        label: 'Inscriptions',
+                                        color: 'var(--desire)',
+                                        values: growthSeries,
+                                    },
+                                ]}
+                                height={200}
                             />
-                            <UserStat
-                                label="Actives cette semaine"
-                                value={stats.users.active_week}
+                        </div>
+                    </AdminCard>
+
+                    <AdminCard className="lg:col-span-2" padded={false}>
+                        <AdminCardHeader
+                            title="Engagement"
+                            icon={Heart}
+                            action={<AdminMeta>7 jours</AdminMeta>}
+                        />
+                        <div className="space-y-4 p-5">
+                            <AdminAreaChart
+                                labels={charts.activity.map((point) =>
+                                    shortDate(point.date),
+                                )}
+                                series={[
+                                    {
+                                        label: 'Likes',
+                                        color: 'var(--desire)',
+                                        values: charts.activity.map((p) => p.likes),
+                                    },
+                                    {
+                                        label: 'Matches',
+                                        color: 'var(--gold)',
+                                        values: charts.activity.map((p) => p.matches),
+                                    },
+                                    {
+                                        label: 'Messages',
+                                        color: 'var(--wine)',
+                                        values: charts.activity.map((p) => p.messages),
+                                    },
+                                ]}
+                                height={180}
                             />
-                            <UserStat
-                                label="Actives ce mois"
-                                value={stats.users.active_month}
-                            />
-                            <UserStat
-                                label="Nouvelles aujourd’hui"
-                                value={stats.users.new_today}
-                                tone="positive"
-                            />
-                            <UserStat
-                                label="Nouvelles cette semaine"
-                                value={stats.users.new_week}
-                                tone="positive"
-                            />
-                            <UserStat
-                                label="Nouvelles ce mois"
-                                value={stats.users.new_month}
-                                tone="positive"
-                            />
-                            <UserStat
-                                label="Vérifiées"
-                                value={stats.users.verified}
-                                icon={BadgeCheck}
-                            />
-                            <UserStat
-                                label="Premium"
-                                value={stats.users.premium}
-                                icon={Sparkles}
-                                tone="gold"
-                            />
-                            <UserStat
-                                label="Bannies"
-                                value={stats.users.banned}
-                                icon={UserMinus}
-                                tone="danger"
+                            <AdminChartLegend
+                                series={[
+                                    { label: 'Likes', color: 'var(--desire)' },
+                                    { label: 'Matches', color: 'var(--gold)' },
+                                    { label: 'Messages', color: 'var(--wine)' },
+                                ]}
                             />
                         </div>
                     </AdminCard>
                 </section>
 
-                {/* ===========================================
-                 * Revenue & gems
-                 * =========================================*/}
+                {/* ==========================================================
+                 * 03 · Audience — ratios plutôt que nombres bruts
+                 * ========================================================*/}
+                <section>
+                    <AdminSectionTitle
+                        eyebrow="02 · Audience"
+                        title="Composition et activité"
+                        right={
+                            <Link
+                                href="/admin/users"
+                                className="ghost-link text-xs font-medium text-[color:var(--wine-deep)]"
+                            >
+                                Gérer les comptes →
+                            </Link>
+                        }
+                    />
+                    <div className="grid gap-3 lg:grid-cols-3">
+                        <AdminCard>
+                            <h3 className="editorial-caption mb-4 text-[color:var(--ink-mute)]">
+                                Utilisatrices actives
+                            </h3>
+                            <div className="space-y-3.5">
+                                <AdminMeter
+                                    label={`Aujourd’hui · ${users.active_today}`}
+                                    value={users.active_today}
+                                    total={users.total}
+                                />
+                                <AdminMeter
+                                    label={`Cette semaine · ${users.active_week}`}
+                                    value={users.active_week}
+                                    total={users.total}
+                                />
+                                <AdminMeter
+                                    label={`Ce mois · ${users.active_month}`}
+                                    value={users.active_month}
+                                    total={users.total}
+                                />
+                            </div>
+                            <p className="mt-4 border-t border-[color:var(--line-soft)] pt-3 text-[11px] text-[color:var(--ink-mute)]">
+                                Part de la base totale ({users.total.toLocaleString('fr-FR')}{' '}
+                                comptes).
+                            </p>
+                        </AdminCard>
+
+                        <AdminCard>
+                            <h3 className="editorial-caption mb-4 text-[color:var(--ink-mute)]">
+                                Qualité de la base
+                            </h3>
+                            <div className="space-y-3.5">
+                                <AdminMeter
+                                    label={`Vérifiées · ${users.verified}`}
+                                    value={users.verified}
+                                    total={users.total}
+                                    tone="success"
+                                />
+                                <AdminMeter
+                                    label={`Premium · ${users.premium}`}
+                                    value={users.premium}
+                                    total={users.total}
+                                    tone="gold"
+                                />
+                                <AdminMeter
+                                    label={`Bannies · ${users.banned}`}
+                                    value={users.banned}
+                                    total={users.total}
+                                    tone="danger"
+                                />
+                            </div>
+                            <p className="mt-4 border-t border-[color:var(--line-soft)] pt-3 text-[11px] text-[color:var(--ink-mute)]">
+                                La vérification est le meilleur signal anti-faux profils.
+                            </p>
+                        </AdminCard>
+
+                        <AdminCard>
+                            <h3 className="editorial-caption mb-4 text-[color:var(--ink-mute)]">
+                                Nouvelles inscriptions
+                            </h3>
+                            <dl className="space-y-3">
+                                <SplitStat
+                                    label="Aujourd’hui"
+                                    value={users.new_today}
+                                />
+                                <SplitStat
+                                    label="Cette semaine"
+                                    value={users.new_week}
+                                    note={usersTrend.label}
+                                    tone={usersTrend.tone}
+                                />
+                                <SplitStat label="Ce mois" value={users.new_month} />
+                            </dl>
+                            <div className="mt-4 h-10 border-t border-[color:var(--line-soft)] pt-3">
+                                <AdminAreaChart
+                                    labels={charts.user_growth.map((p) => shortDate(p.date))}
+                                    series={[
+                                        {
+                                            label: 'Inscriptions',
+                                            color: 'var(--wine)',
+                                            values: growthSeries,
+                                        },
+                                    ]}
+                                    height={40}
+                                />
+                            </div>
+                        </AdminCard>
+                    </div>
+                </section>
+
+                {/* ==========================================================
+                 * 04 · Monétisation
+                 * ========================================================*/}
                 <section>
                     <AdminSectionTitle
                         eyebrow="03 · Monétisation"
                         title="Revenus & gemmes"
+                        right={
+                            <Link
+                                href="/admin/billing"
+                                className="ghost-link text-xs font-medium text-[color:var(--wine-deep)]"
+                            >
+                                Offres & tarifs →
+                            </Link>
+                        }
                     />
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         <AdminKpi
-                            label="Revenus totaux"
-                            value={`${stats.revenue.total.toLocaleString('fr-FR')} €`}
-                            icon={DollarSign}
+                            label="Revenus abonnements"
+                            value={euro(revenue.total)}
+                            hint="Cumul des abonnements actifs"
+                            icon={CreditCard}
                         />
                         <AdminKpi
                             label="Revenus ce mois"
-                            value={`${stats.revenue.this_month.toLocaleString('fr-FR')} €`}
-                            icon={DollarSign}
+                            value={euro(revenue.this_month)}
+                            hint="Abonnements souscrits ce mois"
+                            icon={CreditCard}
                         />
                         <AdminKpi
-                            label="Gemmes distribuées"
-                            value={stats.revenue.gems_distributed}
+                            label="Gemmes vendues (mois)"
+                            value={euro(revenue.gems_revenue_month)}
+                            hint="Achats de packs de gemmes"
                             icon={Coins}
                             href="/admin/gems"
                         />
                         <AdminKpi
-                            label="Gemmes vendues (mois)"
-                            value={`${stats.revenue.gems_revenue_month.toLocaleString('fr-FR')} €`}
-                            icon={Coins}
+                            label="Gemmes en circulation"
+                            value={revenue.gems_distributed - revenue.gems_spent}
+                            hint={`${revenue.gems_distributed.toLocaleString('fr-FR')} distribuées · ${revenue.gems_spent.toLocaleString('fr-FR')} dépensées`}
+                            icon={Sparkles}
+                            href="/admin/gems"
                         />
                     </div>
                 </section>
 
-                {/* ===========================================
-                 * Reports + Users récents
-                 * =========================================*/}
+                {/* ==========================================================
+                 * 05 · Flux récents
+                 * ========================================================*/}
                 <section>
-                    <AdminSectionTitle
-                        eyebrow="04 · Flux récents"
-                        title="À l'instant"
-                    />
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        {/* Recent reports */}
+                    <AdminSectionTitle eyebrow="04 · Flux récents" title="À l'instant" />
+                    <div className="grid gap-4 lg:grid-cols-2">
                         <AdminCard padded={false}>
-                            <div
-                                className="flex items-center justify-between border-b px-6 py-4"
-                                style={{ borderColor: 'var(--line)' }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <ShieldAlert className="h-4 w-4 text-[color:var(--wine-deep)]" />
-                                    <h3 className="font-display text-base font-semibold">
-                                        Derniers signalements
-                                    </h3>
-                                </div>
-                                <Link
-                                    href="/admin/reports"
-                                    className="ghost-link text-xs font-medium"
-                                    style={{ color: 'var(--wine-deep)' }}
-                                >
-                                    Tous voir →
-                                </Link>
-                            </div>
+                            <AdminCardHeader
+                                title="Derniers signalements"
+                                icon={Flag}
+                                action={
+                                    <Link
+                                        href="/admin/reports"
+                                        className="ghost-link text-xs font-medium text-[color:var(--wine-deep)]"
+                                    >
+                                        Tous voir →
+                                    </Link>
+                                }
+                            />
                             {recent_reports.length === 0 ? (
-                                <EmptyRow
-                                    label="Aucun signalement en attente."
-                                    icon={ShieldAlert}
+                                <AdminEmpty
+                                    icon={Flag}
+                                    title="Aucun signalement en attente"
+                                    description="Les plaintes des utilisatrices apparaîtront ici."
                                 />
                             ) : (
                                 <ul>
-                                    {recent_reports.map((r) => (
+                                    {recent_reports.map((report) => (
                                         <li
-                                            key={r.id}
-                                            className="border-b last:border-b-0"
-                                            style={{ borderColor: 'var(--line-soft)' }}
+                                            key={report.id}
+                                            className="border-b border-[color:var(--line-soft)] last:border-b-0"
                                         >
                                             <Link
-                                                href={`/admin/reports/${r.id}`}
-                                                className="block px-6 py-4 transition-colors hover:bg-[color:var(--bg-soft)]"
+                                                href={`/admin/reports/${report.id}`}
+                                                className="flex items-start justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-[color:var(--bg-soft)]"
                                             >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="text-sm font-semibold">
-                                                            {r.reporter}{' '}
-                                                            <span
-                                                                className="font-normal"
-                                                                style={{ color: 'var(--ink-mute)' }}
-                                                            >
-                                                                contre
-                                                            </span>{' '}
-                                                            {r.reported}
-                                                        </div>
-                                                        <p
-                                                            className="mt-1 truncate text-xs"
-                                                            style={{ color: 'var(--ink-soft)' }}
-                                                        >
-                                                            {r.reason}
-                                                        </p>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-sm font-semibold">
+                                                        {report.reporter}{' '}
+                                                        <span className="font-normal text-[color:var(--ink-mute)]">
+                                                            contre
+                                                        </span>{' '}
+                                                        {report.reported}
                                                     </div>
-                                                    <span
-                                                        className="font-mono shrink-0 text-[10px] uppercase tracking-wider"
-                                                        style={{ color: 'var(--ink-mute)' }}
-                                                    >
-                                                        {r.created_at}
-                                                    </span>
+                                                    <p className="mt-0.5 truncate text-xs text-[color:var(--ink-soft)]">
+                                                        {report.reason}
+                                                    </p>
                                                 </div>
+                                                <AdminMeta>{report.created_at}</AdminMeta>
                                             </Link>
                                         </li>
                                     ))}
@@ -387,81 +566,62 @@ export default function Index({
                             )}
                         </AdminCard>
 
-                        {/* Recent users */}
                         <AdminCard padded={false}>
-                            <div
-                                className="flex items-center justify-between border-b px-6 py-4"
-                                style={{ borderColor: 'var(--line)' }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <UserCheck className="h-4 w-4 text-[color:var(--wine-deep)]" />
-                                    <h3 className="font-display text-base font-semibold">
-                                        Nouvelles inscriptions
-                                    </h3>
-                                </div>
-                                <Link
-                                    href="/admin/users"
-                                    className="ghost-link text-xs font-medium"
-                                    style={{ color: 'var(--wine-deep)' }}
-                                >
-                                    Toutes voir →
-                                </Link>
-                            </div>
+                            <AdminCardHeader
+                                title="Nouvelles inscriptions"
+                                icon={UserCheck}
+                                action={
+                                    <Link
+                                        href="/admin/users"
+                                        className="ghost-link text-xs font-medium text-[color:var(--wine-deep)]"
+                                    >
+                                        Toutes voir →
+                                    </Link>
+                                }
+                            />
                             {recent_users.length === 0 ? (
-                                <EmptyRow
-                                    label="Aucune nouvelle inscription."
+                                <AdminEmpty
                                     icon={Users}
+                                    title="Aucune nouvelle inscription"
+                                    description="Les derniers comptes créés apparaîtront ici."
                                 />
                             ) : (
                                 <ul>
-                                    {recent_users.map((u) => (
+                                    {recent_users.map((user) => (
                                         <li
-                                            key={u.id}
-                                            className="border-b last:border-b-0"
-                                            style={{ borderColor: 'var(--line-soft)' }}
+                                            key={user.id}
+                                            className="border-b border-[color:var(--line-soft)] last:border-b-0"
                                         >
                                             <Link
-                                                href={`/admin/users/${u.id}`}
-                                                className="block px-6 py-4 transition-colors hover:bg-[color:var(--bg-soft)]"
+                                                href={`/admin/users/${user.id}`}
+                                                className="flex items-start justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-[color:var(--bg-soft)]"
                                             >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-sm font-semibold">
-                                                                {u.name}
-                                                            </span>
-                                                            {u.is_verified && (
-                                                                <BadgeCheck
-                                                                    className="h-3.5 w-3.5"
-                                                                    style={{ color: 'var(--success)' }}
-                                                                />
-                                                            )}
-                                                            {u.is_premium && (
-                                                                <AdminBadge tone="gold">
-                                                                    Premium
-                                                                </AdminBadge>
-                                                            )}
-                                                            {u.is_banned && (
-                                                                <AdminBadge tone="danger">
-                                                                    Bannie
-                                                                </AdminBadge>
-                                                            )}
-                                                        </div>
-                                                        <p
-                                                            className="mt-1 truncate text-xs"
-                                                            style={{ color: 'var(--ink-soft)' }}
-                                                        >
-                                                            {u.email}
-                                                            {u.city ? ` · ${u.city}` : ''}
-                                                        </p>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex flex-wrap items-center gap-1.5">
+                                                        <span className="text-sm font-semibold">
+                                                            {user.name}
+                                                        </span>
+                                                        {user.is_verified && (
+                                                            <BadgeCheck className="h-3.5 w-3.5 text-[color:var(--success)]" />
+                                                        )}
+                                                        {user.is_premium && (
+                                                            <AdminBadge tone="gold">
+                                                                Premium
+                                                            </AdminBadge>
+                                                        )}
+                                                        {user.is_banned && (
+                                                            <AdminBadge tone="danger">
+                                                                <UserMinus className="h-2.5 w-2.5" />
+                                                                Bannie
+                                                            </AdminBadge>
+                                                        )}
                                                     </div>
-                                                    <span
-                                                        className="font-mono shrink-0 text-[10px] uppercase tracking-wider"
-                                                        style={{ color: 'var(--ink-mute)' }}
-                                                    >
-                                                        {u.created_at}
-                                                    </span>
+                                                    <p className="mt-0.5 truncate text-xs text-[color:var(--ink-soft)]">
+                                                        {user.email}
+                                                        {user.city ? ` · ${user.city}` : ''}
+                                                    </p>
                                                 </div>
+                                                <AdminMeta>{user.created_at}</AdminMeta>
                                             </Link>
                                         </li>
                                     ))}
@@ -476,101 +636,62 @@ export default function Index({
 }
 
 /* ---------------------------------------------------------------------------
- * Sub-components
+ * Sous-composants
  * -------------------------------------------------------------------------*/
 
 function ModChip({
     href,
     count,
     label,
+    icon: Icon,
 }: {
     href: string;
     count: number;
     label: string;
-}): JSX.Element {
+    icon: typeof Users;
+}) {
     return (
         <Link
             href={href}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-transform hover:-translate-y-px"
-            style={{
-                background: 'oklch(100% 0 0 / 0.12)',
-                color: 'oklch(96% 0.02 50)',
-            }}
+            className="group inline-flex items-center gap-2 rounded-lg bg-white/[0.14] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/[0.22]"
         >
-            <span
-                className="grid h-6 min-w-[24px] place-items-center rounded px-1.5 text-xs font-bold"
-                style={{ background: 'var(--gold)', color: 'var(--wine-deep)' }}
-            >
+            <span className="font-mono grid h-6 min-w-[24px] place-items-center rounded bg-[color:var(--gold)] px-1.5 text-xs font-bold text-[color:var(--wine-deep)]">
                 {count}
             </span>
+            <Icon className="h-3.5 w-3.5 opacity-70" />
             {label}
+            <ArrowRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-70" />
         </Link>
     );
 }
 
-function UserStat({
+function SplitStat({
     label,
     value,
+    note,
     tone = 'neutral',
-    icon: Icon,
 }: {
     label: string;
     value: number;
-    tone?: 'neutral' | 'positive' | 'danger' | 'gold';
-    icon?: typeof Users;
-}): JSX.Element {
-    const valueColor =
+    note?: string;
+    tone?: 'positive' | 'negative' | 'neutral';
+}) {
+    const noteClass =
         tone === 'positive'
-            ? 'var(--success)'
-            : tone === 'danger'
-              ? 'var(--destructive)'
-              : tone === 'gold'
-                ? 'var(--gold)'
-                : 'var(--ink)';
+            ? 'text-[color:var(--success)]'
+            : tone === 'negative'
+              ? 'text-[color:var(--destructive)]'
+              : 'text-[color:var(--ink-mute)]';
 
     return (
-        <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-                <div
-                    className="editorial-caption"
-                    style={{ color: 'var(--ink-mute)' }}
-                >
-                    {label}
-                </div>
-                <div
-                    className="font-display mt-1 text-2xl font-medium tracking-tight"
-                    style={{ color: valueColor }}
-                >
-                    {tone === 'positive' && value > 0 ? '+' : ''}
+        <div className="flex items-baseline justify-between gap-3">
+            <dt className="text-xs text-[color:var(--ink-soft)]">{label}</dt>
+            <dd className="text-right">
+                <span className="font-display text-lg font-medium text-[color:var(--ink)]">
                     {value.toLocaleString('fr-FR')}
-                </div>
-            </div>
-            {Icon && (
-                <Icon
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: 'var(--ink-mute)' }}
-                />
-            )}
-        </div>
-    );
-}
-
-function EmptyRow({
-    label,
-    icon: Icon,
-}: {
-    label: string;
-    icon: typeof Users;
-}): JSX.Element {
-    return (
-        <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-            <Icon
-                className="h-8 w-8 opacity-30"
-                style={{ color: 'var(--ink-mute)' }}
-            />
-            <p className="text-sm" style={{ color: 'var(--ink-mute)' }}>
-                {label}
-            </p>
+                </span>
+                {note && <div className={`text-[10px] ${noteClass}`}>{note}</div>}
+            </dd>
         </div>
     );
 }
