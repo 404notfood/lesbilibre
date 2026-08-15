@@ -703,7 +703,11 @@ function SpotlightCard({
                 <div className="mt-1 flex items-center gap-1.5 text-xs opacity-70">
                     <MapPin className="h-3 w-3" />
                     {profile.city}
-                    {profile.distance && <span>· à {profile.distance} km</span>}
+                    {profile.distance != null && (
+                        <span>
+                            · {profile.distance < 1 ? 'à moins d\'1 km' : `à ${profile.distance} km`}
+                        </span>
+                    )}
                 </div>
                 <p className="mt-3 mb-3.5 text-[13.5px] leading-relaxed opacity-85 line-clamp-3">
                     {profile.bio ||

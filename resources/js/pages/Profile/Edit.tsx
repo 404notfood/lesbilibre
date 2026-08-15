@@ -18,6 +18,8 @@ interface Profile {
     bio?: string;
     city?: string;
     postal_code?: string;
+    latitude?: number | null;
+    longitude?: number | null;
     age?: number;
     date_of_birth?: string;
     sexual_orientation?: string;
@@ -87,6 +89,8 @@ export default function Edit({
         bio: user.profile?.bio || '',
         city: user.profile?.city || '',
         postal_code: user.profile?.postal_code || '',
+        latitude: user.profile?.latitude ?? null,
+        longitude: user.profile?.longitude ?? null,
         date_of_birth: user.profile?.date_of_birth?.substring(0, 10) || '',
         sexual_orientation: user.profile?.sexual_orientation || 'lesbian',
         interested_in: user.profile?.interested_in || '',
@@ -225,19 +229,16 @@ export default function Edit({
                                         value={formData.city}
                                         label="Ville"
                                         placeholder="Cherchez par ville ou code postal..."
-                                        onCitySelect={(cityName, lat, lng) => {
-                                            setFormData({
-                                                ...formData,
-                                                city: cityName,
-                                            });
-                                        }}
                                         onChange={(city) => {
                                             if (city) {
-                                                setFormData({
-                                                    ...formData,
+                                                const [lng, lat] = city.centre.coordinates;
+                                                setFormData((previous) => ({
+                                                    ...previous,
                                                     city: city.nom,
                                                     postal_code: city.codesPostaux[0] || '',
-                                                });
+                                                    latitude: lat,
+                                                    longitude: lng,
+                                                }));
                                             }
                                         }}
                                         error={errors?.city}

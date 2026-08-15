@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -77,18 +76,30 @@ class SearchController extends Controller
         }])
             ->where('users.id', '!=', $currentUser->id)
             ->where('users.is_verified', true)
-            ->where('users.is_banned', false);
+            ->where('users.is_banned', false)
+            ->whereHas('profile', fn ($profile) => $profile->where('is_discoverable', true));
+
+        // Jointure unique sur profiles : elle porte à la fois le filtre de
+        // rayon et la colonne `distance` exposée aux résultats.
+        if ($this->hasCoordinates($currentUser)) {
+            $lat = (float) $currentUser->profile->latitude;
+            $lon = (float) $currentUser->profile->longitude;
+
+            $query->join('profiles', 'users.id', '=', 'profiles.user_id')
+                ->select('users.*')
+                ->selectRaw($this->haversineExpression().' as distance', [$lat, $lon, $lat]);
+        }
 
         // Age filter
+        // Comparaison sur la date complète : YEAR() seul décalait les bornes
+        // d'un an pour les anniversaires non encore passés dans l'année.
         if (! empty($filters['min_age']) || ! empty($filters['max_age'])) {
             $query->whereHas('profile', function ($q) use ($filters) {
                 if (! empty($filters['min_age'])) {
-                    $maxBirthYear = now()->year - $filters['min_age'];
-                    $q->where(DB::raw('YEAR(date_of_birth)'), '<=', $maxBirthYear);
+                    $q->whereDate('date_of_birth', '<=', now()->subYears((int) $filters['min_age'])->toDateString());
                 }
                 if (! empty($filters['max_age'])) {
-                    $minBirthYear = now()->year - $filters['max_age'];
-                    $q->where(DB::raw('YEAR(date_of_birth)'), '>=', $minBirthYear);
+                    $q->whereDate('date_of_birth', '>=', now()->subYears((int) $filters['max_age'] + 1)->toDateString());
                 }
             });
         }
@@ -101,17 +112,16 @@ class SearchController extends Controller
         }
 
         // Distance filter
-        if (! empty($filters['distance']) && $currentUser->profile->latitude && $currentUser->profile->longitude) {
-            $query->whereHas('profile', function ($q) use ($currentUser, $filters) {
-                $lat = $currentUser->profile->latitude;
-                $lon = $currentUser->profile->longitude;
-                $distance = $filters['distance'];
+        if (! empty($filters['distance']) && $this->hasCoordinates($currentUser)) {
+            $lat = (float) $currentUser->profile->latitude;
+            $lon = (float) $currentUser->profile->longitude;
 
-                $q->whereRaw(
-                    '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) <= ?',
-                    [$lat, $lon, $lat, $distance]
+            $query->whereNotNull('profiles.latitude')
+                ->whereNotNull('profiles.longitude')
+                ->whereRaw(
+                    $this->haversineExpression().' <= ?',
+                    [$lat, $lon, $lat, (int) $filters['distance']]
                 );
-            });
         }
 
         // Profile attribute filters (all support multiple values)
@@ -204,20 +214,33 @@ class SearchController extends Controller
 
             case 'distance':
             default:
-                if ($currentUser->profile->latitude && $currentUser->profile->longitude) {
-                    $lat = $currentUser->profile->latitude;
-                    $lon = $currentUser->profile->longitude;
-
-                    return $query->join('profiles', 'users.id', '=', 'profiles.user_id')
-                        ->select('users.*')
-                        ->selectRaw(
-                            '(6371 * acos(cos(radians(?)) * cos(radians(profiles.latitude)) * cos(radians(profiles.longitude) - radians(?)) + sin(radians(?)) * sin(radians(profiles.latitude)))) AS distance',
-                            [$lat, $lon, $lat]
-                        )
-                        ->orderBy('distance');
+                if ($this->hasCoordinates($currentUser)) {
+                    return $query->orderBy('distance');
                 }
 
                 return $query->latest('users.created_at');
         }
+    }
+
+    /**
+     * Formule de Haversine appliquée à la table `profiles`.
+     *
+     * `least`/`greatest` bornent l'argument d'acos : sans cette protection,
+     * les arrondis flottants produisent NaN pour deux profils d'une même ville.
+     */
+    protected function haversineExpression(): string
+    {
+        return '(6371 * acos(least(1, greatest(-1, '
+            .'cos(radians(?)) * cos(radians(profiles.latitude)) '
+            .'* cos(radians(profiles.longitude) - radians(?)) '
+            .'+ sin(radians(?)) * sin(radians(profiles.latitude))'
+            .'))))';
+    }
+
+    protected function hasCoordinates(User $user): bool
+    {
+        return $user->profile !== null
+            && $user->profile->latitude !== null
+            && $user->profile->longitude !== null;
     }
 }

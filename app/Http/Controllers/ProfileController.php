@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\ProfileView;
+use App\Services\GeocodingService;
 use App\Services\MatchScoreService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,6 +69,8 @@ class ProfileController extends Controller
         $validated = $request->validated();
         $naughtyInterestIds = $validated['naughty_interest_ids'] ?? [];
         unset($validated['naughty_interest_ids']);
+
+        $validated = $this->resolveCoordinates($validated);
 
         $profile->update($validated);
 
@@ -164,5 +167,44 @@ class ProfileController extends Controller
             'matchScore' => $matchScore,
             'profileOptions' => config('profile-options'),
         ]);
+    }
+
+    /**
+     * Garantit que la ville soumise est accompagnée de coordonnées GPS.
+     *
+     * Le front les fournit via l'autocomplétion, mais on géocode côté serveur
+     * en secours pour qu'un profil ne puisse jamais être enregistré sans
+     * position exploitable par la recherche de proximité.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    protected function resolveCoordinates(array $validated): array
+    {
+        if (! array_key_exists('city', $validated) || blank($validated['city'])) {
+            return $validated;
+        }
+
+        if (filled($validated['latitude'] ?? null) && filled($validated['longitude'] ?? null)) {
+            return $validated;
+        }
+
+        $resolved = app(GeocodingService::class)->resolveCity(
+            $validated['city'],
+            $validated['postal_code'] ?? null
+        );
+
+        if ($resolved === null) {
+            return $validated;
+        }
+
+        $validated['latitude'] = $resolved['latitude'];
+        $validated['longitude'] = $resolved['longitude'];
+
+        if (blank($validated['postal_code'] ?? null)) {
+            $validated['postal_code'] = $resolved['postal_code'];
+        }
+
+        return $validated;
     }
 }

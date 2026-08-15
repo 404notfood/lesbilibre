@@ -487,10 +487,12 @@ export default function Index({
                                                     Vérifiée
                                                 </Badge>
                                             )}
-                                            {user.distance && (
+                                            {user.distance != null && (
                                                 <Badge variant="secondary" className="bg-white/90">
                                                     <MapPin className="h-3 w-3 mr-1" />
-                                                    {Math.round(user.distance)} km
+                                                    {user.distance < 1
+                                                        ? 'Moins d\'1 km'
+                                                        : `${Math.round(user.distance)} km`}
                                                 </Badge>
                                             )}
                                         </div>

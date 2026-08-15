@@ -22,9 +22,9 @@ class DashboardController extends Controller
         // Get search filters
         $filters = [
             'search' => $request->input('search'),
-            'min_age' => $request->input('min_age', $userProfile->min_age_preference ?? 18),
-            'max_age' => $request->input('max_age', $userProfile->max_age_preference ?? 99),
-            'search_radius' => $request->input('search_radius', $userProfile->search_radius ?? 50),
+            'min_age' => $request->input('min_age', $userProfile?->min_age_preference ?? 18),
+            'max_age' => $request->input('max_age', $userProfile?->max_age_preference ?? 99),
+            'search_radius' => $request->input('search_radius', $userProfile?->search_radius ?? 50),
             'sort_by' => $request->input('sort_by', 'distance'), // distance, recent, compatibility
             'quick_filter' => $request->input('quick_filter'), // nearby, online, new, photos
         ];
@@ -85,39 +85,47 @@ class DashboardController extends Controller
         }
 
         // Age filter
+        // On filtre sur date_of_birth : la colonne `age` est souvent NULL en base
+        // et l'âge réel est recalculé par l'accesseur du modèle Profile.
         if ($filters['min_age'] || $filters['max_age']) {
             $query->whereHas('profile', function ($q) use ($filters) {
                 if ($filters['min_age']) {
-                    $q->where('age', '>=', $filters['min_age']);
+                    $q->whereDate('date_of_birth', '<=', now()->subYears((int) $filters['min_age'])->toDateString());
                 }
                 if ($filters['max_age']) {
-                    $q->where('age', '<=', $filters['max_age']);
+                    $q->whereDate('date_of_birth', '>=', now()->subYears((int) $filters['max_age'] + 1)->toDateString());
                 }
             });
         }
 
         // Distance filter (if user has coordinates)
-        if ($userProfile && $userProfile->latitude && $userProfile->longitude) {
-            $lat = $userProfile->latitude;
-            $lng = $userProfile->longitude;
-            $radius = $filters['search_radius'];
+        $hasCoordinates = $userProfile && $userProfile->latitude && $userProfile->longitude;
 
-            // Haversine formula for distance calculation
-            $query->whereHas('profile', function ($q) use ($lat, $lng, $radius) {
-                $q->whereNotNull('latitude')
-                    ->whereNotNull('longitude')
-                    ->whereRaw(
-                        '(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) <= ?',
-                        [$lat, $lng, $lat, $radius]
-                    );
-            });
+        if ($hasCoordinates) {
+            $lat = (float) $userProfile->latitude;
+            $lng = (float) $userProfile->longitude;
+            $radius = (int) $filters['search_radius'];
 
-            // Add distance to results
-            $query->selectRaw(
-                'users.*, (6371 * acos(cos(radians(?)) * cos(radians(profiles.latitude)) * cos(radians(profiles.longitude) - radians(?)) + sin(radians(?)) * sin(radians(profiles.latitude)))) as distance',
-                [$lat, $lng, $lat]
-            )
-                ->join('profiles', 'users.id', '=', 'profiles.user_id');
+            // Une seule jointure sur profiles : le calcul Haversine sert à la fois
+            // à filtrer par rayon et à exposer la colonne `distance`.
+            $haversine = '(6371 * acos(least(1, greatest(-1, '
+                .'cos(radians(?)) * cos(radians(profiles.latitude)) '
+                .'* cos(radians(profiles.longitude) - radians(?)) '
+                .'+ sin(radians(?)) * sin(radians(profiles.latitude))'
+                .'))))';
+
+            $query->join('profiles', 'users.id', '=', 'profiles.user_id')
+                ->select('users.*')
+                ->selectRaw($haversine.' as distance', [$lat, $lng, $lat])
+                ->whereNotNull('profiles.latitude')
+                ->whereNotNull('profiles.longitude')
+                ->whereRaw($haversine.' <= ?', [$lat, $lng, $lat, $radius]);
+        }
+
+        // Trier par distance dès le SQL : sinon le limit(100) retiendrait
+        // 100 profils arbitraires avant que le tri PHP ne s'applique.
+        if ($hasCoordinates && $filters['sort_by'] === 'distance') {
+            $query->orderBy('distance');
         }
 
         // Get profiles first (increase to 100 for more results)
@@ -143,11 +151,9 @@ class DashboardController extends Controller
                 $candidatesWithScore = $candidatesWithScore->sortByDesc('created_at');
                 break;
             case 'distance':
-                if ($userProfile && $userProfile->latitude && $userProfile->longitude) {
-                    $candidatesWithScore = $candidatesWithScore->sortBy('distance');
-                } else {
-                    $candidatesWithScore = $candidatesWithScore->shuffle();
-                }
+                $candidatesWithScore = $hasCoordinates
+                    ? $candidatesWithScore->sortBy('distance')
+                    : $candidatesWithScore->shuffle();
                 break;
             default:
                 $candidatesWithScore = $candidatesWithScore->shuffle();
