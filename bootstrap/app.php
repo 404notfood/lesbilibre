@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\RequestContext::class,
             \App\Http\Middleware\SecureHeaders::class,
             \App\Http\Middleware\CheckNotBanned::class,
+            \App\Http\Middleware\TrackUserPresence::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

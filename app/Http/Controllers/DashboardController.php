@@ -81,7 +81,7 @@ class DashboardController extends Controller
                     $filters['search_radius'] = 10;
                     break;
                 case 'online':
-                    $query->where('last_login_at', '>=', now()->subMinutes(15));
+                    $query->online();
                     break;
                 case 'new':
                     $query->where('users.created_at', '>=', now()->subDays(7));
@@ -194,7 +194,7 @@ class DashboardController extends Controller
                 'bio' => $profile->profile->bio ?? null,
                 'sexual_orientation' => $profile->profile->sexual_orientation ?? null,
                 'primary_photo' => $profile->photos->first()?->viewUrl(thumbnail: true),
-                'is_online' => $profile->last_login_at?->gt(now()->subMinutes(15)) ?? false,
+                'is_online' => $profile->is_online,
                 'is_premium' => $profile->isPremium(),
                 'compatibility_score' => $profile->compatibility_score,
                 'photo_count' => $profile->photos->count(),
@@ -230,7 +230,7 @@ class DashboardController extends Controller
             ->where('id', '!=', $user->id)
             ->where('is_verified', true)
             ->where('is_banned', false)
-            ->where('last_login_at', '>=', now()->subMinutes(15))
+            ->online()
             ->count();
 
         $lastLikeRow = Like::query()

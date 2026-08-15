@@ -306,6 +306,38 @@ class User extends Authenticatable implements MustVerifyEmail
      * Check if user has active premium subscription.
      * A null premium_expires_at means unlimited premium.
      */
+    /** Fenêtre de présence : au-delà, la membre n'est plus considérée en ligne. */
+    public const ONLINE_WINDOW_MINUTES = 15;
+
+    /**
+     * Présence en ligne, basée sur l'activité réelle plutôt que sur la seule
+     * connexion — `last_login_at` sert de repli pour les comptes qui n'ont pas
+     * encore navigué depuis l'ajout du suivi.
+     */
+    public function getIsOnlineAttribute(): bool
+    {
+        $lastSeen = $this->last_activity_at ?? $this->last_login_at;
+
+        return $lastSeen !== null
+            && $lastSeen->gt(now()->subMinutes(self::ONLINE_WINDOW_MINUTES));
+    }
+
+    /**
+     * Restreint la requête aux membres actuellement en ligne.
+     */
+    public function scopeOnline(Builder $query): Builder
+    {
+        $threshold = now()->subMinutes(self::ONLINE_WINDOW_MINUTES);
+
+        return $query->where(function (Builder $q) use ($threshold) {
+            $q->where('last_activity_at', '>=', $threshold)
+                ->orWhere(function (Builder $fallback) use ($threshold) {
+                    $fallback->whereNull('last_activity_at')
+                        ->where('last_login_at', '>=', $threshold);
+                });
+        });
+    }
+
     public function isPremium(): bool
     {
         return $this->is_premium &&
