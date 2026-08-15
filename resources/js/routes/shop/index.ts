@@ -4,7 +4,7 @@ import gifts from './gifts'
 import checkout from './checkout'
 /**
 * @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
+ * @see app/Http/Controllers/ShopController.php:19
  * @route '/shop'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -19,7 +19,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
+ * @see app/Http/Controllers/ShopController.php:19
  * @route '/shop'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -28,7 +28,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
+ * @see app/Http/Controllers/ShopController.php:19
  * @route '/shop'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -37,7 +37,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
+ * @see app/Http/Controllers/ShopController.php:19
  * @route '/shop'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -47,7 +47,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
+ * @see app/Http/Controllers/ShopController.php:19
  * @route '/shop'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -57,7 +57,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
+ * @see app/Http/Controllers/ShopController.php:19
  * @route '/shop'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -66,7 +66,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\ShopController::index
- * @see app/Http/Controllers/ShopController.php:18
+ * @see app/Http/Controllers/ShopController.php:19
  * @route '/shop'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
