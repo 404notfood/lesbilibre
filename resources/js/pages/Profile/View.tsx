@@ -372,7 +372,7 @@ export default function View({
                                                             'oklch(0% 0 0 / 0.55)',
                                                     }}
                                                 >
-                                                    Contenu sensible
+                                                    Contenu coquin
                                                 </span>
                                             )}
                                         </div>

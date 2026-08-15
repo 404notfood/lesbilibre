@@ -122,7 +122,7 @@ export function EphemeralComposer({
                             onChange={(e) => setSensitive(e.target.checked)}
                         />
                         <EyeOff className="h-3.5 w-3.5" />
-                        Contenu sensible
+                        Contenu coquin
                     </label>
 
                     <button
@@ -235,7 +235,7 @@ export function EphemeralBubble({
                         )}
                         {label}
                         {item.is_naughty && (
-                            <EyeOff className="h-3 w-3" aria-label="Contenu sensible" />
+                            <EyeOff className="h-3 w-3" aria-label="Contenu coquin" />
                         )}
                     </span>
 

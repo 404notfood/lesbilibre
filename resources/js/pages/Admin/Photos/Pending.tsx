@@ -156,7 +156,7 @@ function PhotoCard({ photo }: { photo: Photo }) {
                 />
                 {photo.is_naughty && (
                     <div className="absolute left-3 top-3">
-                        <AdminBadge tone="danger">Contenu sensible</AdminBadge>
+                        <AdminBadge tone="danger">Contenu coquin</AdminBadge>
                     </div>
                 )}
             </div>

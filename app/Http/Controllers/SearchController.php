@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\NaughtyInterest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -47,6 +48,9 @@ class SearchController extends Controller
             'max_height' => ['nullable', 'integer', 'min:100', 'max:250'],
             'has_photo' => ['nullable', 'boolean'],
             'is_verified' => ['nullable', 'boolean'],
+            'naughty_mode' => ['nullable', 'boolean'],
+            'naughty_interests' => ['nullable', 'array'],
+            'naughty_interests.*' => ['integer', 'exists:naughty_interests,id'],
             'interests' => ['nullable', 'array'],
             'interests.*' => ['string'],
             'sort_by' => ['nullable', 'in:distance,newest,activity,popular'],
@@ -59,10 +63,16 @@ class SearchController extends Controller
 
         $results = $query->paginate(20)->withQueryString();
 
+        $acceptsNaughty = $this->acceptsNaughtyContent($request->user());
+
         return Inertia::render('Search/Index', [
             'filters' => $filters,
             'results' => $results,
             'profileOptions' => config('profile-options'),
+            'canFilterNaughty' => $acceptsNaughty,
+            'naughtyInterests' => $acceptsNaughty
+                ? NaughtyInterest::query()->orderBy('name')->get(['id', 'name'])
+                : [],
         ]);
     }
 
@@ -181,6 +191,26 @@ class SearchController extends Controller
             });
         }
 
+        // Filtres coquins : réservés aux membres ayant elles-mêmes activé le
+        // mode coquin, pour ne pas révéler ce que leur consentement leur
+        // interdit encore de voir.
+        if ($this->acceptsNaughtyContent($currentUser)) {
+            if (! empty($filters['naughty_mode'])) {
+                $query->whereHas('profile', fn ($q) => $q->where('is_naughty_mode', true));
+            }
+
+            if (! empty($filters['naughty_interests'])) {
+                $query->whereHas('profile', function ($q) use ($filters) {
+                    $q->whereHas(
+                        'naughtyInterests',
+                        fn ($interests) => $interests->whereIn('naughty_interests.id', $filters['naughty_interests']),
+                        '=',
+                        count($filters['naughty_interests'])
+                    );
+                });
+            }
+        }
+
         // Exclude blocked users
         $query->whereNotIn('users.id', function ($subquery) use ($currentUser) {
             $subquery->select('blocked_id')
@@ -242,5 +272,15 @@ class SearchController extends Controller
         return $user->profile !== null
             && $user->profile->latitude !== null
             && $user->profile->longitude !== null;
+    }
+
+    /**
+     * Seules les membres ayant activé leur propre mode coquin peuvent filtrer
+     * sur ce type de contenu — la règle de consentement appliquée aux médias
+     * vaut aussi pour la recherche.
+     */
+    protected function acceptsNaughtyContent(User $user): bool
+    {
+        return (bool) $user->profile?->is_naughty_mode;
     }
 }

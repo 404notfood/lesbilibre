@@ -298,7 +298,7 @@ function FlaggedCard({ medium }: { medium: FlaggedMedia }) {
                             {medium.type === 'video' ? 'Vidéo' : 'Photo'}
                         </AdminBadge>
                         {medium.is_naughty && (
-                            <AdminBadge tone="danger">Sensible</AdminBadge>
+                            <AdminBadge tone="danger">Coquin</AdminBadge>
                         )}
                     </div>
                     <p className="mt-2 text-sm">

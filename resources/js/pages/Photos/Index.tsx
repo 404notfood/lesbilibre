@@ -96,7 +96,7 @@ export default function Index({ photos }: { photos: Photo[] }) {
                         style={{ color: 'var(--ink-mute)' }}
                     >
                         Vos photos sont visibles dès l’ajout. Seule la photo de profil
-                        passe par une validation. Les photos marquées sensibles restent
+                        passe par une validation. Les photos marquées coquines restent
                         floutées pour celles qui n’ont pas activé le mode coquin.
                     </p>
 
@@ -200,7 +200,7 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                         disabled={uploading}
                                     />
                                     <EyeOff className="h-3.5 w-3.5" />
-                                    Photo sensible — floutée jusqu’à accès accordé
+                                    Photo coquine — floutée jusqu’à accès accordé
                                 </label>
 
                                 <input
@@ -315,7 +315,7 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                 className="mt-0.5 text-sm"
                                 style={{ color: 'var(--ink-mute)' }}
                             >
-                                Choisissez qui peut voir vos photos sensibles.
+                                Choisissez qui peut voir vos photos coquines.
                             </p>
                         </div>
                     </div>
@@ -449,7 +449,7 @@ function PhotoTile({ photo }: { photo: Photo }) {
                     <span
                         className="grid h-5 w-5 place-items-center rounded"
                         style={{ background: 'var(--desire)', color: 'white' }}
-                        title="Photo sensible — floutée pour les profils non consentants"
+                        title="Photo coquine — floutée pour les profils non consentants"
                     >
                         <EyeOff className="h-3 w-3" />
                     </span>

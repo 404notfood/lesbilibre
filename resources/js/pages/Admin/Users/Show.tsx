@@ -358,7 +358,7 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                                 >
                                     Images affichées telles qu&apos;envoyées, sans
                                     floutage, pour permettre le jugement. Marquer une
-                                    photo comme sensible la floute côté membres et la
+                                    photo comme coquine la floute côté membres et la
                                     retire de la photo de profil.
                                 </p>
                                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -647,7 +647,7 @@ function AdminPhotoTile({
 
                 <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1">
                     {photo.is_primary && <AdminBadge tone="gold">Profil</AdminBadge>}
-                    {photo.is_naughty && <AdminBadge tone="danger">Sensible</AdminBadge>}
+                    {photo.is_naughty && <AdminBadge tone="danger">Coquine</AdminBadge>}
                     {photo.avatar_requested && (
                         <AdminBadge tone="warning">Demande avatar</AdminBadge>
                     )}
@@ -672,7 +672,7 @@ function AdminPhotoTile({
                         disabled={busy}
                         onClick={toggleSensitivity}
                     >
-                        {photo.is_naughty ? 'Tout public' : 'Sensible'}
+                        {photo.is_naughty ? 'Tout public' : 'Coquine'}
                     </AdminButton>
                     <AdminButton
                         size="sm"
