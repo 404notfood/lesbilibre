@@ -63,6 +63,10 @@ class MatchScoreService
         $age1 = $profile1->age;
         $age2 = $profile2->age;
 
+        if ($age1 === null || $age2 === null) {
+            return 10;
+        }
+
         // Check if ages match preferences
         $match1 = $age2 >= ($profile1->min_age_preference ?? 18)
             && $age2 <= ($profile1->max_age_preference ?? 99);

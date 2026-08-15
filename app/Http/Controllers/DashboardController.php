@@ -216,7 +216,7 @@ class DashboardController extends Controller
         $lastLikeRow = Like::query()
             ->where('liked_user_id', $user->id)
             ->with(['user.profile' => function ($q) {
-                $q->select('user_id', 'age');
+                $q->select('user_id', 'age', 'date_of_birth');
             }])
             ->latest()
             ->first();

@@ -57,7 +57,6 @@ class MatchingService
             ->whereHas('profile', function ($query) use ($profile) {
                 $query->whereNotNull('bio')->whereNotNull('looking_for')->where('is_discoverable', true);
                 // Age preferences
-                $birthYear = now()->year - $profile->date_of_birth->age;
                 $minBirthYear = now()->year - $profile->max_age_preference;
                 $maxBirthYear = now()->year - $profile->min_age_preference;
 

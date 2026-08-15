@@ -81,10 +81,19 @@ class Profile extends Model
 
     /**
      * Get the age of the user.
+     *
+     * Retombe sur la colonne `age` lorsque `date_of_birth` n'est pas chargée
+     * (select partiel) ou absente, plutôt que de lever une erreur.
      */
-    public function getAgeAttribute(): int
+    public function getAgeAttribute(): ?int
     {
-        return $this->date_of_birth->age;
+        if ($this->date_of_birth !== null) {
+            return $this->date_of_birth->age;
+        }
+
+        $storedAge = $this->attributes['age'] ?? null;
+
+        return $storedAge !== null ? (int) $storedAge : null;
     }
 
     /**
