@@ -433,7 +433,7 @@ export default function Index({
                                                 id="has_photo"
                                                 checked={localFilters.has_photo || false}
                                                 onCheckedChange={(checked) =>
-                                                    handleFilterChange('has_photo', checked)
+                                                    handleFilterChange('has_photo', checked === true)
                                                 }
                                             />
                                             <Label htmlFor="has_photo" className="cursor-pointer">
@@ -446,7 +446,7 @@ export default function Index({
                                                 id="is_verified"
                                                 checked={localFilters.is_verified || false}
                                                 onCheckedChange={(checked) =>
-                                                    handleFilterChange('is_verified', checked)
+                                                    handleFilterChange('is_verified', checked === true)
                                                 }
                                             />
                                             <Label htmlFor="is_verified" className="cursor-pointer">
@@ -463,7 +463,7 @@ export default function Index({
                                                         onCheckedChange={(checked) =>
                                                             handleFilterChange(
                                                                 'naughty_mode',
-                                                                checked
+                                                                checked === true
                                                             )
                                                         }
                                                     />
@@ -484,7 +484,7 @@ export default function Index({
                                                         onCheckedChange={(checked) =>
                                                             handleFilterChange(
                                                                 'has_private_gallery',
-                                                                checked
+                                                                checked === true
                                                             )
                                                         }
                                                     />

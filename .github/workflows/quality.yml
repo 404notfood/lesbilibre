@@ -20,6 +20,7 @@ jobs:
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env
+      - run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views
       - run: php artisan key:generate
       - run: php artisan test
 
