@@ -1,7 +1,6 @@
 import DatingLayout from '@/layouts/dating-layout';
 import { Head, router } from '@inertiajs/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Lock, Check, X, Coins } from 'lucide-react';

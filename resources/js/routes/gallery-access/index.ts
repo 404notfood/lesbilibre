@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\GalleryAccessController::index
- * @see app/Http/Controllers/GalleryAccessController.php:19
+ * @see app/Http/Controllers/GalleryAccessController.php:20
  * @route '/gallery-access'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::index
- * @see app/Http/Controllers/GalleryAccessController.php:19
+ * @see app/Http/Controllers/GalleryAccessController.php:20
  * @route '/gallery-access'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::index
- * @see app/Http/Controllers/GalleryAccessController.php:19
+ * @see app/Http/Controllers/GalleryAccessController.php:20
  * @route '/gallery-access'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\GalleryAccessController::index
- * @see app/Http/Controllers/GalleryAccessController.php:19
+ * @see app/Http/Controllers/GalleryAccessController.php:20
  * @route '/gallery-access'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::index
- * @see app/Http/Controllers/GalleryAccessController.php:19
+ * @see app/Http/Controllers/GalleryAccessController.php:20
  * @route '/gallery-access'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::index
- * @see app/Http/Controllers/GalleryAccessController.php:19
+ * @see app/Http/Controllers/GalleryAccessController.php:20
  * @route '/gallery-access'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\GalleryAccessController::index
- * @see app/Http/Controllers/GalleryAccessController.php:19
+ * @see app/Http/Controllers/GalleryAccessController.php:20
  * @route '/gallery-access'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ manage.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     manage.form = manageForm
 /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:36
+ * @see app/Http/Controllers/GalleryAccessController.php:37
  * @route '/gallery-access/request/{userId}'
  */
 export const request = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ request.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:36
+ * @see app/Http/Controllers/GalleryAccessController.php:37
  * @route '/gallery-access/request/{userId}'
  */
 request.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -200,7 +200,7 @@ request.url = (args: { userId: string | number } | [userId: string | number ] | 
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:36
+ * @see app/Http/Controllers/GalleryAccessController.php:37
  * @route '/gallery-access/request/{userId}'
  */
 request.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -210,7 +210,7 @@ request.post = (args: { userId: string | number } | [userId: string | number ] |
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:36
+ * @see app/Http/Controllers/GalleryAccessController.php:37
  * @route '/gallery-access/request/{userId}'
  */
     const requestForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -220,7 +220,7 @@ request.post = (args: { userId: string | number } | [userId: string | number ] |
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:36
+ * @see app/Http/Controllers/GalleryAccessController.php:37
  * @route '/gallery-access/request/{userId}'
  */
         requestForm.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

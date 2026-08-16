@@ -1,7 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import Echo from '@/echo';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { ArrowLeft, Send } from 'lucide-react';

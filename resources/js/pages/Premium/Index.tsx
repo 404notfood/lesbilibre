@@ -22,7 +22,7 @@ import {
     TrendingUp,
     Shield,
     Sparkles,
-    Infinity,
+    Infinity as InfinityIcon,
     Gift
 } from 'lucide-react';
 import { useState } from 'react';
@@ -105,7 +105,7 @@ export default function Index({
             color: 'text-blue-500',
         },
         {
-            icon: Infinity,
+            icon: InfinityIcon,
             title: 'Likes illimités',
             description: 'Like autant de profils que tu veux sans restriction',
             color: 'text-purple-500',

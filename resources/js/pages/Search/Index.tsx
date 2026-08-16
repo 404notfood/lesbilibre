@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -21,7 +20,6 @@ import {
     Heart,
     Filter,
     X,
-    Sparkles,
     SlidersHorizontal,
     CheckCircle2,
 } from 'lucide-react';
@@ -74,6 +72,13 @@ interface Filters {
     sort_by?: string;
 }
 
+/** Filters are plain scalars and string arrays, so they map directly to a query string. */
+function toQuery(filters: Filters): Record<string, string | number | boolean | string[]> {
+    return Object.fromEntries(
+        Object.entries(filters).filter(([, value]) => value !== undefined),
+    );
+}
+
 interface ProfileOptions {
     sexual_orientation: Record<string, string>;
     relationship_status: Record<string, string>;
@@ -105,10 +110,13 @@ export default function Index({
 
     const handleSearch = (e?: React.FormEvent) => {
         e?.preventDefault();
-        router.get('/search', localFilters as any, { preserveState: true });
+        router.get('/search', toQuery(localFilters), { preserveState: true });
     };
 
-    const handleFilterChange = (key: string, value: any) => {
+    const handleFilterChange = <K extends keyof Filters>(
+        key: K,
+        value: Filters[K],
+    ) => {
         setLocalFilters({ ...localFilters, [key]: value });
     };
 
@@ -146,7 +154,10 @@ export default function Index({
                                 value={localFilters.sort_by || 'distance'}
                                 onValueChange={(value) => {
                                     setLocalFilters({ ...localFilters, sort_by: value });
-                                    router.get('/search', { ...localFilters, sort_by: value } as any);
+                                    router.get(
+                                        '/search',
+                                        toQuery({ ...localFilters, sort_by: value }),
+                                    );
                                 }}
                             >
                                 <SelectTrigger className="w-48">

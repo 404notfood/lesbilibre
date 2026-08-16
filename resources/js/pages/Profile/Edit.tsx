@@ -75,7 +75,7 @@ interface EditProps {
         children: Record<string, string>;
         wants_children: Record<string, string>;
     };
-    errors?: any;
+    errors?: Record<string, string>;
 }
 
 export default function Edit({

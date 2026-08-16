@@ -238,7 +238,6 @@ export default function Dashboard({
                 <EditorialHero
                     dayName={dayName}
                     dayPart={dayPart}
-                    dayPartPhrase={dayPartPhrase}
                     heroCopy={heroCopy}
                     onlineCount={onlineCount}
                     signals={liveSignals}
@@ -402,7 +401,6 @@ function HighlightedTitle({ text }: { text: string }): JSX.Element {
 function EditorialHero({
     dayName,
     dayPart,
-    dayPartPhrase,
     heroCopy,
     onlineCount,
     signals,
@@ -410,7 +408,6 @@ function EditorialHero({
 }: {
     dayName: string;
     dayPart: string;
-    dayPartPhrase: string;
     heroCopy: HeroCopyText;
     onlineCount: number;
     signals: LiveSignals;

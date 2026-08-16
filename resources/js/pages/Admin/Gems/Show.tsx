@@ -21,7 +21,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Coins, Minus, Plus, Sparkles, UserCog } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 

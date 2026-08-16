@@ -99,14 +99,12 @@ export default function AdminLayout({
     hideSearch = false,
     children,
 }: PropsWithChildren<AdminLayoutProps>) {
-    const { auth, adminAlerts } = usePage<AdminPageProps>().props;
+    const page = usePage<AdminPageProps>();
+    const { auth, adminAlerts } = page.props;
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
-    const [currentPath, setCurrentPath] = useState('');
 
-    // Évite toute divergence SSR / client : on résout le chemin après montage.
-    useEffect(() => {
-        setCurrentPath(window.location.pathname);
-    }, []);
+    // Inertia expose l'URL courante : pas de divergence SSR / client.
+    const currentPath = page.url.split('?')[0];
 
     const pendingPhotos = adminAlerts?.pending_photos ?? 0;
     const pendingVerifications = adminAlerts?.pending_verifications ?? 0;

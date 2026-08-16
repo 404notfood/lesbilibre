@@ -17,6 +17,7 @@ interface Photo {
     url: string;
     is_primary: boolean;
     is_naughty: boolean;
+    is_approved: boolean;
 }
 
 interface Profile {
@@ -52,7 +53,6 @@ interface UserData {
  * -------------------------------------------------------------------------*/
 export default function Show({ user }: { user: UserData }) {
     const primaryPhoto = user.photos.find((p) => p.is_primary) || user.photos[0];
-    const otherPhotos = user.photos.filter((p) => p.id !== primaryPhoto?.id);
     const initials = user.name.slice(0, 2).toUpperCase();
 
     return (

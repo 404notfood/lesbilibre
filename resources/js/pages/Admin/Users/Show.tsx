@@ -5,7 +5,6 @@ import AdminLayout, {
     AdminCardHeader,
     AdminEmpty,
     AdminMeta,
-    AdminSectionTitle,
 } from '@/layouts/admin-layout';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -28,13 +27,12 @@ import {
     Flag,
     Heart,
     Image as ImageIcon,
-    MessageCircle,
     Send,
     ShieldBan,
     Sparkles,
     Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface AdminPhoto {
     id: number;
@@ -94,6 +92,12 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
     const [showPremiumDialog, setShowPremiumDialog] = useState(false);
     const [banReason, setBanReason] = useState('');
     const [premiumExpiresAt, setPremiumExpiresAt] = useState('');
+
+    /** Une date de fin de premium ne peut pas être antérieure à demain. */
+    const minPremiumExpiresAt = useMemo(
+        () => new Date(Date.now() + 86400000).toISOString().split('T')[0],
+        [],
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleBan = () => {
@@ -417,11 +421,7 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                             type="date"
                             value={premiumExpiresAt}
                             onChange={(event) => setPremiumExpiresAt(event.target.value)}
-                            min={
-                                new Date(Date.now() + 86400000)
-                                    .toISOString()
-                                    .split('T')[0]
-                            }
+                            min={minPremiumExpiresAt}
                         />
                     </div>
                     <DialogFooter>

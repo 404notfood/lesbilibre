@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import AuthLayout from '@/layouts/auth-layout';
+import PublicLayout from '@/layouts/public-layout';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
@@ -149,7 +149,7 @@ export default function Faq() {
     ];
 
     return (
-        <AuthLayout>
+        <PublicLayout>
             <Head title="FAQ" />
 
             <div className="mx-auto max-w-4xl px-4 py-12">
@@ -214,6 +214,6 @@ export default function Faq() {
                     </div>
                 </div>
             </div>
-        </AuthLayout>
+        </PublicLayout>
     );
 }

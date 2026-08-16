@@ -437,7 +437,9 @@ export default function DatingLayout({
                                         <BellRing className="h-4 w-4" />
                                     </button>
                                 )}
-                            <NotificationBell userId={auth.user.id} />
+                            {auth.user?.id !== undefined && (
+                                <NotificationBell userId={auth.user.id} />
+                            )}
                             <Link
                                 href="/logout"
                                 method="post"

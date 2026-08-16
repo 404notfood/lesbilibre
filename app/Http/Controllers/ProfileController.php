@@ -24,7 +24,6 @@ class ProfileController extends Controller
             'user' => $user,
             'profile' => $user->profile,
             'photos' => $user->photos()
-                ->where('is_approved', true)
                 ->orderBy('order')
                 ->get()
                 ->map(fn (\App\Models\Photo $photo) => [
@@ -32,6 +31,7 @@ class ProfileController extends Controller
                     'url' => $photo->viewUrl(),
                     'is_primary' => $photo->is_primary,
                     'is_naughty' => $photo->is_naughty,
+                    'is_approved' => $photo->is_approved,
                 ]),
         ]);
     }

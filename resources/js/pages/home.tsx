@@ -491,7 +491,7 @@ function Voices(): JSX.Element {
             where: 'Bordeaux · 43 ans',
             tone: 'lilac',
         },
-    ];
+    ] as const;
 
     return (
         <section id="voices" className="relative bg-card/30 py-32 md:py-48">

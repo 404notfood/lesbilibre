@@ -135,11 +135,6 @@ export function CityAutocomplete({
         onCitySelect?.(city.nom, lat, lng);
     };
 
-    const formatCityDisplay = (city: City): string => {
-        const codePostal = city.codesPostaux?.[0] || '';
-        return `${city.nom} (${codePostal})`;
-    };
-
     return (
         <div ref={wrapperRef} className="relative space-y-2">
             {label && (

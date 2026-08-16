@@ -63,7 +63,9 @@ export default function PhotoLightbox({
         onNavigate((index + 1) % count);
     }, [index, count, onNavigate]);
 
-    // Chaque changement d'image relance l'indicateur de chargement.
+    // Chaque changement d'image relance l'indicateur de chargement : l'état
+    // suit la prop `index`, remis à zéro avant le chargement de la nouvelle image.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setLoading(true);
     }, [index]);

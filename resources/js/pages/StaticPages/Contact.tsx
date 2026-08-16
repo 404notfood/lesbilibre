@@ -1,12 +1,12 @@
 import { Head } from '@inertiajs/react';
-import AuthLayout from '@/layouts/auth-layout';
+import PublicLayout from '@/layouts/public-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, MessageCircle, Shield, HelpCircle } from 'lucide-react';
 
 export default function Contact() {
     return (
-        <AuthLayout>
+        <PublicLayout>
             <Head title="Contact" />
 
             <div className="mx-auto max-w-4xl px-4 py-12">
@@ -140,6 +140,6 @@ export default function Contact() {
                     </Card>
                 </div>
             </div>
-        </AuthLayout>
+        </PublicLayout>
     );
 }

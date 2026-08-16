@@ -16,7 +16,6 @@ import {
     Clock,
 } from 'lucide-react';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 
 interface VerificationStatus {
     has_pending?: boolean;

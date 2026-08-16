@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
-import AuthLayout from '@/layouts/auth-layout';
+import PublicLayout from '@/layouts/public-layout';
 
 export default function Privacy() {
     return (
-        <AuthLayout>
+        <PublicLayout>
             <Head title="Politique de confidentialité" />
 
             <div className="mx-auto max-w-4xl px-4 py-12">
@@ -157,6 +157,6 @@ export default function Privacy() {
                     </section>
                 </div>
             </div>
-        </AuthLayout>
+        </PublicLayout>
     );
 }

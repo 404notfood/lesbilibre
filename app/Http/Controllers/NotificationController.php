@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,9 +45,59 @@ class NotificationController extends Controller
             ->count();
 
         return response()->json([
-            'notifications' => $notifications,
+            'notifications' => $this->presentNotifications($notifications),
             'unreadCount' => $unreadCount,
         ]);
+    }
+
+    /**
+     * Projette les notifications dans la forme attendue par la cloche du layout.
+     *
+     * L'émettrice n'est pas une relation : elle vit dans `data.sender_id`. Sans
+     * ce champ `user` reconstruit, le composant lit `notification.user.id` sur
+     * `undefined` et fait tomber tout le layout.
+     *
+     * @param  \Illuminate\Support\Collection<int, Notification>  $notifications
+     * @return array<int, array{id: int, type: string, message: string, user: array{id: int, name: string, photo: string|null}, created_at: string}>
+     */
+    private function presentNotifications(\Illuminate\Support\Collection $notifications): array
+    {
+        $senderIds = $notifications
+            ->map(fn (Notification $notification): mixed => $notification->data['sender_id'] ?? null)
+            ->filter()
+            ->unique();
+
+        $senders = User::whereIn('id', $senderIds)
+            ->with(['photos' => fn ($query) => $query->where('is_approved', true)->limit(1)])
+            ->get()
+            ->keyBy('id');
+
+        return $notifications
+            ->map(function (Notification $notification) use ($senders): ?array {
+                $sender = $senders->get($notification->data['sender_id'] ?? null);
+
+                // Une notification dont l'émettrice a supprimé son compte n'a
+                // plus rien à afficher : on la retire plutôt que d'exposer un
+                // profil fantôme cliquable.
+                if (! $sender instanceof User) {
+                    return null;
+                }
+
+                return [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'message' => $notification->message,
+                    'user' => [
+                        'id' => $sender->id,
+                        'name' => $sender->name,
+                        'photo' => $sender->photos->first()?->viewUrl(thumbnail: true),
+                    ],
+                    'created_at' => $notification->created_at->toISOString(),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 
     public function markAsRead(Request $request, Notification $notification): RedirectResponse

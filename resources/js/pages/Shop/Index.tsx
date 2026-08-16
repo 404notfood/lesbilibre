@@ -8,7 +8,6 @@ import {
     Sparkles,
     Coins,
     Gift,
-    Heart,
     Star,
     Crown,
     Zap,
@@ -33,6 +32,15 @@ interface GiftItem {
     popular?: boolean;
 }
 
+/** Shape served by ShopController from config/gifts.php. */
+interface BackendGift {
+    id: number;
+    emoji: string;
+    name: string;
+    price: number;
+    category: GiftItem['category'];
+}
+
 interface GiftRecipient {
     id: number;
     name: string;
@@ -50,7 +58,7 @@ interface GemPackage {
 interface Props {
     userGems: number;
     gemPackages: GemPackage[];
-    gifts: any[];
+    gifts: BackendGift[];
     giftRecipient?: GiftRecipient | null;
 }
 
@@ -66,7 +74,7 @@ export default function Index({
     const [isSending, setIsSending] = useState(false);
 
     // Mapper les cadeaux du backend au format attendu par le frontend
-    const gifts: GiftItem[] = backendGifts.map((gift: any) => ({
+    const gifts: GiftItem[] = backendGifts.map((gift) => ({
         id: gift.id,
         emoji: gift.emoji,
         name: gift.name,

@@ -5,7 +5,9 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-export function resolveUrl(url: string | { url: string } | (() => { url: string })): string {
+type ResolvableUrl = string | { url: string } | (() => { url: string });
+
+export function resolveUrl(url: ResolvableUrl): string {
     if (typeof url === 'string') {
         return url;
     }
@@ -15,7 +17,7 @@ export function resolveUrl(url: string | { url: string } | (() => { url: string 
     return url.url;
 }
 
-export function isSameUrl(url1: string, url2: string): boolean {
-    const normalize = (url: string) => url.replace(/\/$/, '');
+export function isSameUrl(url1: ResolvableUrl, url2: ResolvableUrl): boolean {
+    const normalize = (url: ResolvableUrl) => resolveUrl(url).replace(/\/$/, '');
     return normalize(url1) === normalize(url2);
 }

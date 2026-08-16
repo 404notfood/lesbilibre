@@ -1,7 +1,7 @@
 import DatingLayout from '@/layouts/dating-layout';
 import { Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Shield, UserX } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';

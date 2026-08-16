@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export function CookieConsent() {
-    const [visible, setVisible] = useState(false);
+    const [visible, setVisible] = useState(
+        () =>
+            typeof document !== 'undefined' &&
+            !document.cookie.includes('cookie_preferences='),
+    );
 
-    useEffect(() => setVisible(!document.cookie.includes('cookie_preferences=')), []);
     if (!visible) return null;
 
     const setPreference = (value: 'essential' | 'all') => {

@@ -48,6 +48,68 @@ class NotificationsPageTest extends TestCase
             );
     }
 
+    public function test_unread_endpoint_exposes_the_sender_expected_by_the_bell(): void
+    {
+        $user = User::factory()->create();
+        $sender = User::factory()->create(['name' => 'Camille']);
+
+        Notification::createNotification(
+            $user->id,
+            'like',
+            'Nouveau like',
+            'Camille vous a likée.',
+            ['sender_id' => $sender->id]
+        );
+
+        $response = $this->actingAs($user)
+            ->getJson(route('notifications.unread'))
+            ->assertOk()
+            ->assertJsonPath('unreadCount', 1)
+            ->assertJsonCount(1, 'notifications');
+
+        $notification = $response->json('notifications.0');
+
+        $this->assertSame($sender->id, $notification['user']['id']);
+        $this->assertSame('Camille', $notification['user']['name']);
+        $this->assertArrayHasKey('photo', $notification['user']);
+        $this->assertSame('like', $notification['type']);
+    }
+
+    public function test_unread_endpoint_skips_notifications_without_a_resolvable_sender(): void
+    {
+        $user = User::factory()->create();
+        $sender = User::factory()->create();
+
+        // Ancienne payload, sans `sender_id` : c'est elle qui faisait lire
+        // `user.id` sur `undefined` et cassait tout le layout.
+        Notification::createNotification($user->id, 'like', 'Nouveau like', 'Message.');
+
+        Notification::createNotification(
+            $user->id,
+            'like',
+            'Nouveau like',
+            'Message.',
+            ['sender_id' => $sender->id]
+        );
+
+        $deletedSenderId = User::factory()->create()->id;
+        Notification::createNotification(
+            $user->id,
+            'match',
+            'Nouveau match',
+            'Message.',
+            ['sender_id' => $deletedSenderId]
+        );
+        User::whereKey($deletedSenderId)->delete();
+
+        $response = $this->actingAs($user)
+            ->getJson(route('notifications.unread'))
+            ->assertOk()
+            ->assertJsonCount(1, 'notifications');
+
+        $this->assertSame($sender->id, $response->json('notifications.0.user.id'));
+    }
+
     public function test_user_can_mark_a_notification_as_read(): void
     {
         $user = User::factory()->create();

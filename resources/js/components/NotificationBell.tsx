@@ -38,11 +38,17 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
 
+    // La cloche est montée dans le layout : une notification mal formée (émettrice
+    // supprimée, payload d'une ancienne version) ferait tomber toutes les pages.
+    // On écarte ici tout ce qui n'est pas affichable.
+    const isRenderable = (notification: Notification | null | undefined): boolean =>
+        Boolean(notification?.user?.id && notification.user.name);
+
     const fetchNotifications = async (): Promise<void> => {
         try {
             const response = await fetch('/notifications/unread');
             const data = await response.json();
-            setNotifications(data.notifications || []);
+            setNotifications((data.notifications ?? []).filter(isRenderable));
             setUnreadCount(data.unreadCount || 0);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
@@ -50,19 +56,23 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     };
 
     useEffect(() => {
+        // Chargement initial depuis l'API, puis abonnement aux évènements temps réel.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchNotifications();
 
         const channel = Echo.private(`App.Models.User.${userId}`);
 
-        channel.listen('.LikeReceived', (data: Notification) => {
-            setNotifications((prev) => [data, ...prev].slice(0, 10));
-            setUnreadCount((prev) => prev + 1);
-        });
+        const pushNotification = (data: Notification): void => {
+            if (! isRenderable(data)) {
+                return;
+            }
 
-        channel.listen('.MatchCreated', (data: Notification) => {
             setNotifications((prev) => [data, ...prev].slice(0, 10));
             setUnreadCount((prev) => prev + 1);
-        });
+        };
+
+        channel.listen('.LikeReceived', pushNotification);
+        channel.listen('.MatchCreated', pushNotification);
 
         return () => {
             channel.stopListening('.LikeReceived');

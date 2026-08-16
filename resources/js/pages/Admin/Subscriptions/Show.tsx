@@ -14,7 +14,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     AlertTriangle,
     CalendarPlus,
@@ -25,7 +25,7 @@ import {
     User as UserIcon,
     XCircle,
 } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 
 interface Subscription {
     id: number;
@@ -107,11 +107,16 @@ export default function Show({ subscription }: { subscription: Subscription }) {
     };
 
     const isStripe = Boolean(subscription.stripe_subscription_id);
-    const daysLeft = subscription.expires_at
-        ? Math.ceil(
-              (new Date(subscription.expires_at).getTime() - Date.now()) / 86400000,
-          )
-        : null;
+    const daysLeft = useMemo(
+        () =>
+            subscription.expires_at
+                ? Math.ceil(
+                      (new Date(subscription.expires_at).getTime() - Date.now()) /
+                          86400000,
+                  )
+                : null,
+        [subscription.expires_at],
+    );
     const isStale =
         subscription.status === 'active' && daysLeft !== null && daysLeft < 0;
 

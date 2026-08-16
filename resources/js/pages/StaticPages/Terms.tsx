@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
-import AuthLayout from '@/layouts/auth-layout';
+import PublicLayout from '@/layouts/public-layout';
 
 export default function Terms() {
     return (
-        <AuthLayout>
+        <PublicLayout>
             <Head title="Conditions d'utilisation" />
 
             <div className="mx-auto max-w-4xl px-4 py-12">
@@ -181,6 +181,6 @@ export default function Terms() {
                     </p>
                 </div>
             </div>
-        </AuthLayout>
+        </PublicLayout>
     );
 }

@@ -1,7 +1,6 @@
 import DatingLayout from '@/layouts/dating-layout';
 import { Head, Link } from '@inertiajs/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +10,6 @@ import {
     Gift,
     Star,
     Trophy,
-    TrendingUp,
     MessageCircle,
     Sparkles,
     Crown,
@@ -58,7 +56,7 @@ export default function Index({
     activities = [],
     visits = [],
     likes_received = [],
-    likes_sent = [],
+    likes_sent: _likes_sent = [],
     matches = [],
     top_users = [],
 }: Props) {

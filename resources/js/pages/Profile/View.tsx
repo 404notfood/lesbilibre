@@ -89,7 +89,7 @@ interface ProfileOptions {
 export default function View({
     user,
     photos = [],
-    viewerAcceptsNaughty = false,
+    viewerAcceptsNaughty: _viewerAcceptsNaughty = false,
     gallery = null,
     hasLiked,
     hasMatched,

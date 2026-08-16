@@ -4,7 +4,13 @@ import AdminLayout, {
     AdminSectionTitle,
 } from '@/layouts/admin-layout';
 import { Head, router, useForm } from '@inertiajs/react';
-import { Dialog } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -212,36 +218,36 @@ export default function Edit({ page }: { page: StaticPage }) {
             </div>
 
             {/* Delete Dialog */}
-            {showDeleteDialog && (
-                <Dialog open={showDeleteDialog} onClose={() => setShowDeleteDialog(false)}>
-                    <div className="p-6">
-                        <h2
-                            className="font-display mb-4 text-2xl font-medium"
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle
+                            className="font-display text-2xl font-medium"
                             style={{ color: 'var(--ink)' }}
                         >
                             Supprimer la page
-                        </h2>
-                        <p
-                            className="mb-4 text-sm"
+                        </DialogTitle>
+                        <DialogDescription
+                            className="text-sm"
                             style={{ color: 'var(--ink-soft)' }}
                         >
                             Êtes-vous sûre de vouloir supprimer définitivement cette page ?
                             Cette action est irréversible.
-                        </p>
-                        <div className="flex gap-2">
-                            <AdminButton onClick={handleDelete} variant="danger">
-                                Supprimer définitivement
-                            </AdminButton>
-                            <AdminButton
-                                onClick={() => setShowDeleteDialog(false)}
-                                variant="default"
-                            >
-                                Annuler
-                            </AdminButton>
-                        </div>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-2">
+                        <AdminButton onClick={handleDelete} variant="danger">
+                            Supprimer définitivement
+                        </AdminButton>
+                        <AdminButton
+                            onClick={() => setShowDeleteDialog(false)}
+                            variant="default"
+                        >
+                            Annuler
+                        </AdminButton>
                     </div>
-                </Dialog>
-            )}
+                </DialogContent>
+            </Dialog>
         </AdminLayout>
     );
 }

@@ -1,4 +1,3 @@
-import AppLogo from '@/components/app-logo';
 import { Link } from '@inertiajs/react';
 import { Heart, Sparkles } from 'lucide-react';
 

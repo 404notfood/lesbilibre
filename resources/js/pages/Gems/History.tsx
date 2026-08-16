@@ -1,7 +1,7 @@
 import DatingLayout from '@/layouts/dating-layout';
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gem, TrendingUp, TrendingDown, Gift, Star, Heart, Zap } from 'lucide-react';
+import { Gem, TrendingUp, Gift, Star, Heart, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
