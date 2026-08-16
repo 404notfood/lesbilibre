@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Bell, Heart, Users, Check } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
 import { getEcho } from '@/echo';
@@ -33,6 +33,9 @@ interface NotificationBellProps {
     userId: number;
 }
 
+const isRenderable = (notification: Notification | null | undefined): boolean =>
+    Boolean(notification?.user?.id && notification.user.name);
+
 export default function NotificationBell({ userId }: NotificationBellProps) {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -41,10 +44,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     // La cloche est montée dans le layout : une notification mal formée (émettrice
     // supprimée, payload d'une ancienne version) ferait tomber toutes les pages.
     // On écarte ici tout ce qui n'est pas affichable.
-    const isRenderable = (notification: Notification | null | undefined): boolean =>
-        Boolean(notification?.user?.id && notification.user.name);
-
-    const fetchNotifications = async (): Promise<void> => {
+    const fetchNotifications = useCallback(async (): Promise<void> => {
         try {
             const response = await fetch('/notifications/unread');
             const data = await response.json();
@@ -53,7 +53,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         }
-    };
+    }, []);
 
     useEffect(() => {
         // Chargement initial depuis l'API, puis abonnement aux évènements temps réel.
@@ -87,7 +87,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
             channel.stopListening('.MatchCreated');
             echo.leave(`App.Models.User.${userId}`);
         };
-    }, [userId]);
+    }, [userId, fetchNotifications]);
 
     const markAllAsRead = () => {
         router.post('/notifications/mark-all-read', {}, {

@@ -32,7 +32,7 @@ import {
     Sparkles,
     Trash2,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 interface AdminPhoto {
     id: number;
@@ -94,9 +94,8 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
     const [premiumExpiresAt, setPremiumExpiresAt] = useState('');
 
     /** Une date de fin de premium ne peut pas être antérieure à demain. */
-    const minPremiumExpiresAt = useMemo(
-        () => new Date(Date.now() + 86400000).toISOString().split('T')[0],
-        [],
+    const [minPremiumExpiresAt] = useState(() =>
+        new Date(Date.now() + 86400000).toISOString().split('T')[0],
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
 

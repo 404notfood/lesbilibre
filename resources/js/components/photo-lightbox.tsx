@@ -43,7 +43,7 @@ export default function PhotoLightbox({
     const isOpen = index !== null;
     const dialogRef = useRef<HTMLDivElement>(null);
     const touchStartX = useRef<number | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loadedItemId, setLoadedItemId] = useState<LightboxItem['id'] | null>(null);
 
     const count = items.length;
 
@@ -62,13 +62,6 @@ export default function PhotoLightbox({
 
         onNavigate((index + 1) % count);
     }, [index, count, onNavigate]);
-
-    // Chaque changement d'image relance l'indicateur de chargement : l'état
-    // suit la prop `index`, remis à zéro avant le chargement de la nouvelle image.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    useEffect(() => {
-        setLoading(true);
-    }, [index]);
 
     // Clavier : navigation, fermeture, et piège à focus pour ne pas tabuler
     // dans la page située derrière la visionneuse.
@@ -164,6 +157,8 @@ export default function PhotoLightbox({
         return null;
     }
 
+    const loading = loadedItemId !== item.id;
+
     return createPortal(
         <div
             ref={dialogRef}
@@ -257,7 +252,7 @@ export default function PhotoLightbox({
                         controlsList="nodownload"
                         onClick={(event) => event.stopPropagation()}
                         onContextMenu={(event) => event.preventDefault()}
-                        onLoadedData={() => setLoading(false)}
+                        onLoadedData={() => setLoadedItemId(item.id)}
                         className={cn(
                             'max-h-full max-w-full rounded-lg transition-opacity duration-200',
                             loading ? 'opacity-0' : 'opacity-100',
@@ -271,7 +266,7 @@ export default function PhotoLightbox({
                         draggable={false}
                         onClick={(event) => event.stopPropagation()}
                         onContextMenu={(event) => event.preventDefault()}
-                        onLoad={() => setLoading(false)}
+                        onLoad={() => setLoadedItemId(item.id)}
                         className={cn(
                             'max-h-full max-w-full select-none rounded-lg object-contain transition-opacity duration-200',
                             loading ? 'opacity-0' : 'opacity-100',
