@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Bell, Heart, Users, Check } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
-import Echo from '@/echo';
+import { getEcho } from '@/echo';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -60,7 +60,15 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchNotifications();
 
-        const channel = Echo.private(`App.Models.User.${userId}`);
+        // Temps réel non configuré : la cloche reste alimentée par le fetch
+        // initial, sans websocket.
+        const echo = getEcho();
+
+        if (echo === null) {
+            return;
+        }
+
+        const channel = echo.private(`App.Models.User.${userId}`);
 
         const pushNotification = (data: Notification): void => {
             if (! isRenderable(data)) {
@@ -77,7 +85,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
         return () => {
             channel.stopListening('.LikeReceived');
             channel.stopListening('.MatchCreated');
-            Echo.leave(`App.Models.User.${userId}`);
+            echo.leave(`App.Models.User.${userId}`);
         };
     }, [userId]);
 

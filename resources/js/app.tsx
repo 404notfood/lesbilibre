@@ -7,7 +7,6 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import { Toaster } from './components/ui/toaster';
 import { CookieConsent } from './components/cookie-consent';
-import './echo';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import Echo from '@/echo';
+import { getEcho } from '@/echo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
@@ -99,8 +99,16 @@ export default function Show({
 
     // Réception des messages en temps réel via le canal privé de la conversation
     useEffect(() => {
+        // Sans temps réel configuré, les messages restent visibles au
+        // rechargement : on dégrade plutôt que de casser la conversation.
+        const echo = getEcho();
+
+        if (echo === null) {
+            return;
+        }
+
         const channelName = `conversation.${conversation.id}`;
-        const channel = Echo.private(channelName);
+        const channel = echo.private(channelName);
 
         channel.listen('.MessageSent', (data: Message) => {
             setLocalMessages((prev) =>
@@ -110,7 +118,7 @@ export default function Show({
 
         return () => {
             channel.stopListening('.MessageSent');
-            Echo.leave(channelName);
+            echo.leave(channelName);
         };
     }, [conversation.id]);
 
