@@ -17,20 +17,10 @@ fi
 
 DEPLOY_REMOTE="${DEPLOY_REMOTE:-origin}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
-WEBSOCKET_RESTART_COMMAND="${WEBSOCKET_RESTART_COMMAND:-}"
 RESTART_QUEUE="${RESTART_QUEUE:-1}"
+RESTART_REVERB="${RESTART_REVERB:-1}"
 PRUNE_NPM_DEV_DEPENDENCIES="${PRUNE_NPM_DEV_DEPENDENCIES:-0}"
 MAINTENANCE_MODE=0
-
-if [[ -n "${PM2_BIN:-}" ]]; then
-    PM2_BIN="$PM2_BIN"
-elif command -v pm2 >/dev/null 2>&1; then
-    PM2_BIN="$(command -v pm2)"
-elif [[ -x "$HOME/.local/bin/pm2" ]]; then
-    PM2_BIN="$HOME/.local/bin/pm2"
-else
-    PM2_BIN=""
-fi
 
 log() {
     printf '\n\033[1;34m==> %s\033[0m\n' "$1"
@@ -117,23 +107,17 @@ log "Optimisation de Laravel"
 php artisan optimize
 
 if [[ "$RESTART_QUEUE" == "1" ]]; then
-    if [[ -n "$PM2_BIN" && -x "$PM2_BIN" && -f ecosystem.config.cjs ]]; then
-        log "Redemarrage du worker Laravel avec PM2"
-        "$PM2_BIN" startOrReload ecosystem.config.cjs --only laravel-queue --update-env
-    else
-        log "Signal de redemarrage des workers Laravel"
-        php artisan queue:restart
-    fi
+    log "Signal de redemarrage des workers Laravel"
+    php artisan queue:restart
 fi
 
-if [[ -n "$WEBSOCKET_RESTART_COMMAND" ]]; then
-    log "Redemarrage du serveur WebSocket"
-    bash -lc "$WEBSOCKET_RESTART_COMMAND"
-elif php artisan list --raw 2>/dev/null | grep -q '^reverb:restart'; then
-    log "Redemarrage de Laravel Reverb"
-    php artisan reverb:restart
-else
-    warn "Aucun redemarrage WebSocket configure (normal avec Pusher Cloud)."
+if [[ "$RESTART_REVERB" == "1" ]]; then
+    if php artisan list --raw 2>/dev/null | grep -q '^reverb:restart'; then
+        log "Signal de redemarrage de Laravel Reverb"
+        php artisan reverb:restart
+    else
+        fail "La commande reverb:restart est absente. Verifiez laravel/reverb."
+    fi
 fi
 
 log "Desactivation du mode maintenance"
