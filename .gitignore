@@ -30,4 +30,5 @@
 .DS_Store
 Thumbs.db
 /nginx/
+/certbot/conf/
 /.pull.env

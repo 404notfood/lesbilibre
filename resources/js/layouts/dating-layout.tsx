@@ -18,6 +18,7 @@ import {
     ShoppingBag,
     Sparkles,
     User,
+    UserPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -145,6 +146,7 @@ export default function DatingLayout({
                   },
               ]),
         { icon: Shield, label: 'Badges', href: '/badges' },
+        { icon: UserPlus, label: 'Inviter une amie', href: '/referrals' },
         { icon: ShoppingBag, label: 'Boutique', href: '/shop' },
     ];
 

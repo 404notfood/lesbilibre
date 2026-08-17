@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Models\Referral;
 use App\Models\User;
 
 class NotificationService
@@ -152,6 +153,25 @@ class NotificationService
             'data' => [
                 'owner_id' => $ownerId,
                 'status' => 'rejected',
+            ],
+        ]);
+    }
+
+    public function notifyReferralReward(
+        User $referrer,
+        User $referredUser,
+        int $reward,
+        Referral $referral,
+    ): void {
+        Notification::create([
+            'user_id' => $referrer->id,
+            'type' => 'referral_reward',
+            'title' => 'Parrainage validé',
+            'message' => "{$referredUser->pseudo} a été vérifiée : vous gagnez {$reward} gemmes.",
+            'data' => [
+                'referral_id' => $referral->id,
+                'referred_user_id' => $referredUser->id,
+                'reward' => $reward,
             ],
         ]);
     }

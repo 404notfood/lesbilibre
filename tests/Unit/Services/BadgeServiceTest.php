@@ -3,8 +3,6 @@
 namespace Tests\Unit\Services;
 
 use App\Models\Badge;
-use App\Models\Like;
-use App\Models\Message;
 use App\Models\Photo;
 use App\Models\Profile;
 use App\Models\User;

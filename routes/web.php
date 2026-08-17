@@ -106,6 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Premium and gem account
     Route::get('stats', [\App\Http\Controllers\StatsController::class, 'index'])->name('stats.index');
+    Route::get('referrals', [\App\Http\Controllers\ReferralController::class, 'index'])->name('referrals.index');
     Route::get('gems/history', [\App\Http\Controllers\GemHistoryController::class, 'index'])->name('gems.history');
 
     // Private gallery permissions
@@ -204,6 +205,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('gems/{user}', [\App\Http\Controllers\Admin\GemController::class, 'show'])->name('gems.show');
         Route::post('gems/{user}/add', [\App\Http\Controllers\Admin\GemController::class, 'add'])->name('gems.add');
         Route::post('gems/{user}/remove', [\App\Http\Controllers\Admin\GemController::class, 'remove'])->name('gems.remove');
+
+        Route::get('referrals', [\App\Http\Controllers\Admin\ReferralController::class, 'index'])->name('referrals.index');
 
         // Éphémères — statistiques agrégées et file des signalements
         Route::get('ephemeral', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'index'])->name('ephemeral.index');

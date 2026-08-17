@@ -26,7 +26,7 @@ class WebPushService
     }
 
     /**
-     * @param array{title: string, body: string, url?: string, tag?: string, actions?: array<int, array{action: string, title: string}>} $payload
+     * @param  array{title: string, body: string, url?: string, tag?: string, actions?: array<int, array{action: string, title: string}>}  $payload
      */
     public function sendToUser(User $user, array $payload): void
     {

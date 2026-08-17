@@ -25,6 +25,7 @@ import {
     Tags,
     Timer,
     UserCog,
+    UserPlus,
     Users,
     X,
 } from 'lucide-react';
@@ -201,6 +202,13 @@ export default function AdminLayout({
                         icon: Sparkles,
                         matchPrefix: '/admin/gems',
                         hint: 'Soldes et transactions',
+                    },
+                    {
+                        href: '/admin/referrals',
+                        label: 'Parrainages',
+                        icon: UserPlus,
+                        matchPrefix: '/admin/referrals',
+                        hint: 'Invitations et récompenses',
                     },
                 ],
             },

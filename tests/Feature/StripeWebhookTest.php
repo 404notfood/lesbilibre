@@ -7,8 +7,6 @@ use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
-use Stripe\Event;
-use Stripe\Webhook;
 use Tests\TestCase;
 
 class StripeWebhookTest extends TestCase
@@ -69,11 +67,6 @@ class StripeWebhookTest extends TestCase
         $payload = json_encode($eventData);
         $signature = $this->generateStripeSignature($payload, 'whsec_test_secret');
 
-        // Mock Stripe Webhook verification
-        Webhook::shouldReceive('constructEvent')
-            ->once()
-            ->andReturn(Event::constructFrom($eventData));
-
         $this->postJson(
             route('webhook.stripe'),
             json_decode($payload, true),
@@ -105,11 +98,6 @@ class StripeWebhookTest extends TestCase
 
         $payload = json_encode($eventData);
         $signature = $this->generateStripeSignature($payload, 'whsec_test_secret');
-
-        // Mock Stripe Webhook verification
-        Webhook::shouldReceive('constructEvent')
-            ->twice()
-            ->andReturn(Event::constructFrom($eventData));
 
         // First webhook
         $this->postJson(
@@ -152,10 +140,6 @@ class StripeWebhookTest extends TestCase
 
         $payload = json_encode($eventData);
         $signature = $this->generateStripeSignature($payload, 'whsec_test_secret');
-
-        Webhook::shouldReceive('constructEvent')
-            ->once()
-            ->andReturn(Event::constructFrom($eventData));
 
         $this->postJson(
             route('webhook.stripe'),
@@ -204,10 +188,6 @@ class StripeWebhookTest extends TestCase
         $payload = json_encode($eventData);
         $signature = $this->generateStripeSignature($payload, 'whsec_test_secret');
 
-        Webhook::shouldReceive('constructEvent')
-            ->once()
-            ->andReturn(Event::constructFrom($eventData));
-
         $this->postJson(
             route('webhook.stripe'),
             json_decode($payload, true),
@@ -249,10 +229,6 @@ class StripeWebhookTest extends TestCase
         $payload = json_encode($eventData);
         $signature = $this->generateStripeSignature($payload, 'whsec_test_secret');
 
-        Webhook::shouldReceive('constructEvent')
-            ->once()
-            ->andReturn(Event::constructFrom($eventData));
-
         $this->postJson(
             route('webhook.stripe'),
             json_decode($payload, true),
@@ -289,10 +265,6 @@ class StripeWebhookTest extends TestCase
         $payload = json_encode($eventData);
         $signature = $this->generateStripeSignature($payload, 'whsec_test_secret');
 
-        Webhook::shouldReceive('constructEvent')
-            ->once()
-            ->andReturn(Event::constructFrom($eventData));
-
         $this->postJson(
             route('webhook.stripe'),
             json_decode($payload, true),
@@ -303,7 +275,7 @@ class StripeWebhookTest extends TestCase
         $this->assertEquals(150, $user->fresh()->gems);
     }
 
-    public function test_marks_failed_events_with_error(): void
+    public function test_missing_user_is_ignored_without_retrying_the_event(): void
     {
         // Create event that will fail (non-existent user)
         $eventData = $this->createEventPayload('checkout.session.completed', [
@@ -321,20 +293,16 @@ class StripeWebhookTest extends TestCase
         $payload = json_encode($eventData);
         $signature = $this->generateStripeSignature($payload, 'whsec_test_secret');
 
-        Webhook::shouldReceive('constructEvent')
-            ->once()
-            ->andReturn(Event::constructFrom($eventData));
-
         $this->postJson(
             route('webhook.stripe'),
             json_decode($payload, true),
             ['Stripe-Signature' => $signature]
-        )->assertStatus(500);
+        )->assertStatus(200);
 
-        // Check event marked as failed
+        // Missing users cannot be repaired by retrying the same Stripe event.
         $stripeEvent = StripeEvent::where('stripe_event_id', $eventData['id'])->first();
         $this->assertNotNull($stripeEvent);
-        $this->assertFalse($stripeEvent->processed);
-        $this->assertNotNull($stripeEvent->error);
+        $this->assertTrue($stripeEvent->processed);
+        $this->assertNull($stripeEvent->error);
     }
 }

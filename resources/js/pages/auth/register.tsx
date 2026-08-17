@@ -20,7 +20,11 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { Heart, Sparkles } from 'lucide-react';
 
-export default function Register(): JSX.Element {
+interface RegisterProps {
+    referralCode?: string;
+}
+
+export default function Register({ referralCode = '' }: RegisterProps): JSX.Element {
     return (
         <AuthLayout
             title="Créez votre compte"
@@ -51,6 +55,19 @@ export default function Register(): JSX.Element {
             >
                 {({ processing, errors }) => (
                     <>
+                        {referralCode ? (
+                            <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm">
+                                <p className="font-medium text-emerald-700 dark:text-emerald-300">
+                                    Invitation activée
+                                </p>
+                                <p className="mt-1 text-muted-foreground">
+                                    Après la vérification de votre profil, votre marraine et vous recevrez vos gemmes bonus.
+                                </p>
+                            </div>
+                        ) : null}
+                        <input type="hidden" name="referral_code" value={referralCode} />
+                        <InputError message={errors.referral_code} />
+
                         {/* Informations de base */}
                         <div className="space-y-4">
                             <div className="space-y-1">

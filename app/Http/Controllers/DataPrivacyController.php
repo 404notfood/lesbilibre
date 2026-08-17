@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Models\Notification;
 use App\Models\Photo;
 use App\Models\ProfileView;
+use App\Models\Referral;
 use App\Models\Report;
 use App\Models\UserMatch;
 use Illuminate\Http\JsonResponse;
@@ -62,6 +63,7 @@ class DataPrivacyController extends Controller
                 'data_processing_consent' => $user->data_processing_consent,
                 'data_processing_consented_at' => $user->data_processing_consented_at?->toISOString(),
                 'marketing_consent' => $user->marketing_consent,
+                'referral_code' => $user->referral_code,
                 'created_at' => $user->created_at->toISOString(),
                 'updated_at' => $user->updated_at->toISOString(),
             ],
@@ -77,10 +79,11 @@ class DataPrivacyController extends Controller
             'blocked_users' => $this->exportBlockedUsers($user),
             'reports_made' => $this->exportReportsMade($user),
             'profile_views_made' => $this->exportProfileViewsMade($user),
+            'referrals' => $this->exportReferrals($user),
         ];
 
         return response()->json($data, 200, [
-            'Content-Disposition' => 'attachment; filename="mes-donnees-' . now()->format('Y-m-d') . '.json"',
+            'Content-Disposition' => 'attachment; filename="mes-donnees-'.now()->format('Y-m-d').'.json"',
         ]);
     }
 
@@ -155,6 +158,11 @@ class DataPrivacyController extends Controller
             // 12. Delete subscriptions
             $user->subscriptions()->delete();
 
+            // Referral relationships are no longer needed after erasure.
+            Referral::where('referrer_id', $user->id)
+                ->orWhere('referred_user_id', $user->id)
+                ->delete();
+
             // 13. Soft-delete user with anonymized data
             $user->update([
                 'email' => "deleted_{$user->id}@deleted.local",
@@ -216,9 +224,9 @@ class DataPrivacyController extends Controller
         ];
 
         // Record timestamp when data processing consent is given
-        if ($validated['data_processing_consent'] && !$user->data_processing_consent) {
+        if ($validated['data_processing_consent'] && ! $user->data_processing_consent) {
             $updateData['data_processing_consented_at'] = now();
-        } elseif (!$validated['data_processing_consent']) {
+        } elseif (! $validated['data_processing_consent']) {
             $updateData['data_processing_consented_at'] = null;
         }
 
@@ -236,7 +244,7 @@ class DataPrivacyController extends Controller
     {
         $profile = $user->profile;
 
-        if (!$profile) {
+        if (! $profile) {
             return null;
         }
 
@@ -462,6 +470,28 @@ class DataPrivacyController extends Controller
             ->map(fn (ProfileView $view) => [
                 'profile_user_id' => $view->profile_user_id,
                 'viewed_on' => $view->viewed_on->toDateString(),
+            ])->toArray();
+    }
+
+    /**
+     * Export referral relationships involving the requester.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function exportReferrals(mixed $user): array
+    {
+        return Referral::query()
+            ->where('referrer_id', $user->id)
+            ->orWhere('referred_user_id', $user->id)
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn (Referral $referral) => [
+                'role' => $referral->referrer_id === $user->id ? 'referrer' : 'referred',
+                'status' => $referral->status,
+                'referrer_reward' => $referral->referrer_reward,
+                'referred_reward' => $referral->referred_reward,
+                'created_at' => $referral->created_at->toISOString(),
+                'rewarded_at' => $referral->rewarded_at?->toISOString(),
             ])->toArray();
     }
 }

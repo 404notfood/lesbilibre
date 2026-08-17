@@ -44,6 +44,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $hidden = [
         'password',
+        'referral_code',
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
@@ -292,6 +293,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function gemTransactions(): HasMany
     {
         return $this->hasMany(GemTransaction::class);
+    }
+
+    public function referralsMade(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    public function referralReceived(): HasOne
+    {
+        return $this->hasOne(Referral::class, 'referred_user_id');
     }
 
     /**

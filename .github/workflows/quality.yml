@@ -4,36 +4,68 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  backend:
+  quality:
+    name: PHP, React and tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, xml, pdo_sqlite, bcmath, gd
+          extensions: bcmath, curl, gd, intl, mbstring, pdo_sqlite, sqlite3, xml, zip
           coverage: none
-      - uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
-      - run: composer install --no-interaction --prefer-dist --no-progress
-      - run: cp .env.example .env
-      - run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views
-      - run: php artisan key:generate
-      - run: php artisan test
 
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: package-lock.json
-      - run: npm ci
-      - run: npm run lint:check
-      - run: npm run types
-      - run: npm run build
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Prepare Laravel
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Format PHP
+        run: |
+          vendor/bin/pint
+          git diff --exit-code
+
+      - name: Check TypeScript
+        run: npm run types
+
+      - name: Lint JavaScript and TypeScript
+        run: npm run lint:check
+
+      - name: Build production assets
+        run: npm run build
+
+      - name: Run the test suite
+        run: php artisan test

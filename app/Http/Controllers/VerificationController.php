@@ -6,6 +6,7 @@ use App\Http\Requests\UploadVerificationPhotoRequest;
 use App\Models\VerificationPhoto;
 use App\Services\ModerationAuditService;
 use App\Services\PhotoProcessingService;
+use App\Services\ReferralService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,8 @@ use Inertia\Response;
 class VerificationController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(private ReferralService $referralService) {}
 
     /**
      * Show the verification upload form.
@@ -164,6 +167,7 @@ class VerificationController extends Controller
 
         // Trigger badge check
         \App\Events\UserVerified::dispatch($verification->user);
+        $this->referralService->rewardVerifiedUser($verification->user);
 
         return redirect()->back()->with('success', 'Vérification approuvée avec succès.');
     }

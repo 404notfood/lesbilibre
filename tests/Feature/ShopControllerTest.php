@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\GemPackage;
 use App\Models\User;
+use App\Services\StripePaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class ShopControllerTest extends TestCase
@@ -34,18 +36,31 @@ class ShopControllerTest extends TestCase
     public function test_user_can_purchase_gems(): void
     {
         $user = User::factory()->create(['gems' => 0]);
-        $package = GemPackage::factory()->create(['amount' => 500, 'bonus' => 75]);
-
-        $response = $this->actingAs($user)->post(route('shop.gems.purchase'), [
-            'package_id' => $package->id,
-            'payment_method' => 'card',
+        $package = GemPackage::factory()->create([
+            'amount' => 500,
+            'bonus' => 75,
+            'price' => 19.99,
         ]);
 
-        $response->assertRedirect(route('shop.index'));
-        $response->assertSessionHas('success');
+        $this->mock(StripePaymentService::class, function (MockInterface $mock) use ($package, $user) {
+            $mock->shouldReceive('createGemCheckoutSession')
+                ->once()
+                ->with(1999, $package->totalGems(), $user->id)
+                ->andReturn('https://checkout.stripe.test/gems');
+        });
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-Inertia', 'true')
+            ->post(route('shop.gems.purchase'), [
+                'package_id' => $package->id,
+            ]);
+
+        $response
+            ->assertStatus(409)
+            ->assertHeader('X-Inertia-Location', 'https://checkout.stripe.test/gems');
 
         $user->refresh();
-        $this->assertEquals(575, $user->gems); // 500 + 75 bonus
+        $this->assertSame(0, $user->gems);
     }
 
     public function test_user_can_send_gift(): void

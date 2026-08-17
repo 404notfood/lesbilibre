@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Models\User;
 use App\Services\AntiAbuseService;
+use App\Services\ReferralService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +16,8 @@ class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules;
 
+    public function __construct(private ReferralService $referralService) {}
+
     /**
      * Validate and create a newly registered user.
      *
@@ -22,6 +25,10 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        if (isset($input['referral_code'])) {
+            $input['referral_code'] = mb_strtoupper(trim($input['referral_code']));
+        }
+
         // Log incoming data for debugging
         Log::info('Registration attempt with data:', array_keys($input));
 
@@ -48,6 +55,14 @@ class CreateNewUser implements CreatesNewUsers
                 'email',
                 'max:255',
                 Rule::unique(User::class),
+            ],
+            'referral_code' => [
+                'nullable',
+                'string',
+                'max:12',
+                Rule::exists('users', 'referral_code')->where(
+                    fn ($query) => $query->whereNull('deleted_at')->where('is_banned', false)
+                ),
             ],
             'password' => $this->passwordRules(),
         ], [
@@ -81,6 +96,9 @@ class CreateNewUser implements CreatesNewUsers
                 'interested_in' => $input['interested_in'],
                 'looking_for' => $input['looking_for'],
             ]);
+
+            $this->referralService->ensureReferralCode($user);
+            $this->referralService->attributeReferral($user, $input['referral_code'] ?? null);
 
             return $user;
         });

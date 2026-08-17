@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Stripe\Checkout\Session;
 use Stripe\BillingPortal\Session as BillingPortalSession;
+use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 

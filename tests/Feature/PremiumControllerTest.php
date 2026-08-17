@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\PremiumPlan;
 use App\Models\User;
+use App\Services\StripePaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery\MockInterface;
 use Tests\TestCase;
 
 class PremiumControllerTest extends TestCase
@@ -33,24 +35,26 @@ class PremiumControllerTest extends TestCase
             'is_premium' => false,
             'gems' => 0,
         ]);
+        $plan = PremiumPlan::factory()->create();
+
+        $this->mock(StripePaymentService::class, function (MockInterface $mock) use ($plan, $user) {
+            $mock->shouldReceive('createPremiumSubscription')
+                ->once()
+                ->with($plan->stripe_price_id, $user->id)
+                ->andReturn('https://checkout.stripe.test/premium');
+        });
 
         $response = $this->actingAs($user)->post(route('premium.subscribe'), [
-            'plan_id' => 2, // 3 months
-            'payment_method' => 'card',
+            'plan_id' => $plan->id,
         ]);
 
-        $response->assertRedirect(route('premium.index'));
-        $response->assertSessionHas('success');
+        $response->assertRedirect('https://checkout.stripe.test/premium');
 
         $user->refresh();
-        $this->assertTrue($user->is_premium);
-        $this->assertNotNull($user->premium_expires_at);
-        $this->assertEquals(100, $user->gems); // Welcome bonus
-        $this->assertDatabaseHas('subscriptions', [
-            'user_id' => $user->id,
-            'plan' => '3_months',
-            'status' => 'active',
-        ]);
+        $this->assertFalse($user->is_premium);
+        $this->assertNull($user->premium_expires_at);
+        $this->assertSame(0, $user->gems);
+        $this->assertDatabaseMissing('subscriptions', ['user_id' => $user->id]);
     }
 
     public function test_premium_user_status_method(): void

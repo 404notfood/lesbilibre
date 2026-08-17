@@ -81,10 +81,10 @@ class TrustScoreService
         $reason = $this->determineReason($user, $previousScore, $newScore);
 
         DB::transaction(function () use ($user, $previousScore, $newScore, $reason) {
-            $user->update([
+            $user->forceFill([
                 'trust_score' => $newScore,
                 'trust_score_updated_at' => now(),
-            ]);
+            ])->save();
 
             TrustScoreLog::create([
                 'user_id' => $user->id,
@@ -152,7 +152,7 @@ class TrustScoreService
             'category' => 'Anciennete',
             'points' => $agePoints,
             'max' => 15,
-            'label' => $monthsActive . ' mois sur la plateforme',
+            'label' => $monthsActive.' mois sur la plateforme',
         ];
 
         // Profile completion
@@ -171,7 +171,7 @@ class TrustScoreService
             'category' => 'Photos',
             'points' => $photoPoints,
             'max' => 10,
-            'label' => $approvedPhotos . ' photo(s) approuvee(s)',
+            'label' => $approvedPhotos.' photo(s) approuvee(s)',
         ];
 
         // Reports
@@ -184,7 +184,7 @@ class TrustScoreService
             'category' => 'Signalements',
             'points' => $reportPoints,
             'max' => 0,
-            'label' => $reportsCount > 0 ? $reportsCount . ' signalement(s) actif(s)' : 'Aucun signalement',
+            'label' => $reportsCount > 0 ? $reportsCount.' signalement(s) actif(s)' : 'Aucun signalement',
         ];
 
         // Premium
@@ -203,7 +203,7 @@ class TrustScoreService
             'category' => 'Badges',
             'points' => $badgeScorePoints,
             'max' => 5,
-            'label' => $badgePoints . ' points de badges',
+            'label' => $badgePoints.' points de badges',
         ];
 
         return $breakdown;
