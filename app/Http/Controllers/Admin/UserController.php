@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -122,23 +123,62 @@ class UserController extends Controller
                 'photos' => $user->photos
                     ->sortBy('order')
                     ->values()
-                    ->map(fn (Photo $photo) => [
-                        'id' => $photo->id,
-                        // Vue admin : image d'origine, sans floutage ni filigrane,
-                        // pour pouvoir juger réellement du contenu.
-                        'url' => asset('storage/'.$photo->path),
-                        'is_primary' => $photo->is_primary,
-                        'is_naughty' => $photo->is_naughty,
-                        'moderation_status' => $photo->moderation_status,
-                        'rejection_reason' => $photo->rejection_reason,
-                        'avatar_requested' => $photo->avatar_requested_at !== null,
-                        'created_at' => $photo->created_at->toISOString(),
-                    ]),
+                    ->map(function (Photo $photo) use ($user) {
+                        $disk = Storage::disk($photo->isVideo() ? 'local' : 'public');
+                        $available = $disk->exists($photo->path);
+                        $posterAvailable = $photo->isVideo()
+                            && $photo->thumbnail_path !== null
+                            && $disk->exists($photo->thumbnail_path);
+
+                        return [
+                            'id' => $photo->id,
+                            'url' => $available
+                                ? route('admin.users.photos.file', [$user, $photo])
+                                : null,
+                            'poster_url' => $posterAvailable
+                                ? route('admin.users.photos.file', [$user, $photo, 'thumb' => 1])
+                                : null,
+                            'media_type' => $photo->isVideo() ? 'video' : 'photo',
+                            'available' => $available,
+                            'is_primary' => $photo->is_primary,
+                            'is_naughty' => $photo->is_naughty,
+                            'moderation_status' => $photo->moderation_status,
+                            'rejection_reason' => $photo->rejection_reason,
+                            'avatar_requested' => $photo->avatar_requested_at !== null,
+                            'created_at' => $photo->created_at->toISOString(),
+                        ];
+                    }),
                 'badges' => $user->badges,
                 'subscriptions' => $user->subscriptions,
             ],
             'stats' => $stats,
         ]);
+    }
+
+    /** Stream an original gallery file to an authenticated administrator. */
+    public function photoFile(Request $request, User $user, Photo $photo): StreamedResponse
+    {
+        abort_unless($photo->user_id === $user->id, 404);
+
+        $disk = Storage::disk($photo->isVideo() ? 'local' : 'public');
+        $useThumbnail = $request->boolean('thumb') && $photo->thumbnail_path !== null;
+        $path = $useThumbnail ? $photo->thumbnail_path : $photo->path;
+
+        abort_unless($disk->exists($path), 404);
+
+        $isVideo = $photo->isVideo() && ! $useThumbnail;
+        $headers = [
+            'Content-Type' => $isVideo ? 'video/mp4' : ($disk->mimeType($path) ?: 'image/jpeg'),
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Disposition' => 'inline',
+        ];
+
+        if ($isVideo) {
+            $headers['Accept-Ranges'] = 'bytes';
+        }
+
+        return $disk->response($path, null, $headers);
     }
 
     /**

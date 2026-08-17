@@ -145,7 +145,7 @@ class MediaThumbnailTest extends TestCase
         $viewer = $this->createMember();
         $owner = $this->createMember();
         $poster = UploadedFile::fake()->image('poster.jpg', 640, 360);
-        $posterPath = 'ephemeral/video-poster.jpg';
+        $posterPath = 'gallery/videos/video-poster.jpg';
 
         Storage::disk('local')->put($posterPath, file_get_contents($poster->getRealPath()));
 
@@ -155,7 +155,7 @@ class MediaThumbnailTest extends TestCase
             isPrimary: false,
         );
         $video->update([
-            'path' => 'ephemeral/video.mp4',
+            'path' => 'gallery/videos/video.mp4',
             'thumbnail_path' => $posterPath,
         ]);
 

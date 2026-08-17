@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Models\VerificationPhoto;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -90,21 +91,51 @@ class ModerationQueuesTest extends TestCase
 
     public function test_pending_photos_expose_a_usable_image_url(): void
     {
+        Storage::fake('public');
+
         $admin = User::factory()->create(['is_admin' => true]);
-        Photo::factory()->create([
+        $photo = Photo::factory()->create([
             'path' => 'photos/abc.jpg',
             'thumbnail_path' => 'photos/thumbnails/abc.jpg',
+        ]);
+        Storage::disk('public')->put($photo->path, 'image-content');
+        Storage::disk('public')->put($photo->thumbnail_path, 'thumbnail-content');
+
+        $this->actingAs($admin)
+            ->get(route('admin.photos.pending'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where(
+                    'photos.data.0.url',
+                    route('admin.users.photos.file', [$photo->user, $photo])
+                )
+                ->where(
+                    'photos.data.0.thumbnail_url',
+                    route('admin.users.photos.file', [$photo->user, $photo, 'thumb' => 1])
+                )
+                ->where('photos.data.0.available', true)
+            );
+    }
+
+    public function test_pending_queue_does_not_expose_missing_private_video_files(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->create(['is_admin' => true]);
+        Photo::factory()->create([
+            'media_type' => 'video',
+            'path' => 'gallery/videos/missing.mp4',
+            'thumbnail_path' => 'gallery/videos/missing.jpg',
         ]);
 
         $this->actingAs($admin)
             ->get(route('admin.photos.pending'))
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('photos.data.0.path', asset('storage/photos/abc.jpg'))
-                ->where(
-                    'photos.data.0.thumbnail_path',
-                    asset('storage/photos/thumbnails/abc.jpg')
-                )
+                ->where('photos.data.0.url', null)
+                ->where('photos.data.0.thumbnail_url', null)
+                ->where('photos.data.0.media_type', 'video')
+                ->where('photos.data.0.available', false)
             );
     }
 

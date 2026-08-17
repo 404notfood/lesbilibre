@@ -226,17 +226,30 @@ class PhotoController extends Controller
             ->orderByDesc('avatar_requested_at')
             ->latest()
             ->paginate(20)
-            ->through(fn (Photo $photo) => [
-                'id' => $photo->id,
-                'path' => asset('storage/'.$photo->path),
-                'thumbnail_path' => $photo->thumbnail_path
-                    ? asset('storage/'.$photo->thumbnail_path)
-                    : null,
-                'is_naughty' => $photo->is_naughty,
-                'awaiting_avatar' => $photo->avatar_requested_at !== null,
-                'created_at' => $photo->created_at->toISOString(),
-                'user' => $photo->user,
-            ]);
+            ->through(function (Photo $photo) {
+                $disk = Storage::disk($photo->isVideo() ? 'local' : 'public');
+                $owner = $photo->user;
+                $available = $owner !== null && $disk->exists($photo->path);
+                $thumbnailAvailable = $owner !== null
+                    && $photo->thumbnail_path !== null
+                    && $disk->exists($photo->thumbnail_path);
+
+                return [
+                    'id' => $photo->id,
+                    'url' => $available
+                        ? route('admin.users.photos.file', [$owner, $photo])
+                        : null,
+                    'thumbnail_url' => $thumbnailAvailable
+                        ? route('admin.users.photos.file', [$owner, $photo, 'thumb' => 1])
+                        : null,
+                    'media_type' => $photo->isVideo() ? 'video' : 'photo',
+                    'available' => $available,
+                    'is_naughty' => $photo->is_naughty,
+                    'awaiting_avatar' => $photo->avatar_requested_at !== null,
+                    'created_at' => $photo->created_at->toISOString(),
+                    'user' => $owner,
+                ];
+            });
 
         return Inertia::render('Admin/Photos/Pending', [
             'photos' => $photos,

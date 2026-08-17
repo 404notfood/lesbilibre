@@ -174,6 +174,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('users/{user}/ban', [\App\Http\Controllers\Admin\UserController::class, 'ban'])->name('users.ban');
         Route::post('users/{user}/unban', [\App\Http\Controllers\Admin\UserController::class, 'unban'])->name('users.unban');
         Route::post('users/{user}/toggle-premium', [\App\Http\Controllers\Admin\UserController::class, 'togglePremium'])->name('users.toggle-premium');
+        Route::get('users/{user}/photos/{photo}/file', [\App\Http\Controllers\Admin\UserController::class, 'photoFile'])->name('users.photos.file');
         Route::post('users/{user}/photos/{photo}/sensitivity', [\App\Http\Controllers\Admin\UserController::class, 'togglePhotoSensitivity'])->name('users.photos.sensitivity');
         Route::delete('users/{user}/photos/{photo}', [\App\Http\Controllers\Admin\UserController::class, 'destroyPhoto'])->name('users.photos.destroy');
         Route::post('users/{user}/clear-avatar', [\App\Http\Controllers\Admin\UserController::class, 'clearAvatar'])->name('users.clear-avatar');

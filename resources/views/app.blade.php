@@ -78,6 +78,7 @@
         <link rel="icon" href="/images/branding/icon-16.png" type="image/png" sizes="16x16">
         <link rel="icon" href="/images/branding/icon-192.png" type="image/png" sizes="192x192">
         <link rel="apple-touch-icon" href="/apple-touch-icon-lesbilibre.png" sizes="180x180">
+        <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="apple-mobile-web-app-title" content="LesbiLibre">

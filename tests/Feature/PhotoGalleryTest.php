@@ -177,4 +177,31 @@ class PhotoGalleryTest extends TestCase
 
         $this->assertDatabaseMissing('photos', ['id' => $photo->id]);
     }
+
+    public function test_legacy_gallery_video_files_are_moved_out_of_ephemeral_storage(): void
+    {
+        Storage::fake('local');
+
+        $video = Photo::factory()->create([
+            'media_type' => 'video',
+            'path' => 'ephemeral/legacy-video.mp4',
+            'thumbnail_path' => 'ephemeral/legacy-video.jpg',
+        ]);
+        Storage::disk('local')->put($video->path, 'video-content');
+        Storage::disk('local')->put($video->thumbnail_path, 'poster-content');
+
+        $migration = require database_path(
+            'migrations/2026_08_17_143223_move_gallery_videos_out_of_ephemeral_storage.php'
+        );
+        $migration->up();
+
+        $video->refresh();
+
+        $this->assertSame('gallery/videos/legacy-video.mp4', $video->path);
+        $this->assertSame('gallery/videos/legacy-video.jpg', $video->thumbnail_path);
+        Storage::disk('local')->assertExists($video->path);
+        Storage::disk('local')->assertExists($video->thumbnail_path);
+        Storage::disk('local')->assertMissing('ephemeral/legacy-video.mp4');
+        Storage::disk('local')->assertMissing('ephemeral/legacy-video.jpg');
+    }
 }

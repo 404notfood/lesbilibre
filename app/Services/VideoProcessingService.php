@@ -11,6 +11,10 @@ use Symfony\Component\Process\Process;
 
 class VideoProcessingService
 {
+    private const EPHEMERAL_DIRECTORY = 'ephemeral';
+
+    private const GALLERY_VIDEO_DIRECTORY = 'gallery/videos';
+
     /** Longest side of the re-encoded video. */
     private const MAX_HEIGHT = 720;
 
@@ -63,8 +67,11 @@ class VideoProcessingService
      *
      * @return array{path: string, thumbnail_path: string}
      */
-    public function transcode(string $storedPath, string $disk = 'local'): array
-    {
+    public function transcode(
+        string $storedPath,
+        string $disk = 'local',
+        string $destinationDirectory = self::EPHEMERAL_DIRECTORY,
+    ): array {
         if (! $this->isAvailable()) {
             throw new RuntimeException('ffmpeg n’est pas disponible sur ce serveur.');
         }
@@ -104,8 +111,8 @@ class VideoProcessingService
                 $posterTarget,
             ]);
 
-            $finalVideo = 'ephemeral/'.$name.'.mp4';
-            $finalPoster = 'ephemeral/'.$name.'.jpg';
+            $finalVideo = $destinationDirectory.'/'.$name.'.mp4';
+            $finalPoster = $destinationDirectory.'/'.$name.'.jpg';
 
             Storage::disk($disk)->put($finalVideo, file_get_contents($videoTarget));
             Storage::disk($disk)->put($finalPoster, file_get_contents($posterTarget));
@@ -141,7 +148,11 @@ class VideoProcessingService
         $duration = $this->durationOf($file->getRealPath());
 
         $temporaryPath = $file->store('gallery-tmp', $disk);
-        $transcoded = $this->transcode($temporaryPath, $disk);
+        $transcoded = $this->transcode(
+            $temporaryPath,
+            $disk,
+            self::GALLERY_VIDEO_DIRECTORY,
+        );
 
         return [
             'path' => $transcoded['path'],

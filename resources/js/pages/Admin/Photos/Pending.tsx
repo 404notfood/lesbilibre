@@ -6,8 +6,9 @@ import AdminLayout, {
     AdminMeta,
     AdminPagination,
 } from '@/layouts/admin-layout';
+import PhotoLightbox, { LightboxItem } from '@/components/photo-lightbox';
 import { Head, Link, router } from '@inertiajs/react';
-import { Check, ImageOff, X } from 'lucide-react';
+import { Check, ImageOff, Video, X, ZoomIn } from 'lucide-react';
 import { useState } from 'react';
 
 interface PhotoUser {
@@ -19,8 +20,10 @@ interface PhotoUser {
 
 interface Photo {
     id: number;
-    path: string;
-    thumbnail_path: string | null;
+    url: string | null;
+    thumbnail_url: string | null;
+    media_type: 'photo' | 'video';
+    available: boolean;
     is_naughty: boolean;
     /** La membre demande à en faire sa photo de profil : à traiter en priorité. */
     awaiting_avatar: boolean;
@@ -40,6 +43,26 @@ interface Props {
 }
 
 export default function Pending({ photos }: Props) {
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+    const lightboxItems: LightboxItem[] = photos.data.flatMap((photo) =>
+        photo.available && photo.url
+            ? [
+                  {
+                      id: photo.id,
+                      url: photo.url,
+                      mediaType: photo.media_type,
+                      posterUrl: photo.thumbnail_url,
+                      caption: photo.user
+                          ? `Média soumis par ${photo.user.pseudo || photo.user.name}`
+                          : 'Compte supprimé',
+                  },
+              ]
+            : [],
+    );
+    const lightboxIndexes = new Map(
+        lightboxItems.map((item, index) => [item.id, index]),
+    );
+
     return (
         <AdminLayout
             title="Photos en attente"
@@ -73,9 +96,19 @@ export default function Pending({ photos }: Props) {
                 </AdminCard>
             ) : (
                 <div className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                         {photos.data.map((photo) => (
-                            <PhotoCard key={photo.id} photo={photo} />
+                            <PhotoCard
+                                key={photo.id}
+                                photo={photo}
+                                onPreview={() => {
+                                    const index = lightboxIndexes.get(photo.id);
+
+                                    if (index !== undefined) {
+                                        setLightboxIndex(index);
+                                    }
+                                }}
+                            />
                         ))}
                     </div>
 
@@ -90,11 +123,18 @@ export default function Pending({ photos }: Props) {
                     </AdminCard>
                 </div>
             )}
+
+            <PhotoLightbox
+                items={lightboxItems}
+                index={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                onNavigate={setLightboxIndex}
+            />
         </AdminLayout>
     );
 }
 
-function PhotoCard({ photo }: { photo: Photo }) {
+function PhotoCard({ photo, onPreview }: { photo: Photo; onPreview: () => void }) {
     const [processing, setProcessing] = useState(false);
     const [rejecting, setRejecting] = useState(false);
     const [reason, setReason] = useState('');
@@ -123,13 +163,41 @@ function PhotoCard({ photo }: { photo: Photo }) {
 
     return (
         <AdminCard padded={false}>
-            <div className="relative aspect-[4/5] overflow-hidden bg-[color:var(--bg-soft)]">
-                <img
-                    src={photo.thumbnail_path ?? photo.path}
-                    alt={`Photo soumise par ${photo.user?.pseudo ?? 'un compte supprimé'}`}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                />
+            <div className="relative aspect-[4/3] overflow-hidden bg-[color:var(--bg-soft)]">
+                {!photo.available || !photo.url ? (
+                    <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-xs text-[color:var(--ink-mute)]">
+                        <ImageOff className="h-6 w-6" />
+                        Média indisponible
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={onPreview}
+                        className="group/preview relative h-full w-full cursor-zoom-in"
+                        aria-label={
+                            photo.media_type === 'video'
+                                ? 'Lire la vidéo en grand'
+                                : 'Agrandir la photo'
+                        }
+                    >
+                        {photo.thumbnail_url || photo.media_type === 'photo' ? (
+                            <img
+                                src={photo.thumbnail_url ?? photo.url}
+                                alt={`Média soumis par ${photo.user?.pseudo ?? 'un compte supprimé'}`}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="flex h-full flex-col items-center justify-center gap-2 text-xs text-[color:var(--ink-mute)]">
+                                <Video className="h-7 w-7" />
+                                Voir la vidéo
+                            </div>
+                        )}
+                        <span className="absolute inset-0 grid place-items-center bg-black/0 text-white opacity-0 transition-all group-hover/preview:bg-black/25 group-hover/preview:opacity-100 group-focus-visible/preview:bg-black/25 group-focus-visible/preview:opacity-100">
+                            <ZoomIn className="h-6 w-6" />
+                        </span>
+                    </button>
+                )}
                 <div className="absolute inset-x-3 top-3 flex flex-wrap gap-1">
                     {photo.awaiting_avatar && (
                         <AdminBadge tone="gold">Demande d&apos;avatar</AdminBadge>

@@ -27,6 +27,7 @@ import {
     Flag,
     Heart,
     Image as ImageIcon,
+    ImageOff,
     Send,
     ShieldBan,
     Sparkles,
@@ -36,7 +37,10 @@ import { useState } from 'react';
 
 interface AdminPhoto {
     id: number;
-    url: string;
+    url: string | null;
+    poster_url: string | null;
+    media_type: 'photo' | 'video';
+    available: boolean;
     is_primary: boolean;
     is_naughty: boolean;
     moderation_status: 'pending' | 'approved' | 'rejected' | 'quarantined';
@@ -634,12 +638,27 @@ function AdminPhotoTile({ photo, userId }: { photo: AdminPhoto; userId: number }
                 }`}
             >
                 <div className="relative aspect-[4/5]">
-                    <img
-                        src={photo.url}
-                        alt=""
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                    />
+                    {!photo.available || !photo.url ? (
+                        <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-xs text-[color:var(--ink-mute)]">
+                            <ImageOff className="h-6 w-6" />
+                            Média indisponible
+                        </div>
+                    ) : photo.media_type === 'video' ? (
+                        <video
+                            src={photo.url}
+                            poster={photo.poster_url ?? undefined}
+                            controls
+                            preload="none"
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <img
+                            src={photo.url}
+                            alt=""
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                        />
+                    )}
                     <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1">
                         {photo.is_primary && <AdminBadge tone="gold">Profil</AdminBadge>}
                         {photo.is_naughty && (

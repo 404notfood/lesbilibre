@@ -35,6 +35,78 @@ class UserGalleryModerationTest extends TestCase
             );
     }
 
+    public function test_admin_sheet_serves_private_gallery_videos_through_an_admin_route(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->create(['is_admin' => true]);
+        $member = User::factory()->create();
+        $video = Photo::factory()->create([
+            'user_id' => $member->id,
+            'media_type' => 'video',
+            'path' => 'gallery/videos/gallery-video.mp4',
+            'thumbnail_path' => 'gallery/videos/gallery-video.jpg',
+        ]);
+
+        Storage::disk('local')->put($video->path, 'video-content');
+        Storage::disk('local')->put($video->thumbnail_path, 'poster-content');
+
+        $fileUrl = route('admin.users.photos.file', [$member, $video]);
+        $posterUrl = route('admin.users.photos.file', [$member, $video, 'thumb' => 1]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.show', $member))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('user.photos.0.url', $fileUrl)
+                ->where('user.photos.0.poster_url', $posterUrl)
+                ->where('user.photos.0.media_type', 'video')
+                ->where('user.photos.0.available', true)
+            );
+
+        $this->actingAs($admin)
+            ->get($fileUrl)
+            ->assertOk()
+            ->assertHeader('Content-Type', 'video/mp4');
+    }
+
+    public function test_admin_sheet_does_not_request_a_missing_gallery_file(): void
+    {
+        Storage::fake('local');
+
+        $admin = User::factory()->create(['is_admin' => true]);
+        $member = User::factory()->create();
+        Photo::factory()->create([
+            'user_id' => $member->id,
+            'media_type' => 'video',
+            'path' => 'gallery/videos/missing.mp4',
+            'thumbnail_path' => 'gallery/videos/missing.jpg',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.show', $member))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('user.photos.0.url', null)
+                ->where('user.photos.0.poster_url', null)
+                ->where('user.photos.0.available', false)
+            );
+    }
+
+    public function test_non_admin_cannot_stream_an_admin_gallery_file(): void
+    {
+        Storage::fake('public');
+
+        $member = User::factory()->create(['is_admin' => false]);
+        $owner = User::factory()->create();
+        $photo = Photo::factory()->create(['user_id' => $owner->id]);
+        Storage::disk('public')->put($photo->path, 'image-content');
+
+        $this->actingAs($member)
+            ->get(route('admin.users.photos.file', [$owner, $photo]))
+            ->assertForbidden();
+    }
+
     public function test_admin_can_flag_a_photo_as_sensitive(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
