@@ -1,5 +1,3 @@
-import DatingLayout from '@/layouts/dating-layout';
-import { Head, router } from '@inertiajs/react';
 import {
     Dialog,
     DialogContent,
@@ -9,9 +7,15 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DatingLayout from '@/layouts/dating-layout';
+import { Head, router } from '@inertiajs/react';
 import {
     BadgeCheck,
     Briefcase,
+    Camera,
+    ChevronLeft,
+    ChevronRight,
     Flag,
     Gift,
     GraduationCap,
@@ -20,9 +24,11 @@ import {
     Lock,
     MapPin,
     MessageCircle,
+    Play,
     Shield,
     Sparkles,
     Users,
+    Video,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -122,7 +128,7 @@ export default function View({
             {
                 preserveScroll: true,
                 onFinish: () => setRequestingAccess(false),
-            }
+            },
         );
     };
 
@@ -181,7 +187,7 @@ export default function View({
         <DatingLayout title="Profil" showOnlineUsers={false}>
             <Head title={`${user.name} — Profil`} />
 
-            <div className="px-8 pb-20 pt-7 lg:px-11">
+            <div className="px-8 pt-7 pb-20 lg:px-11">
                 {/* ===========================================
                  * EDITORIAL HERO
                  * =========================================*/}
@@ -199,9 +205,9 @@ export default function View({
                                 Profil · LesbiLibre
                             </span>
                         </div>
-                        <h1 className="font-display m-0 text-5xl font-medium leading-[0.96] tracking-[-0.02em] md:text-6xl xl:text-7xl">
+                        <h1 className="m-0 font-display text-5xl leading-[0.96] font-medium tracking-[-0.02em] md:text-6xl xl:text-7xl">
                             {user.name},{' '}
-                            <em className="italic text-[color:var(--desire-deep)]">
+                            <em className="text-[color:var(--desire-deep)] italic">
                                 {user.profile?.age ?? '—'}
                             </em>
                         </h1>
@@ -213,7 +219,7 @@ export default function View({
                         )}
 
                         {user.profile?.bio && (
-                            <p className="font-display mt-6 max-w-2xl text-xl font-medium italic leading-snug text-[color:var(--wine-deep)] md:text-2xl">
+                            <p className="mt-6 max-w-2xl font-display text-xl leading-snug font-medium text-[color:var(--wine-deep)] italic md:text-2xl">
                                 « {user.profile.bio} »
                             </p>
                         )}
@@ -345,13 +351,18 @@ export default function View({
 
                         {user.profile?.interests &&
                             user.profile.interests.length > 0 && (
-                                <Section eyebrow="Centres d'intérêt" number="03">
+                                <Section
+                                    eyebrow="Centres d'intérêt"
+                                    number="03"
+                                >
                                     <div className="flex flex-wrap gap-2">
-                                        {user.profile.interests.map((interest, i) => (
-                                            <Chip key={i} tone="blush">
-                                                {interest}
-                                            </Chip>
-                                        ))}
+                                        {user.profile.interests.map(
+                                            (interest, i) => (
+                                                <Chip key={i} tone="blush">
+                                                    {interest}
+                                                </Chip>
+                                            ),
+                                        )}
                                     </div>
                                 </Section>
                             )}
@@ -364,11 +375,13 @@ export default function View({
                                     icon={Languages}
                                 >
                                     <div className="flex flex-wrap gap-2">
-                                        {user.profile.languages.map((lang, i) => (
-                                            <Chip key={i} tone="outline">
-                                                {lang}
-                                            </Chip>
-                                        ))}
+                                        {user.profile.languages.map(
+                                            (lang, i) => (
+                                                <Chip key={i} tone="outline">
+                                                    {lang}
+                                                </Chip>
+                                            ),
+                                        )}
                                     </div>
                                 </Section>
                             )}
@@ -376,127 +389,99 @@ export default function View({
 
                     {/* Right col: gallery */}
                     <div className="space-y-6">
-                        {otherPhotos.length > 0 && (
+                        {(otherPhotos.length > 0 ||
+                            (gallery?.photo_count ?? 0) > 0) && (
                             <Section eyebrow="Galerie" number="05">
-                                <div className="grid grid-cols-2 gap-2">
-                                    {otherPhotos.map((photo) => (
+                                <ProfileMediaGallery
+                                    media={otherPhotos}
+                                    userName={user.name}
+                                />
+
+                                {gallery &&
+                                    gallery.photo_count > 0 &&
+                                    !gallery.has_access && (
                                         <div
-                                            key={photo.id}
-                                            className="reveal-tile relative aspect-square overflow-hidden rounded-lg border"
-                                            style={{ borderColor: 'var(--line)' }}
-                                            onContextMenu={(e) => e.preventDefault()}
+                                            className="mt-4 rounded-xl border p-4 text-center"
+                                            style={{
+                                                borderColor: 'var(--line)',
+                                            }}
                                         >
-                                            {photo.media_type === 'video' && !photo.is_blurred ? (
-                                                <video
-                                                    src={photo.url}
-                                                    poster={`${photo.url}?thumb=1`}
-                                                    controls
-                                                    playsInline
-                                                    preload="metadata"
-                                                    controlsList="nodownload"
-                                                    onContextMenu={(e) => e.preventDefault()}
-                                                    className="h-full w-full bg-black object-contain"
-                                                />
-                                            ) : (
-                                                <img
-                                                    src={
-                                                        photo.media_type === 'video'
-                                                            ? `${photo.url}?thumb=1`
-                                                            : photo.url
-                                                    }
-                                                    alt=""
-                                                    draggable={false}
-                                                    onContextMenu={(e) => e.preventDefault()}
-                                                    className="reveal-bg h-full w-full select-none object-cover"
-                                                />
-                                            )}
-
-                                            {photo.media_type === 'video' && !photo.is_blurred && (
-                                                <span className="pointer-events-none absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                                                    VIDÉO
-                                                </span>
-                                            )}
-                                            {photo.is_blurred && (
-                                                <div
-                                                    className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center"
-                                                    style={{
-                                                        background:
-                                                            'oklch(28% 0.12 15 / 0.82)',
-                                                    }}
-                                                >
-                                                    <Lock className="h-5 w-5 text-white" />
-                                                    <span className="px-2 text-[11px] font-semibold uppercase tracking-wide text-white">
-                                                        Contenu coquin
-                                                    </span>
-                                                    <span className="px-2 text-[10px] text-white/80">
-                                                        Galerie privée
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {gallery && gallery.photo_count > 0 && !gallery.has_access && (
-                                    <div
-                                        className="mt-4 rounded-xl border p-4 text-center"
-                                        style={{ borderColor: 'var(--line)' }}
-                                    >
-                                        <Lock
-                                            className="mx-auto h-5 w-5"
-                                            style={{ color: 'var(--ink-mute)' }}
-                                        />
-                                        <p className="mt-2 text-sm font-semibold">
-                                            {gallery.photo_count} photo
-                                            {gallery.photo_count > 1 ? 's' : ''} en galerie
-                                            privée
-                                        </p>
-
-                                        {!gallery.viewer_accepts_naughty ? (
-                                            <p
-                                                className="mt-1 text-xs"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                Activez le mode coquin dans votre profil pour
-                                                pouvoir y accéder.
+                                            <Lock
+                                                className="mx-auto h-5 w-5"
+                                                style={{
+                                                    color: 'var(--ink-mute)',
+                                                }}
+                                            />
+                                            <p className="mt-2 text-sm font-semibold">
+                                                {gallery.photo_count} média
+                                                {gallery.photo_count > 1
+                                                    ? 's'
+                                                    : ''}{' '}
+                                                en galerie privée
                                             </p>
-                                        ) : gallery.request_status === 'pending' ? (
-                                            <p
-                                                className="mt-1 text-xs"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                Demande envoyée — en attente de réponse.
-                                            </p>
-                                        ) : gallery.request_status === 'rejected' ? (
-                                            <p
-                                                className="mt-1 text-xs"
-                                                style={{ color: 'var(--ink-mute)' }}
-                                            >
-                                                Votre demande a été refusée.
-                                            </p>
-                                        ) : (
-                                            <>
+
+                                            {!gallery.viewer_accepts_naughty ? (
                                                 <p
                                                     className="mt-1 text-xs"
-                                                    style={{ color: 'var(--ink-mute)' }}
+                                                    style={{
+                                                        color: 'var(--ink-mute)',
+                                                    }}
                                                 >
-                                                    Demandez l&apos;accès pour voir ces photos.
+                                                    Activez le mode coquin dans
+                                                    votre profil pour pouvoir y
+                                                    accéder.
                                                 </p>
-                                                <button
-                                                    type="button"
-                                                    disabled={requestingAccess}
-                                                    onClick={handleRequestGalleryAccess}
-                                                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-foreground/15 px-4 py-2 text-sm font-semibold transition-colors hover:bg-foreground hover:text-background disabled:opacity-50"
+                                            ) : gallery.request_status ===
+                                              'pending' ? (
+                                                <p
+                                                    className="mt-1 text-xs"
+                                                    style={{
+                                                        color: 'var(--ink-mute)',
+                                                    }}
                                                 >
-                                                    <Lock className="h-3.5 w-3.5" />
-                                                    {requestingAccess
-                                                        ? 'Envoi...'
-                                                        : "Demander l'accès"}
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
+                                                    Demande envoyée — en attente
+                                                    de réponse.
+                                                </p>
+                                            ) : gallery.request_status ===
+                                              'rejected' ? (
+                                                <p
+                                                    className="mt-1 text-xs"
+                                                    style={{
+                                                        color: 'var(--ink-mute)',
+                                                    }}
+                                                >
+                                                    Votre demande a été refusée.
+                                                </p>
+                                            ) : (
+                                                <>
+                                                    <p
+                                                        className="mt-1 text-xs"
+                                                        style={{
+                                                            color: 'var(--ink-mute)',
+                                                        }}
+                                                    >
+                                                        Demandez l&apos;accès
+                                                        pour voir ces photos.
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        disabled={
+                                                            requestingAccess
+                                                        }
+                                                        onClick={
+                                                            handleRequestGalleryAccess
+                                                        }
+                                                        className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-foreground/15 px-4 py-2 text-sm font-semibold transition-colors hover:bg-foreground hover:text-background disabled:opacity-50"
+                                                    >
+                                                        <Lock className="h-3.5 w-3.5" />
+                                                        {requestingAccess
+                                                            ? 'Envoi...'
+                                                            : "Demander l'accès"}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                             </Section>
                         )}
 
@@ -510,7 +495,7 @@ export default function View({
                         >
                             <div
                                 aria-hidden
-                                className="absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-40"
+                                className="absolute -top-10 -right-10 h-32 w-32 rounded-full opacity-40"
                                 style={{
                                     background:
                                         'radial-gradient(circle, var(--desire) 0%, transparent 65%)',
@@ -520,14 +505,15 @@ export default function View({
                                 <div className="editorial-eyebrow mb-3 opacity-60">
                                     Avant d&apos;écrire
                                 </div>
-                                <p className="font-display text-xl font-medium italic leading-snug">
+                                <p className="font-display text-xl leading-snug font-medium italic">
                                     Sois honnête, sois douce.
                                     <br />
                                     Sois toi.
                                 </p>
                                 <p className="mt-3 text-xs leading-relaxed opacity-80">
-                                    LesbiLibre est un espace safe. Tout comportement
-                                    inapproprié peut être signalé en un clic.
+                                    LesbiLibre est un espace safe. Tout
+                                    comportement inapproprié peut être signalé
+                                    en un clic.
                                 </p>
                             </div>
                         </div>
@@ -537,16 +523,19 @@ export default function View({
                 {/* ===========================================
                  * BLOCK DIALOG
                  * =========================================*/}
-                <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
+                <Dialog
+                    open={blockDialogOpen}
+                    onOpenChange={setBlockDialogOpen}
+                >
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle className="font-display text-2xl font-medium italic">
                                 Bloquer {user.name} ?
                             </DialogTitle>
                             <DialogDescription>
-                                Cette personne ne pourra plus voir ton profil, t&apos;envoyer
-                                de messages ou interagir avec toi. Tu peux annuler depuis tes
-                                paramètres.
+                                Cette personne ne pourra plus voir ton profil,
+                                t&apos;envoyer de messages ou interagir avec
+                                toi. Tu peux annuler depuis tes paramètres.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -565,7 +554,9 @@ export default function View({
                                 className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
                                 style={{ background: 'var(--destructive)' }}
                             >
-                                {processingBlock && <Spinner className="h-4 w-4" />}
+                                {processingBlock && (
+                                    <Spinner className="h-4 w-4" />
+                                )}
                                 Bloquer
                             </button>
                         </DialogFooter>
@@ -573,6 +564,249 @@ export default function View({
                 </Dialog>
             </div>
         </DatingLayout>
+    );
+}
+
+type MediaKind = 'photo' | 'video';
+
+function ProfileMediaGallery({
+    media,
+    userName,
+}: {
+    media: Photo[];
+    userName: string;
+}): JSX.Element {
+    const photoMedia = media.filter((item) => item.media_type !== 'video');
+    const videoMedia = media.filter((item) => item.media_type === 'video');
+    const initialTab: MediaKind = photoMedia.length > 0 ? 'photo' : 'video';
+    const [activeTab, setActiveTab] = useState<MediaKind>(initialTab);
+    const [activeMediaId, setActiveMediaId] = useState<number | null>(null);
+
+    const activeItems = activeTab === 'photo' ? photoMedia : videoMedia;
+    const activeIndex = activeItems.findIndex(
+        (item) => item.id === activeMediaId,
+    );
+    const activeMedia = activeIndex >= 0 ? activeItems[activeIndex] : null;
+
+    const openMedia = (item: Photo, kind: MediaKind) => {
+        if (item.is_blurred) {
+            return;
+        }
+
+        setActiveTab(kind);
+        setActiveMediaId(item.id);
+    };
+
+    const showPrevious = () => {
+        if (activeItems.length < 2) {
+            return;
+        }
+
+        const previousIndex =
+            (activeIndex - 1 + activeItems.length) % activeItems.length;
+        setActiveMediaId(activeItems[previousIndex].id);
+    };
+
+    const showNext = () => {
+        if (activeItems.length < 2) {
+            return;
+        }
+
+        const nextIndex = (activeIndex + 1) % activeItems.length;
+        setActiveMediaId(activeItems[nextIndex].id);
+    };
+
+    const renderGrid = (items: Photo[], kind: MediaKind) => {
+        if (items.length === 0) {
+            return (
+                <div className="rounded-xl border border-dashed border-foreground/15 px-4 py-8 text-center">
+                    {kind === 'photo' ? (
+                        <Camera className="mx-auto h-5 w-5 text-foreground/35" />
+                    ) : (
+                        <Video className="mx-auto h-5 w-5 text-foreground/35" />
+                    )}
+                    <p className="mt-2 text-xs text-foreground/50">
+                        Aucune {kind === 'photo' ? 'photo' : 'vidéo'} publiée.
+                    </p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-2 gap-2">
+                {items.map((item) => {
+                    const isVideo = item.media_type === 'video';
+
+                    return (
+                        <button
+                            key={item.id}
+                            type="button"
+                            disabled={item.is_blurred}
+                            onClick={() => openMedia(item, kind)}
+                            onContextMenu={(event) => event.preventDefault()}
+                            aria-label={
+                                item.is_blurred
+                                    ? 'Média privé verrouillé'
+                                    : `Ouvrir ${isVideo ? 'la vidéo' : 'la photo'} de ${userName}`
+                            }
+                            className="reveal-tile group relative aspect-square overflow-hidden rounded-lg border text-left focus-visible:ring-2 focus-visible:ring-[color:var(--desire)] focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed"
+                            style={{ borderColor: 'var(--line)' }}
+                        >
+                            <img
+                                src={isVideo ? `${item.url}?thumb=1` : item.url}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                draggable={false}
+                                className="reveal-bg h-full w-full object-cover transition-transform duration-300 select-none group-enabled:group-hover:scale-[1.03]"
+                            />
+
+                            {isVideo && !item.is_blurred && (
+                                <span className="pointer-events-none absolute inset-0 grid place-items-center bg-black/10 transition-colors group-hover:bg-black/20">
+                                    <span className="grid h-11 w-11 place-items-center rounded-full border border-white/60 bg-black/55 text-white shadow-lg backdrop-blur-sm">
+                                        <Play className="ml-0.5 h-5 w-5 fill-current" />
+                                    </span>
+                                </span>
+                            )}
+
+                            {item.is_blurred && (
+                                <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-[oklch(28%_0.12_15_/_0.82)] text-center">
+                                    <Lock className="h-5 w-5 text-white" />
+                                    <span className="px-2 text-[11px] font-semibold tracking-wide text-white uppercase">
+                                        Contenu coquin
+                                    </span>
+                                    <span className="px-2 text-[10px] text-white/80">
+                                        Galerie privée
+                                    </span>
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    return (
+        <>
+            <Tabs
+                value={activeTab}
+                onValueChange={(value) => setActiveTab(value as MediaKind)}
+            >
+                <TabsList className="mb-3 grid h-auto w-full grid-cols-2 rounded-xl bg-muted/70 p-1">
+                    <TabsTrigger
+                        value="photo"
+                        className="gap-2 rounded-lg py-2 text-xs data-[state=active]:text-[color:var(--wine-deep)]"
+                    >
+                        <Camera className="h-3.5 w-3.5" />
+                        Photos
+                        <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px]">
+                            {photoMedia.length}
+                        </span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="video"
+                        className="gap-2 rounded-lg py-2 text-xs data-[state=active]:text-[color:var(--wine-deep)]"
+                    >
+                        <Video className="h-3.5 w-3.5" />
+                        Vidéos
+                        <span className="rounded-full bg-foreground/10 px-1.5 py-0.5 text-[10px]">
+                            {videoMedia.length}
+                        </span>
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="photo" className="mt-0">
+                    {renderGrid(photoMedia, 'photo')}
+                </TabsContent>
+                <TabsContent value="video" className="mt-0">
+                    {renderGrid(videoMedia, 'video')}
+                </TabsContent>
+            </Tabs>
+
+            <Dialog
+                open={activeMedia !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setActiveMediaId(null);
+                    }
+                }}
+            >
+                <DialogContent
+                    className="h-[min(90vh,900px)] max-w-[min(94vw,1200px)] gap-0 overflow-hidden border-white/10 bg-black p-0 text-white shadow-2xl"
+                    onKeyDown={(event) => {
+                        if (event.key === 'ArrowLeft') {
+                            event.preventDefault();
+                            showPrevious();
+                        }
+
+                        if (event.key === 'ArrowRight') {
+                            event.preventDefault();
+                            showNext();
+                        }
+                    }}
+                    onContextMenu={(event) => event.preventDefault()}
+                >
+                    <DialogTitle className="sr-only">
+                        {activeTab === 'video' ? 'Vidéo' : 'Photo'} de{' '}
+                        {userName}
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Utilisez les flèches gauche et droite pour parcourir les
+                        médias.
+                    </DialogDescription>
+
+                    {activeMedia && (
+                        <div className="relative flex h-full min-h-0 items-center justify-center bg-black">
+                            {activeMedia.media_type === 'video' ? (
+                                <video
+                                    key={activeMedia.id}
+                                    src={activeMedia.url}
+                                    poster={`${activeMedia.url}?thumb=1`}
+                                    controls
+                                    autoPlay
+                                    playsInline
+                                    preload="metadata"
+                                    controlsList="nodownload"
+                                    className="h-full w-full object-contain"
+                                />
+                            ) : (
+                                <img
+                                    src={activeMedia.url}
+                                    alt={`${userName} — photo ${activeIndex + 1} sur ${activeItems.length}`}
+                                    draggable={false}
+                                    className="h-full w-full object-contain select-none"
+                                />
+                            )}
+
+                            {activeItems.length > 1 && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={showPrevious}
+                                        aria-label="Média précédent"
+                                        className="absolute left-3 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                                    >
+                                        <ChevronLeft className="h-6 w-6" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={showNext}
+                                        aria-label="Média suivant"
+                                        className="absolute right-3 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                                    >
+                                        <ChevronRight className="h-6 w-6" />
+                                    </button>
+                                </>
+                            )}
+
+                            <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+                                {activeIndex + 1} / {activeItems.length}
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
 
@@ -637,8 +871,12 @@ function InfoLine({
                 <Icon className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-                <div className="editorial-caption text-foreground/55">{label}</div>
-                <div className="mt-0.5 font-medium text-foreground">{value}</div>
+                <div className="editorial-caption text-foreground/55">
+                    {label}
+                </div>
+                <div className="mt-0.5 font-medium text-foreground">
+                    {value}
+                </div>
             </div>
         </div>
     );
@@ -685,7 +923,7 @@ function NoPhotoCover({ initials }: { initials: string }): JSX.Element {
             }}
         >
             <span
-                className="font-display select-none text-5xl font-medium italic leading-none"
+                className="font-display text-5xl leading-none font-medium italic select-none"
                 style={{ color: 'var(--gold)' }}
             >
                 {initials}
@@ -728,7 +966,7 @@ function MatchScoreBlock({
             </div>
             {shown ? (
                 <div className="mt-3">
-                    <div className="font-display text-5xl font-medium italic leading-none text-[color:var(--wine-deep)]">
+                    <div className="font-display text-5xl leading-none font-medium text-[color:var(--wine-deep)] italic">
                         {score}%
                     </div>
                     <div
@@ -745,7 +983,8 @@ function MatchScoreBlock({
                         />
                     </div>
                     <p className="mt-2 text-[11px] text-foreground/55">
-                        Compatibilité émotionnelle, musicale et centres d&apos;intérêt
+                        Compatibilité émotionnelle, musicale et centres
+                        d&apos;intérêt
                     </p>
                 </div>
             ) : (
@@ -800,8 +1039,12 @@ function ActionsBar({
                 type="button"
                 onClick={onLike}
                 disabled={processingLike}
-                aria-label={hasLiked ? `Retirer ton like de ${userName}` : `Aimer ${userName}`}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all sm:flex-initial sm:min-w-[180px]"
+                aria-label={
+                    hasLiked
+                        ? `Retirer ton like de ${userName}`
+                        : `Aimer ${userName}`
+                }
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all sm:min-w-[180px] sm:flex-initial"
                 style={{
                     background: hasLiked ? 'var(--wine)' : 'var(--desire)',
                 }}
@@ -810,7 +1053,7 @@ function ActionsBar({
                     <Spinner className="h-4 w-4" />
                 ) : (
                     <Heart
-                        className={`h-4 w-4 ${hasLiked ? 'fill-current animate-heartbeat' : ''}`}
+                        className={`h-4 w-4 ${hasLiked ? 'animate-heartbeat fill-current' : ''}`}
                     />
                 )}
                 {hasLiked ? 'Like envoyé' : "J'aime"}
