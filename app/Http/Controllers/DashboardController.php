@@ -183,7 +183,33 @@ class DashboardController extends Controller
         $candidatesWithScore = $candidatesWithScore->take(50);
 
         // Map to response format
-        $profiles = $candidatesWithScore->map(function ($profile) {
+        $profiles = $candidatesWithScore->map(function ($profile) use ($userProfile) {
+            $recommendationReasons = collect();
+            $commonInterests = array_values(array_intersect(
+                $userProfile?->interests ?? [],
+                $profile->profile?->interests ?? []
+            ));
+
+            if ($commonInterests !== []) {
+                $recommendationReasons->push(
+                    count($commonInterests) === 1
+                        ? '1 centre d’intérêt commun'
+                        : count($commonInterests).' centres d’intérêt communs'
+                );
+            }
+
+            if ($userProfile?->looking_for && $userProfile->looking_for === $profile->profile?->looking_for) {
+                $recommendationReasons->push('Même type de rencontre recherché');
+            }
+
+            if (isset($profile->distance) && $profile->distance <= 10) {
+                $recommendationReasons->push('À moins de 10 km');
+            }
+
+            if ($recommendationReasons->isEmpty()) {
+                $recommendationReasons->push('Profil compatible avec vos préférences');
+            }
+
             return [
                 'id' => $profile->id,
                 'name' => $profile->name,
@@ -198,6 +224,7 @@ class DashboardController extends Controller
                 'is_premium' => $profile->isPremium(),
                 'compatibility_score' => $profile->compatibility_score,
                 'photo_count' => $profile->photos->count(),
+                'recommendation_reasons' => $recommendationReasons->take(2)->values()->all(),
             ];
         })->values();
 

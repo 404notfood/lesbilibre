@@ -41,6 +41,16 @@ class DashboardController extends Controller
         $premiumUsers = User::where('is_premium', true)->count();
         $verifiedUsers = User::where('is_verified', true)->count();
         $bannedUsers = User::where('is_banned', true)->count();
+        $profileCompleteUsers = User::whereHas('profile', fn ($query) => $query
+            ->whereNotNull('bio')->where('bio', '!=', '')
+            ->whereNotNull('looking_for')->where('looking_for', '!=', ''))
+            ->count();
+        $usersWithPhoto = User::whereHas('photos', fn ($query) => $query->where('is_approved', true))->count();
+        $usersWithLike = User::whereHas('likesGiven')->count();
+        $usersWithMatch = User::where(function ($query) {
+            $query->whereHas('matchesAsUser1')->orWhereHas('matchesAsUser2');
+        })->count();
+        $usersWithMessage = User::whereHas('messagesSent')->count();
 
         // Engagement statistics
         $totalMatches = UserMatch::count();
@@ -161,6 +171,15 @@ class DashboardController extends Controller
                     'premium' => $premiumUsers,
                     'verified' => $verifiedUsers,
                     'banned' => $bannedUsers,
+                ],
+                'activation' => [
+                    'registered' => $totalUsers,
+                    'profile_complete' => $profileCompleteUsers,
+                    'with_photo' => $usersWithPhoto,
+                    'verified' => $verifiedUsers,
+                    'first_like' => $usersWithLike,
+                    'first_match' => $usersWithMatch,
+                    'first_message' => $usersWithMessage,
                 ],
                 'engagement' => [
                     'total_matches' => $totalMatches,

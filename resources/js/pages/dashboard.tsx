@@ -1,6 +1,20 @@
-import DatingLayout from '@/layouts/dating-layout';
-import { Head, router } from '@inertiajs/react';
+import ProfileCard from '@/components/discovery/ProfileCard';
+import OnboardingChecklist, {
+    type OnboardingState,
+} from '@/components/onboarding/OnboardingChecklist';
 import { Input } from '@/components/ui/input';
+import { DiscoverySignals } from '@/domain/engagement/DiscoverySignals';
+import {
+    pickHeroCopy,
+    type DayPart,
+    type HeroCopy as HeroCopyText,
+} from '@/domain/engagement/HeroCopy';
+import {
+    RewardFeedback,
+    type RewardState,
+} from '@/domain/engagement/RewardFeedback';
+import DatingLayout from '@/layouts/dating-layout';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     Eye,
@@ -13,14 +27,6 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import ProfileCard from '@/components/discovery/ProfileCard';
-import { DiscoverySignals } from '@/domain/engagement/DiscoverySignals';
-import {
-    pickHeroCopy,
-    type DayPart,
-    type HeroCopy as HeroCopyText,
-} from '@/domain/engagement/HeroCopy';
-import { RewardFeedback, type RewardState } from '@/domain/engagement/RewardFeedback';
 
 interface Profile {
     id: number;
@@ -33,6 +39,7 @@ interface Profile {
     photo_count: number;
     is_online: boolean;
     compatibility_score: number;
+    recommendation_reasons: string[];
 }
 
 interface LiveSignals {
@@ -63,8 +70,20 @@ interface DashboardProps {
 type VibeKey = 'coup' | 'live' | 'new';
 type MoodKey = 'nearby' | 'online' | 'photos' | 'verified';
 
-const VIBES: { id: VibeKey; label: string; icon: typeof Sparkles; sortBy: string; hot?: boolean }[] = [
-    { id: 'coup', label: 'Les plus compatibles', icon: Sparkles, sortBy: 'compatibility', hot: true },
+const VIBES: {
+    id: VibeKey;
+    label: string;
+    icon: typeof Sparkles;
+    sortBy: string;
+    hot?: boolean;
+}[] = [
+    {
+        id: 'coup',
+        label: 'Les plus compatibles',
+        icon: Sparkles,
+        sortBy: 'compatibility',
+        hot: true,
+    },
     { id: 'live', label: 'Les plus proches', icon: Flame, sortBy: 'distance' },
     { id: 'new', label: 'Dernières inscrites', icon: Star, sortBy: 'recent' },
 ];
@@ -83,16 +102,22 @@ export default function Dashboard({
     liveSignals,
 }: DashboardProps) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
-    const [activeFilter, setActiveFilter] = useState(filters.quick_filter || '');
+    const [activeFilter, setActiveFilter] = useState(
+        filters.quick_filter || '',
+    );
     const [vibe, setVibe] = useState<VibeKey>(
         () => VIBES.find((v) => v.sortBy === filters.sort_by)?.id ?? 'coup',
     );
-    const [currentSortBy, setCurrentSortBy] = useState(filters.sort_by || 'compatibility');
+    const [currentSortBy, setCurrentSortBy] = useState(
+        filters.sort_by || 'compatibility',
+    );
     const [mood, setMood] = useState<MoodKey | null>(null);
     const [passedProfileIds, setPassedProfileIds] = useState<number[]>([]);
     const [rewardState, setRewardState] = useState<RewardState | null>(null);
     const discoverySignals = useMemo(() => new DiscoverySignals(), []);
     const rewardFeedback = useMemo(() => new RewardFeedback(), []);
+    const { onboarding } = usePage<{ onboarding: OnboardingState | null }>()
+        .props;
 
     const debouncedSearch = useDebouncedCallback((value: string) => {
         router.get(
@@ -120,7 +145,11 @@ export default function Dashboard({
         setCurrentSortBy(target.sortBy);
         router.get(
             '/dashboard',
-            { sort_by: target.sortBy, quick_filter: activeFilter, search: searchQuery },
+            {
+                sort_by: target.sortBy,
+                quick_filter: activeFilter,
+                search: searchQuery,
+            },
             { preserveState: true, preserveScroll: true },
         );
     };
@@ -141,7 +170,11 @@ export default function Dashboard({
         // le tri par défaut du serveur et l'onglet actif devenait faux.
         router.get(
             '/dashboard',
-            { quick_filter: newFilter, sort_by: currentSortBy, search: searchQuery },
+            {
+                quick_filter: newFilter,
+                sort_by: currentSortBy,
+                search: searchQuery,
+            },
             { preserveState: true, preserveScroll: true },
         );
     };
@@ -190,14 +223,19 @@ export default function Dashboard({
         (profile) => !passedProfileIds.includes(profile.id),
     );
 
-
     const now = new Date();
     const dayName = now.toLocaleDateString('fr-FR', { weekday: 'long' });
     // Le moment de la journée était figé sur « soir » : à 15 h, « samedi soir »
     // sonnait faux et trahissait un texte écrit en dur.
     const hour = now.getHours();
     const dayPart: DayPart =
-        hour < 6 ? 'nuit' : hour < 12 ? 'matin' : hour < 18 ? 'après-midi' : 'soir';
+        hour < 6
+            ? 'nuit'
+            : hour < 12
+              ? 'matin'
+              : hour < 18
+                ? 'après-midi'
+                : 'soir';
     // « cet après-midi », « ce matin », « cette nuit » : l'élision change.
     const dayPartPhrase =
         dayPart === 'nuit'
@@ -221,7 +259,7 @@ export default function Dashboard({
         <DatingLayout title="Découvrir">
             <Head title="Découvrir · LesbiLibre" />
 
-            <div className="px-8 pb-20 pt-7 lg:px-11">
+            <div className="px-8 pt-7 pb-20 lg:px-11">
                 {/* ===========================================
                  * TOP BAR — eyebrow + icon buttons
                  * =========================================*/}
@@ -231,6 +269,8 @@ export default function Dashboard({
                     </div>
                     {/* Icons remplacés par ceux du header layout — on garde la place propre */}
                 </div>
+
+                <OnboardingChecklist onboarding={onboarding} />
 
                 {/* ===========================================
                  * HERO — Editorial
@@ -275,7 +315,9 @@ export default function Dashboard({
                                             : 'var(--ink)'
                                         : 'var(--paper)',
                                     color: active ? 'white' : 'var(--ink-soft)',
-                                    borderColor: active ? 'transparent' : 'var(--line)',
+                                    borderColor: active
+                                        ? 'transparent'
+                                        : 'var(--line)',
                                     fontWeight: active ? 600 : 500,
                                 }}
                             >
@@ -300,8 +342,12 @@ export default function Dashboard({
                                 aria-pressed={active}
                                 className="rounded-full border px-3 py-1.5 text-xs transition-all"
                                 style={{
-                                    background: active ? 'var(--ink)' : 'transparent',
-                                    color: active ? 'var(--bg)' : 'var(--ink-soft)',
+                                    background: active
+                                        ? 'var(--ink)'
+                                        : 'transparent',
+                                    color: active
+                                        ? 'var(--bg)'
+                                        : 'var(--ink-soft)',
                                     borderColor: 'var(--line)',
                                     fontWeight: active ? 600 : 500,
                                 }}
@@ -315,9 +361,9 @@ export default function Dashboard({
                 {/* ===========================================
                  * SECTION HEADING
                  * =========================================*/}
-                <div className="mb-4 mt-7 flex items-baseline justify-between gap-4">
+                <div className="mt-7 mb-4 flex items-baseline justify-between gap-4">
                     <div>
-                        <div className="font-display text-3xl font-medium italic leading-tight tracking-tight">
+                        <div className="font-display text-3xl leading-tight font-medium tracking-tight italic">
                             Profils prêts à{' '}
                             <span className="text-[color:var(--desire-deep)]">
                                 te plaire
@@ -325,14 +371,15 @@ export default function Dashboard({
                             .
                         </div>
                         <div className="mt-1 text-sm text-foreground/55">
-                            {visibleProfiles.length} femmes proches de toi, classées par
-                            compatibilité émotionnelle.
+                            {visibleProfiles.length} femmes proches de toi,
+                            classées par compatibilité émotionnelle.
                         </div>
                     </div>
                     <span className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground/65">
                         <span>Trié par</span>
                         <span className="font-semibold text-foreground">
-                            {VIBES.find((v) => v.id === vibe)?.label ?? 'Compatibilité'}
+                            {VIBES.find((v) => v.id === vibe)?.label ??
+                                'Compatibilité'}
                         </span>
                     </span>
                 </div>
@@ -386,7 +433,7 @@ function HighlightedTitle({ text }: { text: string }): JSX.Element {
                 index % 2 === 1 ? (
                     <em
                         key={index}
-                        className="italic text-[color:var(--desire-deep)]"
+                        className="text-[color:var(--desire-deep)] italic"
                     >
                         {part}
                     </em>
@@ -432,13 +479,14 @@ function EditorialHero({
                         }}
                     />
                     <span className="editorial-eyebrow text-foreground/65">
-                        {dayName} {dayPart} · {onlineCount.toLocaleString('fr-FR')}{' '}
+                        {dayName} {dayPart} ·{' '}
+                        {onlineCount.toLocaleString('fr-FR')}{' '}
                         {onlineCount > 1 ? 'femmes en ligne' : 'femme en ligne'}
                     </span>
                 </div>
 
                 {/* Big editorial title */}
-                <h1 className="font-display m-0 text-5xl font-medium leading-[0.96] tracking-[-0.02em] md:text-6xl xl:text-7xl">
+                <h1 className="m-0 font-display text-5xl leading-[0.96] font-medium tracking-[-0.02em] md:text-6xl xl:text-7xl">
                     <HighlightedTitle text={heroCopy.title} />
                 </h1>
 
@@ -469,12 +517,23 @@ function EditorialHero({
                 {/* Chiffres réels du moment */}
                 <div className="mt-7 flex flex-wrap gap-6 text-foreground/65">
                     {[
-                        [String(profileCount), profileCount > 1 ? 'profils à découvrir' : 'profil à découvrir'],
-                        [String(signals.new_profiles_today), 'inscrites aujourd’hui'],
-                        [String(signals.recent_views), 'visites sur ton profil (24 h)'],
+                        [
+                            String(profileCount),
+                            profileCount > 1
+                                ? 'profils à découvrir'
+                                : 'profil à découvrir',
+                        ],
+                        [
+                            String(signals.new_profiles_today),
+                            'inscrites aujourd’hui',
+                        ],
+                        [
+                            String(signals.recent_views),
+                            'visites sur ton profil (24 h)',
+                        ],
                     ].map(([k, v]) => (
                         <div key={v}>
-                            <div className="font-display text-2xl font-medium italic text-foreground">
+                            <div className="font-display text-2xl font-medium text-foreground italic">
                                 {k}
                             </div>
                             <div className="editorial-caption mt-0.5 text-[0.625rem]">
@@ -571,7 +630,7 @@ function LiveSignalsStack({
                         background: 'var(--bg-soft)',
                     }}
                 >
-                    <p className="font-display text-base italic text-foreground/65">
+                    <p className="font-display text-base text-foreground/65 italic">
                         Rien encore — sois la première à&nbsp;liker.
                     </p>
                 </div>
@@ -585,11 +644,12 @@ function LiveSignalsStack({
                         key={s.id}
                         className="flex items-center gap-3 rounded-2xl border px-4 py-3.5 transition-transform hover:-translate-y-px"
                         style={{
-                            background: isWine ? 'var(--wine-deep)' : 'var(--paper)',
+                            background: isWine
+                                ? 'var(--wine-deep)'
+                                : 'var(--paper)',
                             color: isWine ? 'oklch(96% 0.02 50)' : 'var(--ink)',
                             borderColor: isWine ? 'transparent' : 'var(--line)',
-                            boxShadow:
-                                '0 8px 24px -16px oklch(0% 0 0 / 0.18)',
+                            boxShadow: '0 8px 24px -16px oklch(0% 0 0 / 0.18)',
                             animation: `editorial-rise 0.7s ${i * 120}ms cubic-bezier(0.16,1,0.3,1) both`,
                         }}
                     >
@@ -605,7 +665,7 @@ function LiveSignalsStack({
                             <Icon className="h-4 w-4 fill-current" />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <div className="font-display text-base font-medium italic leading-tight">
+                            <div className="font-display text-base leading-tight font-medium italic">
                                 {s.title}
                             </div>
                             <div
@@ -620,7 +680,7 @@ function LiveSignalsStack({
                             </div>
                         </div>
                         <div
-                            className="font-mono shrink-0 text-[10px] uppercase tracking-wider"
+                            className="shrink-0 font-mono text-[10px] tracking-wider uppercase"
                             style={{
                                 color: isWine
                                     ? 'oklch(96% 0.02 50 / 0.55)'
@@ -718,15 +778,17 @@ function SafetyBanner(): JSX.Element {
         >
             <div
                 aria-hidden
-                className="absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-40"
+                className="absolute -top-16 -right-16 h-64 w-64 rounded-full opacity-40"
                 style={{
                     background:
                         'radial-gradient(circle, var(--desire) 0%, transparent 65%)',
                 }}
             />
             <div className="relative">
-                <div className="editorial-eyebrow mb-3 opacity-60">Notre engagement</div>
-                <h2 className="font-display m-0 text-4xl font-medium leading-[1.05] tracking-[-0.015em] lg:text-[42px]">
+                <div className="editorial-eyebrow mb-3 opacity-60">
+                    Notre engagement
+                </div>
+                <h2 className="m-0 font-display text-4xl leading-[1.05] font-medium tracking-[-0.015em] lg:text-[42px]">
                     Un espace{' '}
                     <em className="italic" style={{ color: 'var(--gold)' }}>
                         pour nous
@@ -734,9 +796,17 @@ function SafetyBanner(): JSX.Element {
                     , par nous.
                 </h2>
                 <p className="mt-3.5 max-w-[520px] text-[14.5px] leading-relaxed opacity-80">
-                    100% communauté féminine. Profils vérifiés par selfie. Modération 24/7.
-                    Mode incognito pour les curieuses qui veulent prendre leur temps.
+                    100% communauté féminine. Profils vérifiés par selfie.
+                    Modération 24/7. Mode incognito pour les curieuses qui
+                    veulent prendre leur temps.
                 </p>
+                <Link
+                    href="/securite"
+                    className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/10"
+                >
+                    Ouvrir le centre de sécurité
+                    <ArrowRight className="h-4 w-4" />
+                </Link>
             </div>
 
             <div className="relative flex flex-col gap-2.5">
@@ -769,8 +839,12 @@ function SafetyBanner(): JSX.Element {
                             {item.k}
                         </span>
                         <div>
-                            <div className="text-sm font-semibold">{item.t}</div>
-                            <div className="mt-0.5 text-xs opacity-70">{item.d}</div>
+                            <div className="text-sm font-semibold">
+                                {item.t}
+                            </div>
+                            <div className="mt-0.5 text-xs opacity-70">
+                                {item.d}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -789,21 +863,40 @@ function EmptyState({ onReset }: { onReset: () => void }): JSX.Element {
                 <div className="editorial-eyebrow mb-3 text-[color:var(--desire-deep)]">
                     <span className="magenta-dot">Personne ce soir</span>
                 </div>
-                <h2 className="font-display mx-auto max-w-xl text-4xl font-medium italic leading-tight">
+                <h2 className="mx-auto max-w-xl font-display text-4xl leading-tight font-medium italic">
                     Personne ne correspond.
                     <br />
-                    <span className="text-[color:var(--desire-deep)]">Pas encore.</span>
+                    <span className="text-[color:var(--desire-deep)]">
+                        Pas encore.
+                    </span>
                 </h2>
                 <p className="mx-auto mt-5 max-w-md text-sm text-foreground/65">
-                    Élargis tes filtres, change la ville, ou attends quelques heures. Les
-                    profils arrivent tout le temps.
+                    Élargis tes filtres, change la ville, ou attends quelques
+                    heures. Les profils arrivent tout le temps.
                 </p>
-                <button type="button" onClick={onReset} className="btn-desire mt-8">
-                    Réinitialiser les filtres
-                    <ArrowRight className="h-3.5 w-3.5" />
-                </button>
+                <div className="mt-8 flex flex-wrap justify-center gap-3">
+                    <button
+                        type="button"
+                        onClick={onReset}
+                        className="btn-desire"
+                    >
+                        Réinitialiser les filtres
+                        <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                    <Link
+                        href="/profile/edit"
+                        className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-semibold"
+                    >
+                        Compléter mon profil
+                    </Link>
+                    <Link
+                        href="/referrals"
+                        className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-semibold"
+                    >
+                        Inviter une amie
+                    </Link>
+                </div>
             </div>
         </div>
     );
 }
-

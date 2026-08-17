@@ -1,5 +1,18 @@
+import PresencePanel, {
+    type PresenceUser,
+} from '@/components/discovery/PresencePanel';
+import { FlashToaster } from '@/components/flash-toaster';
+import NotificationBell from '@/components/NotificationBell';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { PropsWithChildren, useState } from 'react';
 import {
     Activity,
     ArrowRight,
@@ -20,18 +33,7 @@ import {
     User,
     UserPlus,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
-import { FlashToaster } from '@/components/flash-toaster';
-import NotificationBell from '@/components/NotificationBell';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
-import PresencePanel, { type PresenceUser } from '@/components/discovery/PresencePanel';
+import { PropsWithChildren, useState } from 'react';
 
 interface NavEntry {
     icon: typeof Heart;
@@ -67,7 +69,11 @@ export default function DatingLayout({
             pendingGalleryRequests: number;
         };
         presenceUsers?: PresenceUser[];
-        onboarding?: { completed: number; total: number } | null;
+        onboarding?: {
+            completed: number;
+            total: number;
+            steps?: unknown[];
+        } | null;
         auth: {
             user: {
                 id: number;
@@ -112,13 +118,19 @@ export default function DatingLayout({
             icon: MessageCircle,
             label: 'Mes échanges',
             href: '/conversations',
-            badge: counts.unreadConversations > 0 ? counts.unreadConversations : undefined,
+            badge:
+                counts.unreadConversations > 0
+                    ? counts.unreadConversations
+                    : undefined,
         },
         {
             icon: Activity,
             label: 'Activité',
             href: '/activity',
-            badge: counts.recentActivities > 0 ? counts.recentActivities : undefined,
+            badge:
+                counts.recentActivities > 0
+                    ? counts.recentActivities
+                    : undefined,
         },
         { icon: User, label: 'Mon profil', href: '/profile/edit' },
         { icon: Images, label: 'Mes photos', href: '/photos' },
@@ -153,7 +165,10 @@ export default function DatingLayout({
     // La barre du bas ne tient que 4 onglets + « Plus » ; tout le reste bascule
     // dans le panneau, sinon ces pages n'ont aucun point d'entrée en PWA.
     const primaryMobileItems: NavEntry[] = menuItems.slice(0, 4);
-    const overflowItems: NavEntry[] = [...menuItems.slice(4), ...secondaryItems];
+    const overflowItems: NavEntry[] = [
+        ...menuItems.slice(4),
+        ...secondaryItems,
+    ];
 
     const moreMenuBadge = overflowItems.reduce(
         (total, item) => total + (item.badge ?? 0),
@@ -167,7 +182,7 @@ export default function DatingLayout({
         // seul le panneau de contenu scrolle. Sans overflow-hidden ici, le
         // document glisse sous le layout et découvre une bande vide.
         // dvh suit la barre d'URL mobile qui se rétracte (repli vh en amont).
-        <div className="h-[100vh] h-[100dvh] overflow-hidden bg-background text-foreground">
+        <div className="h-[100dvh] h-[100vh] overflow-hidden bg-background text-foreground">
             {title && <Head title={title} />}
 
             <div className="flex h-full">
@@ -175,14 +190,17 @@ export default function DatingLayout({
                  * SIDEBAR — Wine Editorial
                  * ==========================================================*/}
                 <aside
-                    className="hidden w-64 shrink-0 flex-col overflow-y-auto px-4 pb-4 pt-5 lg:flex"
+                    className="hidden w-64 shrink-0 flex-col overflow-y-auto px-4 pt-5 pb-4 lg:flex"
                     style={{
                         background: 'var(--paper)',
                         borderRight: '1px solid var(--line)',
                     }}
                 >
                     {/* Logo with tilted heart */}
-                    <Link href="/" className="flex items-center gap-2.5 px-1.5 pb-4 pt-1">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2.5 px-1.5 pt-1 pb-4"
+                    >
                         <div
                             className="grid h-9 w-9 place-items-center text-white"
                             style={{
@@ -195,10 +213,10 @@ export default function DatingLayout({
                             <Heart className="h-4 w-4 fill-current" />
                         </div>
                         <div>
-                            <div className="font-display text-[22px] font-semibold leading-none">
+                            <div className="font-display text-[22px] leading-none font-semibold">
                                 LesbiLibre
                             </div>
-                            <div className="font-mono mt-0.5 text-[9.5px] uppercase tracking-[0.14em] text-foreground/55">
+                            <div className="mt-0.5 font-mono text-[9.5px] tracking-[0.14em] text-foreground/55 uppercase">
                                 intimate loop
                             </div>
                         </div>
@@ -219,7 +237,9 @@ export default function DatingLayout({
                                 style={{ color: 'var(--wine-deep)' }}
                             >
                                 <Sparkles className="h-4 w-4" />
-                                <span className="text-[13px] font-semibold">Mes gemmes</span>
+                                <span className="text-[13px] font-semibold">
+                                    Mes gemmes
+                                </span>
                             </div>
                             <span
                                 className="font-display text-2xl italic"
@@ -272,43 +292,47 @@ export default function DatingLayout({
 
                     {/* Premium block — masqué pour les abonnées */}
                     {!isPremium && (
-                    <Link
-                        href="/premium"
-                        className="relative mt-4 block shrink-0 overflow-hidden rounded-2xl px-3.5 pb-3.5 pt-3.5"
-                        style={{
-                            background:
-                                'linear-gradient(140deg, var(--wine) 0%, var(--wine-deep) 100%)',
-                            color: 'oklch(96% 0.02 50)',
-                        }}
-                    >
-                        <div
-                            aria-hidden
-                            className="absolute -right-5 -top-5 h-[90px] w-[90px] rounded-full opacity-55"
+                        <Link
+                            href="/premium"
+                            className="relative mt-4 block shrink-0 overflow-hidden rounded-2xl px-3.5 pt-3.5 pb-3.5"
                             style={{
                                 background:
-                                    'radial-gradient(circle, var(--desire) 0%, transparent 70%)',
+                                    'linear-gradient(140deg, var(--wine) 0%, var(--wine-deep) 100%)',
+                                color: 'oklch(96% 0.02 50)',
                             }}
-                        />
-                        <div className="relative mb-2 flex items-center gap-2">
-                            <Crown
-                                className="h-4 w-4 fill-current"
-                                style={{ color: 'var(--gold)' }}
-                            />
-                            <span className="font-display text-[17px] font-medium italic">
-                                Passe en Premium
-                            </span>
-                        </div>
-                        <p className="relative mb-2.5 text-[11.5px] leading-[1.4] opacity-80">
-                            Vois qui t&apos;a likée. Filtres avancés. Mode incognito.
-                        </p>
-                        <div
-                            className="relative flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold"
-                            style={{ background: 'var(--gold)', color: 'var(--wine-deep)' }}
                         >
-                            Découvrir
-                            <ArrowRight className="h-3 w-3" />
-                        </div>
-                    </Link>
+                            <div
+                                aria-hidden
+                                className="absolute -top-5 -right-5 h-[90px] w-[90px] rounded-full opacity-55"
+                                style={{
+                                    background:
+                                        'radial-gradient(circle, var(--desire) 0%, transparent 70%)',
+                                }}
+                            />
+                            <div className="relative mb-2 flex items-center gap-2">
+                                <Crown
+                                    className="h-4 w-4 fill-current"
+                                    style={{ color: 'var(--gold)' }}
+                                />
+                                <span className="font-display text-[17px] font-medium italic">
+                                    Passe en Premium
+                                </span>
+                            </div>
+                            <p className="relative mb-2.5 text-[11.5px] leading-[1.4] opacity-80">
+                                Vois qui t&apos;a likée. Filtres avancés. Mode
+                                incognito.
+                            </p>
+                            <div
+                                className="relative flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold"
+                                style={{
+                                    background: 'var(--gold)',
+                                    color: 'var(--wine-deep)',
+                                }}
+                            >
+                                Découvrir
+                                <ArrowRight className="h-3 w-3" />
+                            </div>
+                        </Link>
                     )}
 
                     {auth.user?.is_admin && (
@@ -354,54 +378,64 @@ export default function DatingLayout({
                         className="mt-3 flex items-center gap-2.5 border-t pt-3.5"
                         style={{ borderColor: 'var(--line-soft)' }}
                     >
-                    <Link
-                        href="/profile/edit"
-                        className="flex min-w-0 flex-1 items-center gap-2.5"
-                    >
-                        <Avatar className="h-[34px] w-[34px]">
-                            <AvatarImage src="/images/logo.png" />
-                            <AvatarFallback
-                                className="font-display text-sm font-medium italic"
-                                style={{
-                                    background: 'var(--blush)',
-                                    color: 'var(--wine-deep)',
-                                }}
-                            >
-                                {auth.user?.name?.slice(0, 2).toUpperCase() ?? 'ME'}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                            <div className="text-[12.5px] font-semibold">
-                                {auth.user?.name ?? 'Mon profil'}
-                            </div>
-                            <div className="mt-1 flex items-center gap-1.5">
-                                <div
-                                    className="h-[3px] flex-1 overflow-hidden rounded-sm"
-                                    style={{ background: 'var(--line)' }}
+                        <Link
+                            href="/profile/edit"
+                            className="flex min-w-0 flex-1 items-center gap-2.5"
+                        >
+                            <Avatar className="h-[34px] w-[34px]">
+                                <AvatarImage src="/images/logo.png" />
+                                <AvatarFallback
+                                    className="font-display text-sm font-medium italic"
+                                    style={{
+                                        background: 'var(--blush)',
+                                        color: 'var(--wine-deep)',
+                                    }}
                                 >
-                                    <div
-                                        className="h-full"
-                                        style={{ background: 'var(--desire)', width: `${((onboarding?.completed ?? 0) / (onboarding?.total ?? 3)) * 100}%` }}
-                                    />
+                                    {auth.user?.name
+                                        ?.slice(0, 2)
+                                        .toUpperCase() ?? 'ME'}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                                <div className="text-[12.5px] font-semibold">
+                                    {auth.user?.name ?? 'Mon profil'}
                                 </div>
-                                <span className="font-mono text-[9.5px] text-foreground/55">
-                                    {Math.round(((onboarding?.completed ?? 0) / (onboarding?.total ?? 3)) * 100)}%
-                                </span>
+                                <div className="mt-1 flex items-center gap-1.5">
+                                    <div
+                                        className="h-[3px] flex-1 overflow-hidden rounded-sm"
+                                        style={{ background: 'var(--line)' }}
+                                    >
+                                        <div
+                                            className="h-full"
+                                            style={{
+                                                background: 'var(--desire)',
+                                                width: `${((onboarding?.completed ?? 0) / (onboarding?.total ?? 3)) * 100}%`,
+                                            }}
+                                        />
+                                    </div>
+                                    <span className="font-mono text-[9.5px] text-foreground/55">
+                                        {Math.round(
+                                            ((onboarding?.completed ?? 0) /
+                                                (onboarding?.total ?? 3)) *
+                                                100,
+                                        )}
+                                        %
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </Link>
-                    <Link
-                        href="/logout"
-                        method="post"
-                        as="button"
-                        onClick={handleLogout}
-                        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-foreground/50 transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
-                        title="Se déconnecter"
-                        aria-label="Se déconnecter"
-                        data-test="logout-button"
-                    >
-                        <LogOut className="h-4 w-4" />
-                    </Link>
+                        </Link>
+                        <Link
+                            href="/logout"
+                            method="post"
+                            as="button"
+                            onClick={handleLogout}
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-foreground/50 transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
+                            title="Se déconnecter"
+                            aria-label="Se déconnecter"
+                            data-test="logout-button"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </Link>
                     </div>
                 </aside>
 
@@ -468,7 +502,10 @@ export default function DatingLayout({
                 ) : null}
             </div>
 
-            <nav className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-card px-2 py-2 lg:hidden" aria-label="Navigation principale mobile">
+            <nav
+                className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t bg-card px-2 py-2 lg:hidden"
+                aria-label="Navigation principale mobile"
+            >
                 {primaryMobileItems.map((item) => (
                     <Link
                         key={item.href}
@@ -544,7 +581,11 @@ export default function DatingLayout({
                         <MobileMenuLink
                             href="/premium"
                             icon={Crown}
-                            label={isPremium ? 'Mon abonnement' : 'Passe en Premium'}
+                            label={
+                                isPremium
+                                    ? 'Mon abonnement'
+                                    : 'Passe en Premium'
+                            }
                             active={isActive('/premium')}
                             onNavigate={() => setMoreMenuOpen(false)}
                         />

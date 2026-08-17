@@ -42,6 +42,15 @@ interface Stats {
         verified: number;
         banned: number;
     };
+    activation: {
+        registered: number;
+        profile_complete: number;
+        with_photo: number;
+        verified: number;
+        first_like: number;
+        first_match: number;
+        first_message: number;
+    };
     engagement: {
         total_matches: number;
         matches_today: number;
@@ -114,7 +123,10 @@ function trend(
 ): { label: string; tone: 'positive' | 'negative' | 'neutral' } {
     if (previous === 0) {
         return current > 0
-            ? { label: `+${current.toLocaleString('fr-FR')} vs 0`, tone: 'positive' }
+            ? {
+                  label: `+${current.toLocaleString('fr-FR')} vs 0`,
+                  tone: 'positive',
+              }
             : { label: 'stable', tone: 'neutral' };
     }
 
@@ -144,7 +156,7 @@ export default function Index({
     recent_reports: ReportRow[];
     recent_users: UserRow[];
 }) {
-    const { users, engagement, moderation, revenue } = stats;
+    const { users, activation, engagement, moderation, revenue } = stats;
 
     const totalMod =
         moderation.pending_photos +
@@ -153,7 +165,10 @@ export default function Index({
 
     const growthSeries = charts.user_growth.map((point) => point.count);
     const usersTrend = trend(users.new_week, users.new_previous_week);
-    const matchesTrend = trend(engagement.matches_week, engagement.matches_previous_week);
+    const matchesTrend = trend(
+        engagement.matches_week,
+        engagement.matches_previous_week,
+    );
     const messagesTrend = trend(
         engagement.messages_week,
         engagement.messages_previous_week,
@@ -162,7 +177,9 @@ export default function Index({
     // Taux de conversion like → match : indicateur de santé du matching.
     const matchRate =
         engagement.total_likes > 0
-            ? Math.round((engagement.total_matches / engagement.total_likes) * 100)
+            ? Math.round(
+                  (engagement.total_matches / engagement.total_likes) * 100,
+              )
             : 0;
 
     return (
@@ -182,7 +199,7 @@ export default function Index({
                     <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[color:var(--wine)] to-[color:var(--wine-deep)] p-5 text-white sm:p-6">
                         <div
                             aria-hidden
-                            className="absolute -right-16 -top-16 h-52 w-52 rounded-full opacity-40"
+                            className="absolute -top-16 -right-16 h-52 w-52 rounded-full opacity-40"
                             style={{
                                 background:
                                     'radial-gradient(circle, var(--desire) 0%, transparent 68%)',
@@ -194,12 +211,12 @@ export default function Index({
                                     <AlertTriangle className="h-3 w-3" />
                                     Action requise
                                 </div>
-                                <h2 className="font-display text-2xl font-medium leading-tight md:text-3xl">
-                                    <em className="italic text-[color:var(--gold)]">
+                                <h2 className="font-display text-2xl leading-tight font-medium md:text-3xl">
+                                    <em className="text-[color:var(--gold)] italic">
                                         {totalMod}
                                     </em>{' '}
-                                    élément{totalMod > 1 ? 's' : ''} en attente de
-                                    décision.
+                                    élément{totalMod > 1 ? 's' : ''} en attente
+                                    de décision.
                                 </h2>
                             </div>
                             <div className="flex flex-wrap gap-2">
@@ -240,8 +257,8 @@ export default function Index({
                                 File de modération vide
                             </p>
                             <p className="text-sm text-[color:var(--ink-mute)]">
-                                Aucune photo, vérification ou plainte n&apos;attend de
-                                décision.
+                                Aucune photo, vérification ou plainte
+                                n&apos;attend de décision.
                             </p>
                         </div>
                     </section>
@@ -251,7 +268,10 @@ export default function Index({
                  * 01 · Indicateurs clés
                  * ========================================================*/}
                 <section>
-                    <AdminSectionTitle eyebrow="01 · Indicateurs clés" title="Plateforme" />
+                    <AdminSectionTitle
+                        eyebrow="01 · Indicateurs clés"
+                        title="Plateforme"
+                    />
                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         <AdminKpi
                             label="Utilisatrices"
@@ -286,6 +306,60 @@ export default function Index({
                             icon={CreditCard}
                             href="/admin/subscriptions"
                         />
+                    </div>
+                </section>
+
+                <section>
+                    <AdminSectionTitle
+                        eyebrow="02 · Activation"
+                        title="De l’inscription à la conversation"
+                    />
+                    <p className="mb-4 max-w-3xl text-sm text-[color:var(--ink-mute)]">
+                        Chaque taux est calculé sur l’ensemble des comptes. Il
+                        permet de voir où les membres ont besoin d’un meilleur
+                        accompagnement.
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {[
+                            ['Inscrites', activation.registered],
+                            ['Profil complété', activation.profile_complete],
+                            ['Avec une photo', activation.with_photo],
+                            ['Vérifiées', activation.verified],
+                            ['Premier like', activation.first_like],
+                            ['Premier match', activation.first_match],
+                            ['Premier message', activation.first_message],
+                        ].map(([label, rawValue]) => {
+                            const value = Number(rawValue);
+                            const rate =
+                                activation.registered > 0
+                                    ? Math.round(
+                                          (value / activation.registered) * 100,
+                                      )
+                                    : 0;
+                            return (
+                                <AdminCard key={String(label)} className="p-4">
+                                    <div className="flex items-baseline justify-between gap-3">
+                                        <span className="text-sm font-medium">
+                                            {label}
+                                        </span>
+                                        <strong className="font-display text-xl">
+                                            {value.toLocaleString('fr-FR')}
+                                        </strong>
+                                    </div>
+                                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[color:var(--line-soft)]">
+                                        <div
+                                            className="h-full rounded-full bg-[color:var(--desire)]"
+                                            style={{
+                                                width: `${Math.min(rate, 100)}%`,
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="mt-2 text-xs text-[color:var(--ink-mute)]">
+                                        {rate}% des inscrites
+                                    </div>
+                                </AdminCard>
+                            );
+                        })}
                     </div>
                 </section>
 
@@ -331,17 +405,23 @@ export default function Index({
                                     {
                                         label: 'Likes',
                                         color: 'var(--desire)',
-                                        values: charts.activity.map((p) => p.likes),
+                                        values: charts.activity.map(
+                                            (p) => p.likes,
+                                        ),
                                     },
                                     {
                                         label: 'Matches',
                                         color: 'var(--gold)',
-                                        values: charts.activity.map((p) => p.matches),
+                                        values: charts.activity.map(
+                                            (p) => p.matches,
+                                        ),
                                     },
                                     {
                                         label: 'Messages',
                                         color: 'var(--wine)',
-                                        values: charts.activity.map((p) => p.messages),
+                                        values: charts.activity.map(
+                                            (p) => p.messages,
+                                        ),
                                     },
                                 ]}
                                 height={180}
@@ -396,8 +476,8 @@ export default function Index({
                                 />
                             </div>
                             <p className="mt-4 border-t border-[color:var(--line-soft)] pt-3 text-[11px] text-[color:var(--ink-mute)]">
-                                Part de la base totale ({users.total.toLocaleString('fr-FR')}{' '}
-                                comptes).
+                                Part de la base totale (
+                                {users.total.toLocaleString('fr-FR')} comptes).
                             </p>
                         </AdminCard>
 
@@ -426,7 +506,8 @@ export default function Index({
                                 />
                             </div>
                             <p className="mt-4 border-t border-[color:var(--line-soft)] pt-3 text-[11px] text-[color:var(--ink-mute)]">
-                                La vérification est le meilleur signal anti-faux profils.
+                                La vérification est le meilleur signal anti-faux
+                                profils.
                             </p>
                         </AdminCard>
 
@@ -445,11 +526,16 @@ export default function Index({
                                     note={usersTrend.label}
                                     tone={usersTrend.tone}
                                 />
-                                <SplitStat label="Ce mois" value={users.new_month} />
+                                <SplitStat
+                                    label="Ce mois"
+                                    value={users.new_month}
+                                />
                             </dl>
                             <div className="mt-4 h-10 border-t border-[color:var(--line-soft)] pt-3">
                                 <AdminAreaChart
-                                    labels={charts.user_growth.map((p) => shortDate(p.date))}
+                                    labels={charts.user_growth.map((p) =>
+                                        shortDate(p.date),
+                                    )}
                                     series={[
                                         {
                                             label: 'Inscriptions',
@@ -502,7 +588,9 @@ export default function Index({
                         />
                         <AdminKpi
                             label="Gemmes en circulation"
-                            value={revenue.gems_distributed - revenue.gems_spent}
+                            value={
+                                revenue.gems_distributed - revenue.gems_spent
+                            }
                             hint={`${revenue.gems_distributed.toLocaleString('fr-FR')} distribuées · ${revenue.gems_spent.toLocaleString('fr-FR')} dépensées`}
                             icon={Sparkles}
                             href="/admin/gems"
@@ -514,7 +602,10 @@ export default function Index({
                  * 05 · Flux récents
                  * ========================================================*/}
                 <section>
-                    <AdminSectionTitle eyebrow="04 · Flux récents" title="À l'instant" />
+                    <AdminSectionTitle
+                        eyebrow="04 · Flux récents"
+                        title="À l'instant"
+                    />
                     <div className="grid gap-4 lg:grid-cols-2">
                         <AdminCard padded={false}>
                             <AdminCardHeader
@@ -558,7 +649,9 @@ export default function Index({
                                                         {report.reason}
                                                     </p>
                                                 </div>
-                                                <AdminMeta>{report.created_at}</AdminMeta>
+                                                <AdminMeta>
+                                                    {report.created_at}
+                                                </AdminMeta>
                                             </Link>
                                         </li>
                                     ))}
@@ -618,10 +711,14 @@ export default function Index({
                                                     </div>
                                                     <p className="mt-0.5 truncate text-xs text-[color:var(--ink-soft)]">
                                                         {user.email}
-                                                        {user.city ? ` · ${user.city}` : ''}
+                                                        {user.city
+                                                            ? ` · ${user.city}`
+                                                            : ''}
                                                     </p>
                                                 </div>
-                                                <AdminMeta>{user.created_at}</AdminMeta>
+                                                <AdminMeta>
+                                                    {user.created_at}
+                                                </AdminMeta>
                                             </Link>
                                         </li>
                                     ))}
@@ -655,7 +752,7 @@ function ModChip({
             href={href}
             className="group inline-flex items-center gap-2 rounded-lg bg-white/[0.14] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/[0.22]"
         >
-            <span className="font-mono grid h-6 min-w-[24px] place-items-center rounded bg-[color:var(--gold)] px-1.5 text-xs font-bold text-[color:var(--wine-deep)]">
+            <span className="grid h-6 min-w-[24px] place-items-center rounded bg-[color:var(--gold)] px-1.5 font-mono text-xs font-bold text-[color:var(--wine-deep)]">
                 {count}
             </span>
             <Icon className="h-3.5 w-3.5 opacity-70" />
@@ -690,7 +787,9 @@ function SplitStat({
                 <span className="font-display text-lg font-medium text-[color:var(--ink)]">
                     {value.toLocaleString('fr-FR')}
                 </span>
-                {note && <div className={`text-[10px] ${noteClass}`}>{note}</div>}
+                {note && (
+                    <div className={`text-[10px] ${noteClass}`}>{note}</div>
+                )}
             </dd>
         </div>
     );

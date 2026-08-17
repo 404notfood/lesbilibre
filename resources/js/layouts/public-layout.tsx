@@ -10,7 +10,9 @@ interface PublicLayoutProps {
  * Unlike the auth layout, the content area is full width so long-form copy
  * stays readable.
  */
-export default function PublicLayout({ children }: PublicLayoutProps): JSX.Element {
+export default function PublicLayout({
+    children,
+}: PublicLayoutProps): JSX.Element {
     return (
         <div className="flex min-h-screen flex-col bg-background">
             <header className="border-b border-border/50">
@@ -22,24 +24,33 @@ export default function PublicLayout({ children }: PublicLayoutProps): JSX.Eleme
                         </span>
                     </Link>
 
-                    <nav className="flex items-center gap-6 text-sm">
+                    <nav
+                        className="flex items-center gap-3 text-sm sm:gap-5"
+                        aria-label="Navigation publique"
+                    >
                         <Link
-                            href="/about"
-                            className="text-muted-foreground transition-colors hover:text-primary"
+                            href="/comment-ca-marche"
+                            className="hidden text-muted-foreground transition-colors hover:text-primary sm:inline"
                         >
-                            À propos
+                            Comment ça marche
                         </Link>
                         <Link
-                            href="/faq"
+                            href="/securite"
                             className="text-muted-foreground transition-colors hover:text-primary"
                         >
-                            FAQ
+                            Sécurité
                         </Link>
                         <Link
-                            href="/contact"
+                            href="/tarifs"
                             className="text-muted-foreground transition-colors hover:text-primary"
                         >
-                            Contact
+                            Tarifs
+                        </Link>
+                        <Link
+                            href="/guides"
+                            className="hidden text-muted-foreground transition-colors hover:text-primary md:inline"
+                        >
+                            Guides
                         </Link>
                     </nav>
                 </div>
@@ -49,8 +60,32 @@ export default function PublicLayout({ children }: PublicLayoutProps): JSX.Eleme
 
             <footer className="border-t border-border/50">
                 <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row">
-                    <span>© 2025 LesbiLibre</span>
-                    <div className="flex gap-4">
+                    <span>© {new Date().getFullYear()} LesbiLibre</span>
+                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                        <Link
+                            href="/about"
+                            className="transition-colors hover:text-primary"
+                        >
+                            À propos
+                        </Link>
+                        <Link
+                            href="/fonctionnalites"
+                            className="transition-colors hover:text-primary"
+                        >
+                            Fonctionnalités
+                        </Link>
+                        <Link
+                            href="/faq"
+                            className="transition-colors hover:text-primary"
+                        >
+                            FAQ
+                        </Link>
+                        <Link
+                            href="/contact"
+                            className="transition-colors hover:text-primary"
+                        >
+                            Contact
+                        </Link>
                         <Link
                             href="/privacy"
                             className="transition-colors hover:text-primary"

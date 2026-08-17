@@ -2,17 +2,23 @@
 
 use App\Models\User;
 use App\Models\UserMatch;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
+Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('seo.robots');
+Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/indexnow-key.txt', [\App\Http\Controllers\SeoController::class, 'indexNowKey'])->name('seo.indexnow-key');
+
 Route::get('/', function () {
-    // Vraies stats globales — utilisées comme social proof sur la landing
-    $stats = [
+    // Courte mise en cache : preuve sociale fraîche, sans trois COUNT à chaque
+    // affichage de la landing.
+    $stats = Cache::remember('public.home.stats', now()->addMinutes(5), fn () => [
         'total_users' => User::where('is_verified', true)->where('is_banned', false)->count(),
         'active_today' => User::where('last_login_at', '>=', now()->startOfDay())->count(),
         'total_matches' => UserMatch::count(),
-    ];
+    ]);
 
     return Inertia::render('home', [
         'canRegister' => Features::enabled(Features::registration()),
@@ -26,6 +32,14 @@ Route::get('/privacy', [\App\Http\Controllers\StaticPageController::class, 'priv
 Route::get('/faq', [\App\Http\Controllers\StaticPageController::class, 'faq'])->name('faq');
 Route::get('/about', [\App\Http\Controllers\StaticPageController::class, 'about'])->name('about');
 Route::get('/contact', [\App\Http\Controllers\StaticPageController::class, 'contact'])->name('contact');
+Route::get('/comment-ca-marche', [\App\Http\Controllers\StaticPageController::class, 'howItWorks'])->name('how-it-works');
+Route::get('/securite', [\App\Http\Controllers\StaticPageController::class, 'safety'])->name('safety');
+Route::get('/fonctionnalites', [\App\Http\Controllers\StaticPageController::class, 'features'])->name('features');
+Route::get('/tarifs', [\App\Http\Controllers\StaticPageController::class, 'pricing'])->name('pricing');
+Route::get('/guides', [\App\Http\Controllers\StaticPageController::class, 'guides'])->name('guides.index');
+Route::get('/guides/{slug}', [\App\Http\Controllers\StaticPageController::class, 'guide'])
+    ->where('slug', '[a-z0-9-]+')
+    ->name('guides.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');

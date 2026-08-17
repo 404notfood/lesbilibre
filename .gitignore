@@ -22,6 +22,7 @@
 # Front-end build artifacts
 /public/build/
 /public/hot
+/bootstrap/ssr/
 
 # Local tooling and test output
 /.phpunit.result.cache
@@ -29,6 +30,8 @@
 /tests-screenshots/
 .DS_Store
 Thumbs.db
+
+# Nginx and Certbot configuration
 /nginx/
 /certbot/conf/
 /.pull.env

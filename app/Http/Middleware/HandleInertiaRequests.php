@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
         $unreadConversationsCount = 0;
         $recentActivitiesCount = 0;
         $pendingGalleryRequestsCount = 0;
+        $onboarding = null;
 
         if ($user) {
             $user->loadMissing('profile');
@@ -89,6 +90,33 @@ class HandleInertiaRequests extends Middleware
             $pendingGalleryRequestsCount = GalleryAccessRequest::where('owner_user_id', $user->id)
                 ->where('status', 'pending')
                 ->count();
+
+            $onboardingChecks = [
+                'profile' => (bool) ($user->profile?->bio && $user->profile?->looking_for),
+                'photo' => Photo::where('user_id', $user->id)->where('is_approved', true)->exists(),
+                'verification' => (bool) $user->is_verified,
+                'first_like' => Like::where('user_id', $user->id)->exists(),
+                'first_match' => UserMatch::where('user1_id', $user->id)->orWhere('user2_id', $user->id)->exists(),
+                'first_message' => \App\Models\Message::where('sender_id', $user->id)->exists(),
+            ];
+
+            $stepDefinitions = [
+                ['id' => 'profile', 'label' => 'Compléter mon profil', 'description' => 'Bio, intentions et centres d’intérêt', 'href' => '/profile/edit'],
+                ['id' => 'photo', 'label' => 'Ajouter une photo', 'description' => 'Aider les autres membres à vous reconnaître', 'href' => '/photos'],
+                ['id' => 'verification', 'label' => 'Vérifier mon profil', 'description' => 'Ajouter un repère de confiance', 'href' => '/verification'],
+                ['id' => 'first_like', 'label' => 'Envoyer un premier like', 'description' => 'Faire le premier pas à votre rythme', 'href' => '/dashboard'],
+                ['id' => 'first_match', 'label' => 'Obtenir un premier match', 'description' => 'Un intérêt réciproque ouvre la conversation', 'href' => '/matches'],
+                ['id' => 'first_message', 'label' => 'Commencer une conversation', 'description' => 'Rebondir sur un détail du profil', 'href' => '/conversations'],
+            ];
+
+            $onboarding = [
+                ...$onboardingChecks,
+                'steps' => collect($stepDefinitions)->map(fn (array $step) => $step + [
+                    'completed' => $onboardingChecks[$step['id']],
+                ])->all(),
+                'completed' => collect($onboardingChecks)->filter()->count(),
+                'total' => count($onboardingChecks),
+            ];
         }
 
         // Alertes admin — partagées uniquement si l'utilisateur est admin
@@ -122,17 +150,7 @@ class HandleInertiaRequests extends Middleware
                 'recentActivities' => $recentActivitiesCount,
                 'pendingGalleryRequests' => $pendingGalleryRequestsCount,
             ],
-            'onboarding' => $user ? [
-                'profile' => (bool) ($user->profile?->bio && $user->profile?->looking_for),
-                'photo' => $user->photos()->where('is_approved', true)->exists(),
-                'verification' => (bool) $user->is_verified,
-                'completed' => collect([
-                    (bool) ($user->profile?->bio && $user->profile?->looking_for),
-                    $user->photos()->where('is_approved', true)->exists(),
-                    (bool) $user->is_verified,
-                ])->filter()->count(),
-                'total' => 3,
-            ] : null,
+            'onboarding' => $onboarding,
             'adminAlerts' => $adminAlerts,
             'flash' => [
                 'success' => $request->session()->get('success'),
