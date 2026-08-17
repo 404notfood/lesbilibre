@@ -1,0 +1,13 @@
+[Unit]
+Description=LesbiLibre Inertia SSR
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/web/steff.404notfood.fr/public_html/site
+ExecStart=/usr/bin/php artisan inertia:start-ssr
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
