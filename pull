@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+
+# Deploiement de production Laravel/Vite.
+# Les modifications locales suivies par Git sont volontairement remplacees par
+# la version distante. Les fichiers .env, .pull.env et storage/ sont preserves.
+
+set -Eeuo pipefail
+
+readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+if [[ -f .pull.env ]]; then
+    # Configuration locale au VPS, ignoree par Git.
+    # shellcheck disable=SC1091
+    source .pull.env
+fi
+
+DEPLOY_REMOTE="${DEPLOY_REMOTE:-origin}"
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+WEBSOCKET_RESTART_COMMAND="${WEBSOCKET_RESTART_COMMAND:-}"
+RESTART_QUEUE="${RESTART_QUEUE:-1}"
+PRUNE_NPM_DEV_DEPENDENCIES="${PRUNE_NPM_DEV_DEPENDENCIES:-0}"
+MAINTENANCE_MODE=0
+
+if [[ -n "${PM2_BIN:-}" ]]; then
+    PM2_BIN="$PM2_BIN"
+elif command -v pm2 >/dev/null 2>&1; then
+    PM2_BIN="$(command -v pm2)"
+elif [[ -x "$HOME/.local/bin/pm2" ]]; then
+    PM2_BIN="$HOME/.local/bin/pm2"
+else
+    PM2_BIN=""
+fi
+
+log() {
+    printf '\n\033[1;34m==> %s\033[0m\n' "$1"
+}
+
+warn() {
+    printf '\n\033[1;33mATTENTION : %s\033[0m\n' "$1" >&2
+}
+
+fail() {
+    printf '\n\033[1;31mERREUR : %s\033[0m\n' "$1" >&2
+    exit 1
+}
+
+cleanup() {
+    local exit_code=$?
+
+    if [[ "$MAINTENANCE_MODE" == "1" ]]; then
+        warn "Le deploiement s'est interrompu ; tentative de sortie du mode maintenance."
+        php artisan up >/dev/null 2>&1 || true
+    fi
+
+    if [[ "$exit_code" -ne 0 ]]; then
+        printf '\n\033[1;31mDeploiement echoue (code %s).\033[0m\n' "$exit_code" >&2
+    fi
+}
+
+trap cleanup EXIT
+
+for command_name in git php composer npm; do
+    command -v "$command_name" >/dev/null 2>&1 || fail "Commande introuvable : $command_name"
+done
+
+[[ -f artisan ]] || fail "Le script doit se trouver a la racine du projet Laravel."
+[[ -f .env ]] || fail "Le fichier .env de production est absent."
+
+# Empeche deux deploiements simultanes si flock est disponible.
+if command -v flock >/dev/null 2>&1; then
+    exec 9>"${TMPDIR:-/tmp}/lesbilibre-deploy.lock"
+    flock -n 9 || fail "Un autre deploiement est deja en cours."
+fi
+
+log "Recuperation de ${DEPLOY_REMOTE}/${DEPLOY_BRANCH}"
+git fetch --prune "$DEPLOY_REMOTE" "$DEPLOY_BRANCH"
+
+previous_revision="$(git rev-parse --short HEAD)"
+
+log "Activation du mode maintenance"
+php artisan down --retry=60
+MAINTENANCE_MODE=1
+
+log "Alignement du serveur sur la revision distante"
+git reset --hard FETCH_HEAD
+current_revision="$(git rev-parse --short HEAD)"
+printf 'Revision : %s -> %s\n' "$previous_revision" "$current_revision"
+
+log "Installation des dependances PHP de production"
+composer install \
+    --no-dev \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-interaction \
+    --no-progress
+
+# Important : Wayfinder doit generer ses routes sans utiliser un ancien cache.
+log "Nettoyage des caches Laravel"
+php artisan optimize:clear
+
+log "Installation des dependances JavaScript"
+HUSKY=0 npm ci --include=dev --no-audit --no-fund
+
+log "Execution des migrations"
+php artisan migrate --force
+
+log "Construction des assets de production"
+npm run build
+
+if [[ "$PRUNE_NPM_DEV_DEPENDENCIES" == "1" ]]; then
+    log "Suppression des dependances NPM de developpement"
+    HUSKY=0 npm prune --omit=dev --no-audit --no-fund
+fi
+
+log "Optimisation de Laravel"
+php artisan optimize
+
+if [[ "$RESTART_QUEUE" == "1" ]]; then
+    if [[ -n "$PM2_BIN" && -x "$PM2_BIN" && -f ecosystem.config.cjs ]]; then
+        log "Redemarrage du worker Laravel avec PM2"
+        "$PM2_BIN" startOrReload ecosystem.config.cjs --only laravel-queue --update-env
+    else
+        log "Signal de redemarrage des workers Laravel"
+        php artisan queue:restart
+    fi
+fi
+
+if [[ -n "$WEBSOCKET_RESTART_COMMAND" ]]; then
+    log "Redemarrage du serveur WebSocket"
+    bash -lc "$WEBSOCKET_RESTART_COMMAND"
+elif php artisan list --raw 2>/dev/null | grep -q '^reverb:restart'; then
+    log "Redemarrage de Laravel Reverb"
+    php artisan reverb:restart
+else
+    warn "Aucun redemarrage WebSocket configure (normal avec Pusher Cloud)."
+fi
+
+log "Desactivation du mode maintenance"
+php artisan up
+MAINTENANCE_MODE=0
+
+trap - EXIT
+printf '\n\033[1;32mDeploiement termine avec succes (%s).\033[0m\n' "$current_revision"
