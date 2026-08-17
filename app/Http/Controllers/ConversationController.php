@@ -26,7 +26,7 @@ class ConversationController extends Controller
             $q->where('user1_id', $user->id)
                 ->orWhere('user2_id', $user->id);
         })
-            ->with(['user1.profile', 'user2.profile', 'messages' => function ($query) {
+            ->with(['user1.avatarPhoto', 'user2.avatarPhoto', 'messages' => function ($query) {
                 $query->latest()->limit(1);
             }])
             ->withCount(['messages as unread_count' => function ($query) use ($user) {
@@ -35,12 +35,23 @@ class ConversationController extends Controller
             }])
             ->orderBy('last_message_at', 'desc')
             ->get()
-            ->map(function ($conversation) use ($user) {
-                $conversation->other_user = $conversation->user1_id === $user->id
+            ->map(function (Conversation $conversation) use ($user) {
+                $otherUser = $conversation->user1_id === $user->id
                     ? $conversation->user2
                     : $conversation->user1;
 
-                return $conversation;
+                $lastMessage = $conversation->messages->first();
+
+                return [
+                    'id' => $conversation->id,
+                    'other_user' => $this->conversationUser($otherUser),
+                    'last_message' => $lastMessage ? [
+                        'id' => $lastMessage->id,
+                        'content' => $lastMessage->content,
+                        'created_at' => $lastMessage->created_at->toISOString(),
+                    ] : null,
+                    'unread_count' => $conversation->unread_count,
+                ];
             });
 
         return Inertia::render('Chat/Index', [
@@ -67,9 +78,7 @@ class ConversationController extends Controller
 
         abort_unless($user->canInteractWith($otherUser), 403, 'Cette conversation n’est plus disponible.');
 
-        $otherUser->load(['photos' => function ($query) {
-            $query->where('is_approved', true)->orderBy('order')->limit(1);
-        }]);
+        $otherUser->load('avatarPhoto');
 
         // Load messages with pagination
         $messages = $conversation->messages()
@@ -108,7 +117,7 @@ class ConversationController extends Controller
 
         return Inertia::render('Chat/Show', [
             'conversation' => $conversation,
-            'otherUser' => $otherUser,
+            'otherUser' => $this->conversationUser($otherUser),
             'messages' => $messages,
             'canSendMessage' => $conversation->canSendMessage($user),
             'ephemeral' => $ephemeral,
@@ -178,5 +187,19 @@ class ConversationController extends Controller
         ]);
 
         return redirect()->route('conversations.show', $conversation);
+    }
+
+    /**
+     * Contrat minimal partagé par la liste et l'en-tête de conversation.
+     *
+     * @return array{id: int, name: string, avatar_url: string|null}
+     */
+    private function conversationUser(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'avatar_url' => $user->avatarPhoto?->viewUrl(thumbnail: true),
+        ];
     }
 }

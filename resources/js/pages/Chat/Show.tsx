@@ -1,27 +1,23 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { getEcho } from '@/echo';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
-import { ArrowLeft, Send } from 'lucide-react';
 import {
     EphemeralBubble,
     EphemeralComposer,
     type EphemeralItem,
     type EphemeralSettings,
 } from '@/components/chat/ephemeral-panel';
-import { useState, useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
+import { getEcho } from '@/echo';
+import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-interface Photo {
-    path: string;
-}
+import { ArrowLeft, Send } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UserData {
     id: number;
     name: string;
-    photos: Photo[];
+    avatar_url: string | null;
 }
 
 interface Message {
@@ -64,7 +60,9 @@ export default function Show({
 }: Props) {
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
-    const [localMessages, setLocalMessages] = useState<Message[]>(messages.data);
+    const [localMessages, setLocalMessages] = useState<Message[]>(
+        messages.data,
+    );
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Messages et contenus éphémères partagent un même fil chronologique.
@@ -137,7 +135,7 @@ export default function Show({
                 onSuccess: () => {
                     setMessage('');
                 },
-            }
+            },
         );
     };
 
@@ -160,9 +158,9 @@ export default function Show({
                             className="flex items-center gap-3 hover:opacity-80"
                         >
                             <div className="h-10 w-10 overflow-hidden rounded-full bg-gradient-to-br from-pink-100 to-purple-100">
-                                {otherUser.photos?.[0] ? (
+                                {otherUser.avatar_url ? (
                                     <img
-                                        src={`/storage/${otherUser.photos[0].path}`}
+                                        src={otherUser.avatar_url}
                                         alt={otherUser.name}
                                         className="h-full w-full object-cover"
                                     />
@@ -194,7 +192,8 @@ export default function Show({
                                     ) : (
                                         (() => {
                                             const msg = entry.message;
-                                            const isOwn = msg.sender_id === auth.user.id;
+                                            const isOwn =
+                                                msg.sender_id === auth.user.id;
                                             return (
                                                 <div
                                                     key={`m-${msg.id}`}
@@ -218,7 +217,9 @@ export default function Show({
                                                             }`}
                                                         >
                                                             {format(
-                                                                new Date(msg.created_at),
+                                                                new Date(
+                                                                    msg.created_at,
+                                                                ),
                                                                 'HH:mm',
                                                                 { locale: fr },
                                                             )}
@@ -243,7 +244,10 @@ export default function Show({
                 <div className="border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
                     <div className="container mx-auto px-4 py-4">
                         {canSendMessage ? (
-                            <form onSubmit={handleSubmit} className="mx-auto flex max-w-3xl gap-2">
+                            <form
+                                onSubmit={handleSubmit}
+                                className="mx-auto flex max-w-3xl gap-2"
+                            >
                                 <EphemeralComposer
                                     conversationId={conversation.id}
                                     settings={ephemeralSettings}
@@ -270,8 +274,8 @@ export default function Show({
                             </form>
                         ) : (
                             <p className="mx-auto max-w-3xl rounded-lg bg-gray-100 px-4 py-3 text-center text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                                Votre message a bien été envoyé. Attendez sa réponse pour
-                                continuer la conversation.
+                                Votre message a bien été envoyé. Attendez sa
+                                réponse pour continuer la conversation.
                             </p>
                         )}
                     </div>

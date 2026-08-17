@@ -1,3 +1,4 @@
+import PhotoLightbox, { type LightboxItem } from '@/components/photo-lightbox';
 import {
     Dialog,
     DialogContent,
@@ -14,8 +15,6 @@ import {
     BadgeCheck,
     Briefcase,
     Camera,
-    ChevronLeft,
-    ChevronRight,
     Flag,
     Gift,
     GraduationCap,
@@ -119,6 +118,7 @@ export default function View({
     const [processingMessage, setProcessingMessage] = useState(false);
     const [processingBlock, setProcessingBlock] = useState(false);
     const [requestingAccess, setRequestingAccess] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
     const handleRequestGalleryAccess = () => {
         setRequestingAccess(true);
@@ -134,6 +134,21 @@ export default function View({
 
     const primaryPhoto = photos.find((p) => p.is_primary) || photos[0];
     const otherPhotos = photos.filter((p) => p.id !== primaryPhoto?.id);
+    const viewableMedia = photos.filter((photo) => !photo.is_blurred);
+    const lightboxItems: LightboxItem[] = viewableMedia.map((photo) => ({
+        id: photo.id,
+        url: photo.url,
+        mediaType: photo.media_type ?? 'photo',
+        posterUrl: photo.media_type === 'video' ? `${photo.url}?thumb=1` : null,
+        caption: `${user.name} — ${photo.media_type === 'video' ? 'vidéo' : 'photo'}`,
+    }));
+    const openLightbox = (photoId: number) => {
+        const index = viewableMedia.findIndex((photo) => photo.id === photoId);
+
+        if (index >= 0) {
+            setLightboxIndex(index);
+        }
+    };
     const initials = user.name.slice(0, 2).toUpperCase();
 
     const handleLike = () => {
@@ -251,20 +266,36 @@ export default function View({
 
                     {/* Right: Primary photo + match score (compact, top-aligned) */}
                     <div className="flex flex-col gap-3">
-                        <div
-                            className="relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl border shadow-[0_20px_50px_-30px_oklch(0%_0_0_/_0.35)]"
-                            style={{ borderColor: 'var(--line)' }}
-                        >
-                            {primaryPhoto ? (
+                        {primaryPhoto ? (
+                            <button
+                                type="button"
+                                onClick={() => openLightbox(primaryPhoto.id)}
+                                disabled={primaryPhoto.is_blurred}
+                                aria-label={`Agrandir la photo de profil de ${user.name}`}
+                                className="group relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl border shadow-[0_20px_50px_-30px_oklch(0%_0_0_/_0.35)] focus-visible:ring-2 focus-visible:ring-[color:var(--desire)] focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed"
+                                style={{ borderColor: 'var(--line)' }}
+                            >
                                 <img
-                                    src={primaryPhoto.url}
+                                    src={
+                                        primaryPhoto.media_type === 'video'
+                                            ? `${primaryPhoto.url}?thumb=1`
+                                            : primaryPhoto.url
+                                    }
                                     alt={user.name}
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-cover transition-transform duration-300 group-enabled:group-hover:scale-[1.03]"
                                 />
-                            ) : (
+                                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-3 pt-8 pb-3 text-left text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                                    Agrandir
+                                </span>
+                            </button>
+                        ) : (
+                            <div
+                                className="relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl border shadow-[0_20px_50px_-30px_oklch(0%_0_0_/_0.35)]"
+                                style={{ borderColor: 'var(--line)' }}
+                            >
                                 <NoPhotoCover initials={initials} />
-                            )}
-                        </div>
+                            </div>
+                        )}
 
                         {/* Match score block */}
                         <MatchScoreBlock
@@ -395,6 +426,7 @@ export default function View({
                                 <ProfileMediaGallery
                                     media={otherPhotos}
                                     userName={user.name}
+                                    onOpenMedia={openLightbox}
                                 />
 
                                 {gallery &&
@@ -520,6 +552,13 @@ export default function View({
                     </div>
                 </div>
 
+                <PhotoLightbox
+                    items={lightboxItems}
+                    index={lightboxIndex}
+                    onClose={() => setLightboxIndex(null)}
+                    onNavigate={setLightboxIndex}
+                />
+
                 {/* ===========================================
                  * BLOCK DIALOG
                  * =========================================*/}
@@ -572,48 +611,23 @@ type MediaKind = 'photo' | 'video';
 function ProfileMediaGallery({
     media,
     userName,
+    onOpenMedia,
 }: {
     media: Photo[];
     userName: string;
+    onOpenMedia: (photoId: number) => void;
 }): JSX.Element {
     const photoMedia = media.filter((item) => item.media_type !== 'video');
     const videoMedia = media.filter((item) => item.media_type === 'video');
     const initialTab: MediaKind = photoMedia.length > 0 ? 'photo' : 'video';
     const [activeTab, setActiveTab] = useState<MediaKind>(initialTab);
-    const [activeMediaId, setActiveMediaId] = useState<number | null>(null);
-
-    const activeItems = activeTab === 'photo' ? photoMedia : videoMedia;
-    const activeIndex = activeItems.findIndex(
-        (item) => item.id === activeMediaId,
-    );
-    const activeMedia = activeIndex >= 0 ? activeItems[activeIndex] : null;
-
     const openMedia = (item: Photo, kind: MediaKind) => {
         if (item.is_blurred) {
             return;
         }
 
         setActiveTab(kind);
-        setActiveMediaId(item.id);
-    };
-
-    const showPrevious = () => {
-        if (activeItems.length < 2) {
-            return;
-        }
-
-        const previousIndex =
-            (activeIndex - 1 + activeItems.length) % activeItems.length;
-        setActiveMediaId(activeItems[previousIndex].id);
-    };
-
-    const showNext = () => {
-        if (activeItems.length < 2) {
-            return;
-        }
-
-        const nextIndex = (activeIndex + 1) % activeItems.length;
-        setActiveMediaId(activeItems[nextIndex].id);
+        onOpenMedia(item.id);
     };
 
     const renderGrid = (items: Photo[], kind: MediaKind) => {
@@ -722,90 +736,6 @@ function ProfileMediaGallery({
                     {renderGrid(videoMedia, 'video')}
                 </TabsContent>
             </Tabs>
-
-            <Dialog
-                open={activeMedia !== null}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setActiveMediaId(null);
-                    }
-                }}
-            >
-                <DialogContent
-                    className="h-[min(90vh,900px)] max-w-[min(94vw,1200px)] gap-0 overflow-hidden border-white/10 bg-black p-0 text-white shadow-2xl"
-                    onKeyDown={(event) => {
-                        if (event.key === 'ArrowLeft') {
-                            event.preventDefault();
-                            showPrevious();
-                        }
-
-                        if (event.key === 'ArrowRight') {
-                            event.preventDefault();
-                            showNext();
-                        }
-                    }}
-                    onContextMenu={(event) => event.preventDefault()}
-                >
-                    <DialogTitle className="sr-only">
-                        {activeTab === 'video' ? 'Vidéo' : 'Photo'} de{' '}
-                        {userName}
-                    </DialogTitle>
-                    <DialogDescription className="sr-only">
-                        Utilisez les flèches gauche et droite pour parcourir les
-                        médias.
-                    </DialogDescription>
-
-                    {activeMedia && (
-                        <div className="relative flex h-full min-h-0 items-center justify-center bg-black">
-                            {activeMedia.media_type === 'video' ? (
-                                <video
-                                    key={activeMedia.id}
-                                    src={activeMedia.url}
-                                    poster={`${activeMedia.url}?thumb=1`}
-                                    controls
-                                    autoPlay
-                                    playsInline
-                                    preload="metadata"
-                                    controlsList="nodownload"
-                                    className="h-full w-full object-contain"
-                                />
-                            ) : (
-                                <img
-                                    src={activeMedia.url}
-                                    alt={`${userName} — photo ${activeIndex + 1} sur ${activeItems.length}`}
-                                    draggable={false}
-                                    className="h-full w-full object-contain select-none"
-                                />
-                            )}
-
-                            {activeItems.length > 1 && (
-                                <>
-                                    <button
-                                        type="button"
-                                        onClick={showPrevious}
-                                        aria-label="Média précédent"
-                                        className="absolute left-3 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-                                    >
-                                        <ChevronLeft className="h-6 w-6" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={showNext}
-                                        aria-label="Média suivant"
-                                        className="absolute right-3 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/80 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
-                                    >
-                                        <ChevronRight className="h-6 w-6" />
-                                    </button>
-                                </>
-                            )}
-
-                            <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
-                                {activeIndex + 1} / {activeItems.length}
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
         </>
     );
 }

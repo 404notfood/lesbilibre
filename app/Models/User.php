@@ -96,6 +96,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Photo publique autorisée à servir d'avatar dans les surfaces compactes.
+     *
+     * Cette relation évite que chaque écran réimplémente les règles de
+     * modération et finisse par exposer un chemin de stockage privé.
+     */
+    public function avatarPhoto(): HasOne
+    {
+        return $this->hasOne(Photo::class)
+            ->where('media_type', 'photo')
+            ->where('is_primary', true)
+            ->where('is_approved', true)
+            ->where('moderation_status', 'approved')
+            ->where('is_naughty', false)
+            ->where('is_private', false);
+    }
+
+    /**
      * Get the user's verification photos.
      */
     public function verificationPhotos(): HasMany
