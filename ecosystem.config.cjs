@@ -12,6 +12,8 @@ const localSoketiBin = path.join(
     'bin',
     'soketi',
 );
+const configuredSoketiBin = process.env.SOKETI_BIN || localSoketiBin;
+const configuredSoketiNode = process.env.SOKETI_NODE_BIN || process.execPath;
 
 /** Lit uniquement les valeurs simples necessaires a Soketi dans le .env Laravel. */
 function envValue(name, fallback = '') {
@@ -57,9 +59,11 @@ module.exports = {
         },
         {
             name: 'soketi',
-            script: fs.existsSync(localSoketiBin) ? localSoketiBin : 'soketi',
+            script: fs.existsSync(configuredSoketiBin)
+                ? configuredSoketiBin
+                : 'soketi',
             args: 'start',
-            interpreter: 'none',
+            interpreter: configuredSoketiNode,
             instances: 1,
             autorestart: true,
             watch: false,
