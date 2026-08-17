@@ -56,7 +56,7 @@ interface User {
     is_banned: boolean;
     ban_reason: string | null;
     banned_at: string | null;
-    gems_balance: number;
+    gems_balance: number | null;
     badge_points: number;
     last_activity_at: string;
     created_at: string;
@@ -345,7 +345,7 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                             <div className="grid grid-cols-2 gap-3">
                                 <ResourceTile
                                     label="Gemmes"
-                                    value={user.gems_balance}
+                                    value={user.gems_balance ?? 0}
                                     icon={Sparkles}
                                     href={`/admin/gems/${user.id}`}
                                 />

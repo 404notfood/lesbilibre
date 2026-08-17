@@ -34,7 +34,7 @@ interface UserRow {
     is_verified: boolean;
     is_banned: boolean;
     ban_reason: string | null;
-    gems_balance: number;
+    gems_balance: number | null;
     badge_points: number;
     last_activity_at: string | null;
     created_at: string;
@@ -289,7 +289,8 @@ export default function Index({
                                             <AdminTd align="right">
                                                 <span className="font-mono inline-flex items-center gap-1 text-xs text-[color:var(--ink-soft)]">
                                                     <Sparkles className="h-3 w-3 text-[color:var(--gold)]" />
-                                                    {user.gems_balance.toLocaleString('fr-FR')}
+                                                    {user.gems_balance?.toLocaleString('fr-FR') ??
+                                                        '0'}
                                                 </span>
                                             </AdminTd>
                                             <AdminTd>
