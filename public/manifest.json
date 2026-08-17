@@ -37,5 +37,44 @@
     ],
     "categories": ["social", "lifestyle"],
     "lang": "fr",
-    "dir": "ltr"
+    "dir": "ltr",
+    "prefer_related_applications": false,
+    "shortcuts": [
+        {
+            "name": "Découvrir",
+            "short_name": "Découvrir",
+            "url": "/dashboard",
+            "icons": [
+                {
+                    "src": "/images/branding/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Mes échanges",
+            "short_name": "Échanges",
+            "url": "/conversations",
+            "icons": [
+                {
+                    "src": "/images/branding/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Mon profil",
+            "short_name": "Profil",
+            "url": "/profile/edit",
+            "icons": [
+                {
+                    "src": "/images/branding/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ]
 }

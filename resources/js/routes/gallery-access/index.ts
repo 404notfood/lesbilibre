@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\GalleryAccessController::manage
- * @see app/Http/Controllers/GalleryAccessController.php:128
+ * @see app/Http/Controllers/GalleryAccessController.php:139
  * @route '/gallery-access/manage'
  */
 export const manage = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -94,7 +94,7 @@ manage.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::manage
- * @see app/Http/Controllers/GalleryAccessController.php:128
+ * @see app/Http/Controllers/GalleryAccessController.php:139
  * @route '/gallery-access/manage'
  */
 manage.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ manage.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::manage
- * @see app/Http/Controllers/GalleryAccessController.php:128
+ * @see app/Http/Controllers/GalleryAccessController.php:139
  * @route '/gallery-access/manage'
  */
 manage.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -112,7 +112,7 @@ manage.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\GalleryAccessController::manage
- * @see app/Http/Controllers/GalleryAccessController.php:128
+ * @see app/Http/Controllers/GalleryAccessController.php:139
  * @route '/gallery-access/manage'
  */
 manage.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -122,7 +122,7 @@ manage.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::manage
- * @see app/Http/Controllers/GalleryAccessController.php:128
+ * @see app/Http/Controllers/GalleryAccessController.php:139
  * @route '/gallery-access/manage'
  */
     const manageForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -132,7 +132,7 @@ manage.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::manage
- * @see app/Http/Controllers/GalleryAccessController.php:128
+ * @see app/Http/Controllers/GalleryAccessController.php:139
  * @route '/gallery-access/manage'
  */
         manageForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -141,7 +141,7 @@ manage.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\GalleryAccessController::manage
- * @see app/Http/Controllers/GalleryAccessController.php:128
+ * @see app/Http/Controllers/GalleryAccessController.php:139
  * @route '/gallery-access/manage'
  */
         manageForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -157,7 +157,7 @@ manage.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     manage.form = manageForm
 /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:37
+ * @see app/Http/Controllers/GalleryAccessController.php:48
  * @route '/gallery-access/request/{userId}'
  */
 export const request = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -172,7 +172,7 @@ request.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:37
+ * @see app/Http/Controllers/GalleryAccessController.php:48
  * @route '/gallery-access/request/{userId}'
  */
 request.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -200,7 +200,7 @@ request.url = (args: { userId: string | number } | [userId: string | number ] | 
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:37
+ * @see app/Http/Controllers/GalleryAccessController.php:48
  * @route '/gallery-access/request/{userId}'
  */
 request.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -210,7 +210,7 @@ request.post = (args: { userId: string | number } | [userId: string | number ] |
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:37
+ * @see app/Http/Controllers/GalleryAccessController.php:48
  * @route '/gallery-access/request/{userId}'
  */
     const requestForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -220,7 +220,7 @@ request.post = (args: { userId: string | number } | [userId: string | number ] |
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::request
- * @see app/Http/Controllers/GalleryAccessController.php:37
+ * @see app/Http/Controllers/GalleryAccessController.php:48
  * @route '/gallery-access/request/{userId}'
  */
         requestForm.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -231,7 +231,7 @@ request.post = (args: { userId: string | number } | [userId: string | number ] |
     request.form = requestForm
 /**
 * @see \App\Http\Controllers\GalleryAccessController::accept
- * @see app/Http/Controllers/GalleryAccessController.php:86
+ * @see app/Http/Controllers/GalleryAccessController.php:97
  * @route '/gallery-access/{requestId}/accept'
  */
 export const accept = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -246,7 +246,7 @@ accept.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::accept
- * @see app/Http/Controllers/GalleryAccessController.php:86
+ * @see app/Http/Controllers/GalleryAccessController.php:97
  * @route '/gallery-access/{requestId}/accept'
  */
 accept.url = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -274,7 +274,7 @@ accept.url = (args: { requestId: string | number } | [requestId: string | number
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::accept
- * @see app/Http/Controllers/GalleryAccessController.php:86
+ * @see app/Http/Controllers/GalleryAccessController.php:97
  * @route '/gallery-access/{requestId}/accept'
  */
 accept.post = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -284,7 +284,7 @@ accept.post = (args: { requestId: string | number } | [requestId: string | numbe
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::accept
- * @see app/Http/Controllers/GalleryAccessController.php:86
+ * @see app/Http/Controllers/GalleryAccessController.php:97
  * @route '/gallery-access/{requestId}/accept'
  */
     const acceptForm = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -294,7 +294,7 @@ accept.post = (args: { requestId: string | number } | [requestId: string | numbe
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::accept
- * @see app/Http/Controllers/GalleryAccessController.php:86
+ * @see app/Http/Controllers/GalleryAccessController.php:97
  * @route '/gallery-access/{requestId}/accept'
  */
         acceptForm.post = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -305,7 +305,7 @@ accept.post = (args: { requestId: string | number } | [requestId: string | numbe
     accept.form = acceptForm
 /**
 * @see \App\Http\Controllers\GalleryAccessController::reject
- * @see app/Http/Controllers/GalleryAccessController.php:107
+ * @see app/Http/Controllers/GalleryAccessController.php:118
  * @route '/gallery-access/{requestId}/reject'
  */
 export const reject = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -320,7 +320,7 @@ reject.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::reject
- * @see app/Http/Controllers/GalleryAccessController.php:107
+ * @see app/Http/Controllers/GalleryAccessController.php:118
  * @route '/gallery-access/{requestId}/reject'
  */
 reject.url = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -348,7 +348,7 @@ reject.url = (args: { requestId: string | number } | [requestId: string | number
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::reject
- * @see app/Http/Controllers/GalleryAccessController.php:107
+ * @see app/Http/Controllers/GalleryAccessController.php:118
  * @route '/gallery-access/{requestId}/reject'
  */
 reject.post = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -358,7 +358,7 @@ reject.post = (args: { requestId: string | number } | [requestId: string | numbe
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::reject
- * @see app/Http/Controllers/GalleryAccessController.php:107
+ * @see app/Http/Controllers/GalleryAccessController.php:118
  * @route '/gallery-access/{requestId}/reject'
  */
     const rejectForm = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -368,7 +368,7 @@ reject.post = (args: { requestId: string | number } | [requestId: string | numbe
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::reject
- * @see app/Http/Controllers/GalleryAccessController.php:107
+ * @see app/Http/Controllers/GalleryAccessController.php:118
  * @route '/gallery-access/{requestId}/reject'
  */
         rejectForm.post = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -379,7 +379,7 @@ reject.post = (args: { requestId: string | number } | [requestId: string | numbe
     reject.form = rejectForm
 /**
 * @see \App\Http\Controllers\GalleryAccessController::grant
- * @see app/Http/Controllers/GalleryAccessController.php:157
+ * @see app/Http/Controllers/GalleryAccessController.php:168
  * @route '/gallery-access/grant/{userId}'
  */
 export const grant = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -394,7 +394,7 @@ grant.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::grant
- * @see app/Http/Controllers/GalleryAccessController.php:157
+ * @see app/Http/Controllers/GalleryAccessController.php:168
  * @route '/gallery-access/grant/{userId}'
  */
 grant.url = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -422,7 +422,7 @@ grant.url = (args: { userId: string | number } | [userId: string | number ] | st
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::grant
- * @see app/Http/Controllers/GalleryAccessController.php:157
+ * @see app/Http/Controllers/GalleryAccessController.php:168
  * @route '/gallery-access/grant/{userId}'
  */
 grant.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -432,7 +432,7 @@ grant.post = (args: { userId: string | number } | [userId: string | number ] | s
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::grant
- * @see app/Http/Controllers/GalleryAccessController.php:157
+ * @see app/Http/Controllers/GalleryAccessController.php:168
  * @route '/gallery-access/grant/{userId}'
  */
     const grantForm = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -442,7 +442,7 @@ grant.post = (args: { userId: string | number } | [userId: string | number ] | s
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::grant
- * @see app/Http/Controllers/GalleryAccessController.php:157
+ * @see app/Http/Controllers/GalleryAccessController.php:168
  * @route '/gallery-access/grant/{userId}'
  */
         grantForm.post = (args: { userId: string | number } | [userId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -453,7 +453,7 @@ grant.post = (args: { userId: string | number } | [userId: string | number ] | s
     grant.form = grantForm
 /**
 * @see \App\Http\Controllers\GalleryAccessController::revoke
- * @see app/Http/Controllers/GalleryAccessController.php:192
+ * @see app/Http/Controllers/GalleryAccessController.php:203
  * @route '/gallery-access/{requestId}'
  */
 export const revoke = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -468,7 +468,7 @@ revoke.definition = {
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::revoke
- * @see app/Http/Controllers/GalleryAccessController.php:192
+ * @see app/Http/Controllers/GalleryAccessController.php:203
  * @route '/gallery-access/{requestId}'
  */
 revoke.url = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -496,7 +496,7 @@ revoke.url = (args: { requestId: string | number } | [requestId: string | number
 
 /**
 * @see \App\Http\Controllers\GalleryAccessController::revoke
- * @see app/Http/Controllers/GalleryAccessController.php:192
+ * @see app/Http/Controllers/GalleryAccessController.php:203
  * @route '/gallery-access/{requestId}'
  */
 revoke.delete = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -506,7 +506,7 @@ revoke.delete = (args: { requestId: string | number } | [requestId: string | num
 
     /**
 * @see \App\Http\Controllers\GalleryAccessController::revoke
- * @see app/Http/Controllers/GalleryAccessController.php:192
+ * @see app/Http/Controllers/GalleryAccessController.php:203
  * @route '/gallery-access/{requestId}'
  */
     const revokeForm = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -521,7 +521,7 @@ revoke.delete = (args: { requestId: string | number } | [requestId: string | num
 
             /**
 * @see \App\Http\Controllers\GalleryAccessController::revoke
- * @see app/Http/Controllers/GalleryAccessController.php:192
+ * @see app/Http/Controllers/GalleryAccessController.php:203
  * @route '/gallery-access/{requestId}'
  */
         revokeForm.delete = (args: { requestId: string | number } | [requestId: string | number ] | string | number, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

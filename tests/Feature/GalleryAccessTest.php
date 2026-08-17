@@ -53,6 +53,37 @@ class GalleryAccessTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->has('requests', 0));
     }
 
+    public function test_owner_sees_people_who_can_access_their_private_gallery(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create(['pseudo' => 'invitee']);
+        $revokedViewer = User::factory()->create(['pseudo' => 'ancienne']);
+
+        GalleryAccessRequest::create([
+            'requester_user_id' => $viewer->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'accepted',
+            'gems_cost' => 50,
+        ]);
+
+        GalleryAccessRequest::create([
+            'requester_user_id' => $revokedViewer->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'accepted',
+            'gems_cost' => 50,
+            'revoked_at' => now(),
+            'revoked_by' => 'owner',
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('gallery-access.index'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('accessGranted', 1)
+                ->where('accessGranted.0.requester.pseudo', 'invitee')
+            );
+    }
+
     public function test_pending_gallery_requests_count_is_shared_with_the_layout(): void
     {
         $owner = User::factory()->create();
@@ -214,5 +245,46 @@ class GalleryAccessTest extends TestCase
             'user_id' => $beneficiary->id,
             'type' => 'gallery_access',
         ]);
+    }
+
+    public function test_owner_can_revoke_access_to_their_private_gallery(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+
+        $access = GalleryAccessRequest::create([
+            'requester_user_id' => $viewer->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'accepted',
+            'gems_cost' => 50,
+        ]);
+
+        $this->actingAs($owner)
+            ->delete(route('gallery-access.revoke', $access->id))
+            ->assertRedirect();
+
+        $this->assertNotNull($access->fresh()->revoked_at);
+        $this->assertSame('owner', $access->fresh()->revoked_by);
+        $this->assertFalse($owner->fresh()->grantsGalleryAccessTo($viewer));
+    }
+
+    public function test_user_cannot_revoke_someone_elses_gallery_access(): void
+    {
+        $owner = User::factory()->create();
+        $viewer = User::factory()->create();
+        $unrelatedUser = User::factory()->create();
+
+        $access = GalleryAccessRequest::create([
+            'requester_user_id' => $viewer->id,
+            'owner_user_id' => $owner->id,
+            'status' => 'accepted',
+            'gems_cost' => 50,
+        ]);
+
+        $this->actingAs($unrelatedUser)
+            ->delete(route('gallery-access.revoke', $access->id))
+            ->assertNotFound();
+
+        $this->assertNull($access->fresh()->revoked_at);
     }
 }

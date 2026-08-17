@@ -19,15 +19,26 @@ class GalleryAccessController extends Controller
      */
     public function index(Request $request): Response
     {
-        $requests = $request->user()
+        $user = $request->user();
+
+        $requests = $user
             ->galleryAccessRequestsReceived()
             ->with(['requester.photos' => fn ($query) => $query->where('is_primary', true)])
             ->where('status', 'pending')
             ->latest()
             ->get();
 
+        $accessGranted = $user
+            ->galleryAccessRequestsReceived()
+            ->with(['requester.photos' => fn ($query) => $query->where('is_primary', true)])
+            ->where('status', 'accepted')
+            ->whereNull('revoked_at')
+            ->latest('updated_at')
+            ->get();
+
         return Inertia::render('GalleryAccess/Index', [
             'requests' => $requests,
+            'accessGranted' => $accessGranted,
         ]);
     }
 

@@ -26,11 +26,22 @@ export function usePushNotifications() {
 
         setPermission(Notification.permission as PushPermissionState);
 
-        navigator.serviceWorker.register('/sw.js').then((registration) => {
-            registration.pushManager.getSubscription().then((subscription) => {
-                setIsSubscribed(!!subscription);
+        let active = true;
+
+        void navigator.serviceWorker.ready
+            .then((registration) => registration.pushManager.getSubscription())
+            .then((subscription) => {
+                if (active) {
+                    setIsSubscribed(Boolean(subscription));
+                }
+            })
+            .catch((error: unknown) => {
+                console.error('Push subscription check failed:', error);
             });
-        });
+
+        return () => {
+            active = false;
+        };
     }, []);
 
     const subscribe = useCallback(async () => {

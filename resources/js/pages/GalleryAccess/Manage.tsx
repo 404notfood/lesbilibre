@@ -117,7 +117,7 @@ export default function Manage({ accessGranted, accessReceived }: ManageProps) {
     const handleRevoke = (requestId: number): void => {
         if (confirm('Etes-vous sure de vouloir revoquer cet acces ?')) {
             setProcessing(requestId);
-            router.post(`/gallery-access/${requestId}/revoke`, {}, {
+            router.delete(`/gallery-access/${requestId}`, {
                 preserveScroll: true,
                 onFinish: () => setProcessing(null),
             });

@@ -1,1 +1,104 @@
-<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hors connexion</title><body style="font-family:system-ui;margin:3rem;max-width:38rem"><h1>Vous êtes hors connexion</h1><p>Les contenus personnels ne sont jamais conservés hors ligne. Reconnectez-vous pour accéder à votre espace.</p></body></html>
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#170b10" />
+        <title>Hors connexion · LesbiLibre</title>
+        <style>
+            :root {
+                color-scheme: dark;
+                font-family:
+                    Inter,
+                    ui-sans-serif,
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    'Segoe UI',
+                    sans-serif;
+                background: #170b10;
+                color: #fff7f8;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                min-height: 100vh;
+                min-height: 100dvh;
+                margin: 0;
+                display: grid;
+                place-items: center;
+                padding: 24px;
+                background:
+                    radial-gradient(
+                        circle at 20% 10%,
+                        #70233f 0,
+                        transparent 38%
+                    ),
+                    radial-gradient(
+                        circle at 85% 90%,
+                        #4a1732 0,
+                        transparent 34%
+                    ),
+                    #170b10;
+            }
+
+            main {
+                width: min(100%, 440px);
+                padding: 32px;
+                border: 1px solid rgb(255 255 255 / 14%);
+                border-radius: 28px;
+                background: rgb(33 15 22 / 88%);
+                box-shadow: 0 24px 80px rgb(0 0 0 / 36%);
+                text-align: center;
+            }
+
+            img {
+                width: 76px;
+                height: 76px;
+                border-radius: 22px;
+            }
+
+            h1 {
+                margin: 24px 0 10px;
+                font-family: Georgia, 'Times New Roman', serif;
+                font-size: clamp(2rem, 8vw, 2.6rem);
+                font-weight: 500;
+            }
+
+            p {
+                margin: 0;
+                color: rgb(255 247 248 / 72%);
+                line-height: 1.6;
+            }
+
+            button {
+                width: 100%;
+                margin-top: 28px;
+                padding: 13px 18px;
+                border: 0;
+                border-radius: 14px;
+                background: #f5ccd8;
+                color: #3b1020;
+                font: inherit;
+                font-weight: 700;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <img src="/images/branding/icon-192.png" alt="" />
+            <h1>Connexion perdue</h1>
+            <p>
+                Par respect pour ta vie privée, les profils, conversations et
+                médias personnels ne sont jamais enregistrés hors ligne.
+            </p>
+            <button type="button" onclick="window.location.reload()">
+                Réessayer
+            </button>
+        </main>
+    </body>
+</html>

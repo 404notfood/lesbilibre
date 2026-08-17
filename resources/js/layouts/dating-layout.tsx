@@ -27,7 +27,6 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { Toaster } from '@/components/ui/toaster';
 import { FlashToaster } from '@/components/flash-toaster';
 import NotificationBell from '@/components/NotificationBell';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
@@ -593,8 +592,6 @@ export default function DatingLayout({
                     </div>
                 </SheetContent>
             </Sheet>
-
-            <Toaster />
             <FlashToaster />
         </div>
     );
