@@ -124,6 +124,7 @@ class PhotoProcessingService
         string $viewerLabel,
         bool $blur,
         string $cacheKey,
+        string $sourceDisk = 'public',
     ): string {
         $disk = Storage::disk('local');
         $path = self::RENDER_CACHE_DIRECTORY.'/'.hash('sha256', $cacheKey).'.jpg';
@@ -136,7 +137,7 @@ class PhotoProcessingService
             }
         }
 
-        $rendered = $this->renderForViewer($storedPath, $viewerLabel, $blur);
+        $rendered = $this->renderForViewer($storedPath, $viewerLabel, $blur, $sourceDisk);
         $disk->put($path, $rendered);
 
         return $rendered;
@@ -156,8 +157,9 @@ class PhotoProcessingService
         string $storedPath,
         string $viewerLabel,
         bool $blur = false,
+        string $sourceDisk = 'public',
     ): string {
-        $contents = Storage::disk('public')->get($storedPath);
+        $contents = Storage::disk($sourceDisk)->get($storedPath);
 
         if ($contents === null) {
             throw new RuntimeException('Image introuvable.');

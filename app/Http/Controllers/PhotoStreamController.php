@@ -72,6 +72,7 @@ class PhotoStreamController extends Controller
                 $blur ? 'blur' : 'clear',
                 $thumb ? 'thumb' : 'full',
             ),
+            sourceDisk: $photo->isVideo() ? 'local' : 'public',
         );
 
         // Private, no-store: the rendered image is specific to this viewer and
@@ -101,6 +102,7 @@ class PhotoStreamController extends Controller
                 $viewer->id,
                 $blur ? 'blur' : 'clear',
             ),
+            sourceDisk: 'local',
         );
 
         return response($rendered, 200, [

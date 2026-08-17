@@ -6,6 +6,8 @@ use App\Models\Photo;
 use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class MediaThumbnailTest extends TestCase
@@ -133,5 +135,33 @@ class MediaThumbnailTest extends TestCase
         $card = collect($profiles)->firstWhere('id', $other->id);
 
         $this->assertNull($card['primary_photo'], 'Une vidéo ne peut pas servir de vignette.');
+    }
+
+    public function test_video_poster_is_served_from_private_storage(): void
+    {
+        Storage::fake('local');
+        Storage::fake('public');
+
+        $viewer = $this->createMember();
+        $owner = $this->createMember();
+        $poster = UploadedFile::fake()->image('poster.jpg', 640, 360);
+        $posterPath = 'ephemeral/video-poster.jpg';
+
+        Storage::disk('local')->put($posterPath, file_get_contents($poster->getRealPath()));
+
+        $video = $this->addMedia(
+            $owner,
+            mediaType: 'video',
+            isPrimary: false,
+        );
+        $video->update([
+            'path' => 'ephemeral/video.mp4',
+            'thumbnail_path' => $posterPath,
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('media.photo', [$video, 'thumb' => 1]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/jpeg');
     }
 }

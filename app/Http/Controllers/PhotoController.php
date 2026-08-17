@@ -198,9 +198,11 @@ class PhotoController extends Controller
         }
 
         // Delete files
-        Storage::disk('public')->delete($photo->path);
+        $disk = Storage::disk($photo->isVideo() ? 'local' : 'public');
+
+        $disk->delete($photo->path);
         if ($photo->thumbnail_path) {
-            Storage::disk('public')->delete($photo->thumbnail_path);
+            $disk->delete($photo->thumbnail_path);
         }
 
         // Delete record
