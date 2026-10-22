@@ -1,12 +1,16 @@
+import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
 export function CookieConsent() {
     const [visible, setVisible] = useState(
         () =>
             typeof document !== 'undefined' &&
-            !document.cookie.includes('cookie_preferences='),
+            !document.cookie
+                .split(';')
+                .some((cookie) =>
+                    cookie.trim().startsWith('cookie_preferences='),
+                ),
     );
-
     if (!visible) return null;
 
     const setPreference = (value: 'essential' | 'all') => {
@@ -14,9 +18,33 @@ export function CookieConsent() {
         setVisible(false);
     };
 
-    return <section role="dialog" aria-label="Préférences de cookies" className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-2xl border bg-card p-5 shadow-xl">
-        <p className="font-semibold">Votre vie privée compte</p>
-        <p className="mt-1 text-sm text-muted-foreground">Nous utilisons les cookies nécessaires à la connexion et à la sécurité. Les mesures d’audience ne sont activées qu’avec votre accord.</p>
-        <div className="mt-4 flex flex-wrap gap-2"><button className="btn-velvet" onClick={() => setPreference('essential')}>Essentiels uniquement</button><button className="btn-desire" onClick={() => setPreference('all')}>Accepter les mesures d’audience</button></div>
-    </section>;
+    return (
+        <section
+            role="dialog"
+            aria-label="Préférences de cookies"
+            aria-describedby="cookie-description"
+            className="cookie-panel"
+        >
+            <h2 className="cookie-heading">
+                <ShieldCheck size={17} aria-hidden />
+                Ta vie privée a sa place ici.
+            </h2>
+            <p id="cookie-description">
+                Les cookies nécessaires font fonctionner le site. Les mesures
+                d’audience restent désactivées sans ton accord.{' '}
+                <a href="/privacy">En savoir plus</a>
+            </p>
+            <div className="cookie-actions">
+                <button
+                    type="button"
+                    onClick={() => setPreference('essential')}
+                >
+                    Essentiels uniquement
+                </button>
+                <button type="button" onClick={() => setPreference('all')}>
+                    Accepter l’audience
+                </button>
+            </div>
+        </section>
+    );
 }

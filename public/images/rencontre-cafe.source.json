@@ -1,0 +1,10 @@
+{
+  "asset": "rencontre-cafe.webp",
+  "generation": "Built-in image_gen tool",
+  "prompt": "Use case: illustration-story. Asset type: premium French queer dating community website hero illustration, landscape 4:3. Create a sophisticated editorial gouache and cut-paper illustration with subtle paper grain, organic rounded shapes, warm sunlight, expressive natural faces and beautifully drawn hands. Scene: two clearly adult women in their late twenties enjoying an intimate smiling conversation over small coffee cups at an outdoor French cafe table. One woman has warm brown skin, short dark curly hair and a burgundy striped shirt; the other has light olive skin, a dark brown bob and a soft coral blouse. Surround them with an abstract archway, leafy olive green plants, sun disc and terracotta cafe setting. Stylish inviting mature independent magazine aesthetic. Palette cream #fcf6ec, blush #e9bac0, burgundy #652637, coral #c56758, muted olive #747e60. Composition: waist-up people centered, woman on each side facing each other, small cafe table bottom center, foliage edges, all faces comfortably inset, scene fills canvas. The image must feel warm human and authentic, no obvious heart shapes, no text, no typography, no UI, no logos, no borders, no watermark. Output image 1536x1024 or similar landscape.",
+  "optimized": {
+    "format": "webp",
+    "width": 1200,
+    "quality": 85
+  }
+}

@@ -1,5 +1,5 @@
 // Replaced deterministically by the Vite PWA plugin after each client build.
-const BUILD_REVISION = 'b452bbabf7745923';
+const BUILD_REVISION = 'fa015a1b6fae01a9';
 const CACHE_PREFIX = 'lesbi-libre-';
 const CACHE_NAME = `${CACHE_PREFIX}v5-${BUILD_REVISION}`;
 const OFFLINE_URL = '/offline.html';

@@ -8,6 +8,7 @@ import { Form, Head } from '@inertiajs/react';
 
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,8 +34,8 @@ export default function Register({
 }: RegisterProps): JSX.Element {
     return (
         <AuthLayout
-            title="Créez votre compte"
-            description="Rejoignez notre communauté et commencez votre aventure"
+            title="Fais le premier pas."
+            description="Un profil, tes envies, et la liberté de faire connaissance à ton rythme."
         >
             <Head title="Inscription" />
 
@@ -43,11 +44,12 @@ export default function Register({
                     <Sparkles className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                     <div className="text-sm">
                         <p className="mb-1 font-medium text-primary">
-                            Bienvenue sur LesbiLibre !
+                            Quelques repères avant de commencer
                         </p>
                         <p className="text-muted-foreground">
-                            Créez votre profil en quelques étapes et commencez à
-                            rencontrer des femmes incroyables près de chez vous.
+                            Prépare ton profil. Après confirmation de ton e-mail
+                            et validation des étapes d’accès, tu pourras
+                            découvrir les personnes près de chez toi.
                         </p>
                     </div>
                 </div>
@@ -67,8 +69,8 @@ export default function Register({
                                     Invitation activée
                                 </p>
                                 <p className="mt-1 text-muted-foreground">
-                                    Après la vérification de votre profil, votre
-                                    marraine et vous recevrez vos gemmes bonus.
+                                    Après la vérification de ton profil, ta
+                                    marraine et toi recevrez vos gemmes bonus.
                                 </p>
                             </div>
                         ) : null}
@@ -82,12 +84,12 @@ export default function Register({
                         {/* Informations de base */}
                         <div className="space-y-4">
                             <div className="space-y-1">
-                                <h3 className="text-sm font-semibold text-foreground">
+                                <h2 className="text-sm font-semibold text-foreground">
                                     Informations personnelles
-                                </h3>
+                                </h2>
                                 <p className="text-xs text-muted-foreground">
-                                    Votre date de naissance reste privée ; seul
-                                    votre âge peut être affiché
+                                    Ta date de naissance reste privée ; seul ton
+                                    âge peut être affiché
                                 </p>
                             </div>
 
@@ -107,15 +109,14 @@ export default function Register({
                                         type="text"
                                         required
                                         autoFocus
-                                        tabIndex={1}
                                         autoComplete="username"
                                         name="pseudo"
-                                        placeholder="Votre pseudo unique"
+                                        placeholder="Ton pseudo unique"
                                         className="h-11"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Votre pseudo sera visible sur votre
-                                        profil et utilisé pour la connexion
+                                        Ton pseudo sera visible sur ton profil
+                                        et utilisé pour la connexion
                                     </p>
                                     <InputError message={errors.pseudo} />
                                 </div>
@@ -135,10 +136,9 @@ export default function Register({
                                             id="name"
                                             type="text"
                                             required
-                                            tabIndex={2}
                                             autoComplete="name"
                                             name="name"
-                                            placeholder="Votre prénom"
+                                            placeholder="Ton prénom"
                                             className="h-11"
                                         />
                                         <InputError message={errors.name} />
@@ -158,7 +158,6 @@ export default function Register({
                                             id="date_of_birth"
                                             type="date"
                                             required
-                                            tabIndex={3}
                                             name="date_of_birth"
                                             autoComplete="bday"
                                             className="h-11"
@@ -174,14 +173,14 @@ export default function Register({
                                 <CityAutocomplete
                                     name="city"
                                     label="Ville"
-                                    placeholder="Commencez à taper le nom de votre ville..."
+                                    placeholder="Ta ville ou ton code postal..."
                                     required
                                     error={errors.city}
                                     className="h-11"
                                 />
                                 <p className="mt-1.5 text-xs text-muted-foreground">
-                                    Nous utilisons votre ville pour calculer les
-                                    distances avec les autres membres
+                                    Ta ville sert à calculer les distances avec
+                                    les autres membres
                                 </p>
                             </div>
 
@@ -194,11 +193,8 @@ export default function Register({
                                         Mon orientation (facultatif)
                                     </Label>
                                     <Select name="sexual_orientation">
-                                        <SelectTrigger
-                                            className="h-11"
-                                            tabIndex={5}
-                                        >
-                                            <SelectValue placeholder="Votre orientation" />
+                                        <SelectTrigger className="h-11">
+                                            <SelectValue placeholder="Ton orientation" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="lesbian">
@@ -237,11 +233,8 @@ export default function Register({
                                         </span>
                                     </Label>
                                     <Select name="interested_in" required>
-                                        <SelectTrigger
-                                            className="h-11"
-                                            tabIndex={6}
-                                        >
-                                            <SelectValue placeholder="Qui recherchez-vous ?" />
+                                        <SelectTrigger className="h-11">
+                                            <SelectValue placeholder="Qui souhaites-tu rencontrer ?" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="single_woman">
@@ -281,11 +274,11 @@ export default function Register({
                         {/* Informations de connexion */}
                         <div className="space-y-4">
                             <div className="space-y-1">
-                                <h3 className="text-sm font-semibold text-foreground">
+                                <h2 className="text-sm font-semibold text-foreground">
                                     Informations de connexion
-                                </h3>
+                                </h2>
                                 <p className="text-xs text-muted-foreground">
-                                    Pour sécuriser votre compte
+                                    Pour sécuriser ton compte
                                 </p>
                             </div>
 
@@ -301,10 +294,9 @@ export default function Register({
                                     id="email"
                                     type="email"
                                     required
-                                    tabIndex={8}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="votre@email.com"
+                                    placeholder="toi@exemple.fr"
                                     className="h-11"
                                 />
                                 <InputError message={errors.email} />
@@ -321,11 +313,9 @@ export default function Register({
                                             *
                                         </span>
                                     </Label>
-                                    <Input
+                                    <PasswordInput
                                         id="password"
-                                        type="password"
                                         required
-                                        tabIndex={9}
                                         autoComplete="new-password"
                                         name="password"
                                         placeholder="••••••••"
@@ -347,11 +337,9 @@ export default function Register({
                                             *
                                         </span>
                                     </Label>
-                                    <Input
+                                    <PasswordInput
                                         id="password_confirmation"
-                                        type="password"
                                         required
-                                        tabIndex={10}
                                         autoComplete="new-password"
                                         name="password_confirmation"
                                         placeholder="••••••••"
@@ -395,7 +383,6 @@ export default function Register({
                             <Button
                                 type="submit"
                                 className="btn-gradient h-12 w-full text-base font-medium text-white"
-                                tabIndex={11}
                                 disabled={processing}
                             >
                                 {processing ? (
@@ -425,11 +412,10 @@ export default function Register({
 
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground">
-                                Vous avez déjà un compte ?{' '}
+                                Tu as déjà un compte ?{' '}
                                 <TextLink
                                     href={login()}
                                     className="font-semibold text-primary hover:text-primary/80"
-                                    tabIndex={12}
                                 >
                                     Se connecter
                                 </TextLink>

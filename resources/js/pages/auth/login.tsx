@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,13 +28,13 @@ export default function Login({
     return (
         <AuthLayout
             title="Bon retour parmi nous"
-            description="Connectez-vous pour retrouver vos matches et conversations"
+            description="Retrouve tes matchs, tes conversations et les liens qui comptent."
         >
             <Head title="Connexion" />
 
             {status && (
-                <div className="mb-6 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                    <p className="text-sm text-green-800 dark:text-green-200 text-center">
+                <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+                    <p className="text-center text-sm text-green-800 dark:text-green-200">
                         {status}
                     </p>
                 </div>
@@ -48,7 +49,10 @@ export default function Login({
                     <>
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="login" className="text-sm font-medium">
+                                <Label
+                                    htmlFor="login"
+                                    className="text-sm font-medium"
+                                >
                                     Pseudo ou adresse email
                                 </Label>
                                 <Input
@@ -57,9 +61,8 @@ export default function Login({
                                     name="login"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="username"
-                                    placeholder="Votre pseudo ou email"
+                                    placeholder="Ton pseudo ou ton e-mail"
                                     className="h-11"
                                 />
                                 <InputError message={errors.login} />
@@ -67,25 +70,25 @@ export default function Login({
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className="text-sm font-medium">
+                                    <Label
+                                        htmlFor="password"
+                                        className="text-sm font-medium"
+                                    >
                                         Mot de passe
                                     </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="text-sm font-medium text-primary hover:text-primary/80"
-                                            tabIndex={5}
                                         >
                                             Mot de passe oublié ?
                                         </TextLink>
                                     )}
                                 </div>
-                                <Input
+                                <PasswordInput
                                     id="password"
-                                    type="password"
                                     name="password"
                                     required
-                                    tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="••••••••"
                                     className="h-11"
@@ -94,14 +97,10 @@ export default function Login({
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
+                                <Checkbox id="remember" name="remember" />
                                 <Label
                                     htmlFor="remember"
-                                    className="text-sm font-normal cursor-pointer"
+                                    className="cursor-pointer text-sm font-normal"
                                 >
                                     Se souvenir de moi
                                 </Label>
@@ -110,8 +109,7 @@ export default function Login({
 
                         <Button
                             type="submit"
-                            className="w-full h-11 btn-gradient text-white font-medium"
-                            tabIndex={4}
+                            className="btn-gradient h-11 w-full font-medium text-white"
                             disabled={processing}
                             data-test="login-button"
                         >
@@ -143,11 +141,10 @@ export default function Login({
 
                                 <div className="text-center">
                                     <p className="text-sm text-muted-foreground">
-                                        Vous n'avez pas encore de compte ?{' '}
+                                        Pas encore de compte ?{' '}
                                         <TextLink
                                             href={register()}
                                             className="font-semibold text-primary hover:text-primary/80"
-                                            tabIndex={6}
                                         >
                                             Créer un compte gratuitement
                                         </TextLink>

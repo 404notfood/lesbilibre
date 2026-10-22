@@ -1,29 +1,31 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
+    ArrowDown,
+    ArrowRight,
     ArrowUpRight,
+    Check,
     Heart,
     MapPin,
     MessageCircle,
+    Plus,
     ShieldCheck,
+    Sparkles,
 } from 'lucide-react';
 
 const steps = [
     {
-        title: 'Présente-toi',
-        text: 'Ton profil, tes envies, ta ville. Amitié ou relation : tu choisis ce que tu souhaites partager.',
+        title: 'Un profil qui te ressemble',
+        text: 'Quelques mots, tes envies, ta ville. Tu choisis ce que tu souhaites partager.',
     },
     {
-        title: 'Prépare ton accès',
-        text: 'Confirme ton e-mail, déclare ta majorité et accepte la charte. Une modératrice examine ensuite tes photos et ton selfie privé.',
+        title: 'Un accès préparé avec soin',
+        text: 'Confirme ton e-mail, ta majorité et la charte. Une modératrice examine tes photos et ton selfie privé.',
     },
     {
-        title: 'Découvre et échange',
-        text: 'Une fois ton accès validé, découvre les profils et les intentions près de chez toi. Un like réciproque crée un match.',
-    },
-    {
-        title: 'Garde ton rythme',
-        text: 'Décide à qui répondre et quand vous rencontrer. Tu peux bloquer, signaler ou retirer un accès privé à tout moment.',
+        title: 'Le début de quelque chose',
+        text: 'Une fois ton accès validé, découvre les profils près de toi. Un like réciproque ? La conversation peut commencer.',
     },
 ];
 const questions = [
@@ -32,8 +34,8 @@ const questions = [
         text: 'Aux femmes cis et trans et aux personnes non binaires qui se reconnaissent dans cette communauté. Le service est réservé aux personnes majeures. Chaque compte représente une seule personne.',
     },
     {
-        title: 'Qu’est-ce qui est gratuit ?',
-        text: 'Le profil, la découverte, les matchs et les conversations sont accessibles gratuitement. Les likes et ouvertures de conversation ont des limites quotidiennes indiquées dans le service ; les réponses ne sont pas rationnées. Les tarifs détaillent les options Premium.',
+        title: 'Puis-je faire des rencontres gratuitement ?',
+        text: 'Oui. Le profil, la découverte, les matchs et les conversations sont accessibles gratuitement. Les likes et ouvertures de conversation ont des limites quotidiennes indiquées dans le service ; les réponses ne sont pas rationnées. Les tarifs détaillent les options Premium.',
     },
     {
         title: 'Que signifie le badge photo ?',
@@ -44,188 +46,362 @@ const questions = [
         text: 'Tu peux préparer ton profil et tes photos. Les interactions restent fermées jusqu’à la validation des étapes requises. L’examen est humain : aucun délai fixe n’est garanti. Le statut et une éventuelle demande de correction sont visibles dans ton compte.',
     },
     {
-        title: 'Puis-je contrôler mes contenus privés ?',
+        title: 'Et mes photos privées, qui peut les voir ?',
         text: 'Tu choisis à qui donner accès à ta galerie et peux retirer cet accès. Les contenus intimes demandent un consentement distinct, révocable. Les paramètres permettent aussi de gérer ta visibilité et de demander la suppression de ton compte.',
     },
 ];
-export default function Home(): JSX.Element {
+const intentions = [
+    {
+        icon: Heart,
+        title: 'Une histoire à écrire.',
+        tag: 'Rencontres amoureuses',
+        text: 'Un coup de cœur, une complicité, une relation. Laisse une place à ce qui pourrait commencer.',
+        className: 'intention-love',
+    },
+    {
+        icon: MessageCircle,
+        title: 'Des affinités à partager.',
+        tag: 'Amitiés & liens locaux',
+        text: 'Un café, une sortie, une nouvelle amie. Les belles rencontres ne suivent pas toutes le même chemin.',
+        className: 'intention-friendship',
+    },
+    {
+        icon: Sparkles,
+        title: 'Et puis, on verra.',
+        tag: 'À ton rythme',
+        text: 'Pas besoin d’avoir toutes les réponses. Exprime tes envies et fais connaissance, sans te presser.',
+        className: 'intention-discovery',
+    },
+];
+
+export default function Home({
+    canRegister = true,
+}: {
+    canRegister?: boolean;
+}): JSX.Element {
+    const { auth } = usePage<SharedData>().props;
+    const isAuthenticated = Boolean(auth?.user);
+    const ctaHref = isAuthenticated
+        ? '/dashboard'
+        : canRegister
+          ? '/register'
+          : '/login';
+    const ctaLabel = isAuthenticated
+        ? 'Retrouver mon espace'
+        : canRegister
+          ? 'Créer mon profil gratuitement'
+          : 'Me connecter';
+
     return (
         <PublicLayout>
             <Head title="Des rencontres près de chez toi, à ton rythme" />
-            <section className="relative overflow-hidden border-b border-border bg-secondary/25">
-                <div
-                    aria-hidden
-                    className="pointer-events-none absolute -top-24 -right-24 size-96 rounded-full bg-primary/10 blur-3xl"
-                />
-                <div className="relative mx-auto grid max-w-6xl gap-10 px-5 py-10 sm:px-8 sm:py-16 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:py-20">
-                    <div>
-                        <p className="text-sm font-semibold tracking-widest text-primary uppercase">
-                            Rencontres · Amitiés · Liens locaux
+            <section className="home-hero" aria-labelledby="hero-title">
+                <div className="public-container home-hero-grid">
+                    <div className="home-hero-copy">
+                        <p className="public-eyebrow">
+                            <span className="eyebrow-line" />
+                            Rencontres lesbiennes & queer
                         </p>
-                        <h1 className="mt-5 max-w-[17ch] font-display text-[clamp(2.5rem,6vw,4.75rem)] leading-[1.05] tracking-tight">
-                            Près de chez toi.
+                        <h1 id="hero-title">
+                            Une rencontre.
                             <br />
-                            <span className="text-primary italic">
-                                À ton rythme.
-                            </span>
+                            Mille façons
+                            <br />
+                            <em>d’être toi.</em>
                         </h1>
-                        <p className="mt-5 max-w-xl text-lg leading-relaxed text-foreground/85">
-                            Des rencontres entre femmes et personnes queer, avec
-                            des intentions claires et la liberté de prendre ton
-                            temps.
+                        <p className="home-hero-description">
+                            De l’amour, une amitié, un joli début.
+                            <br className="hidden sm:block" /> Rencontre des
+                            femmes et des personnes queer près de chez toi, avec
+                            la liberté de prendre ton temps.
                         </p>
-                        <div className="mt-7 flex flex-wrap items-center gap-3">
-                            <Link
-                                href="/register"
-                                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground"
-                            >
-                                Créer mon profil gratuitement{' '}
-                                <ArrowUpRight className="size-5" aria-hidden />
-                            </Link>
-                            <Link
-                                href="/login"
-                                className="inline-flex min-h-12 items-center rounded-xl px-4 py-3 font-medium underline underline-offset-4"
-                            >
-                                Me connecter
-                            </Link>
-                        </div>
-                        <p className="mt-4 text-sm text-muted-foreground">
-                            Inscription sans carte bancaire · Réservé aux 18 ans
+                        <Link
+                            href={ctaHref}
+                            className="public-button home-hero-cta"
+                        >
+                            {ctaLabel}
+                            <ArrowUpRight size={19} aria-hidden />
+                        </Link>
+                        <p className="home-hero-fineprint">
+                            <Check size={14} aria-hidden />
+                            Sans carte bancaire<span aria-hidden>·</span>18 ans
                             et plus
                         </p>
+                        <a href="#les-rencontres" className="home-explore">
+                            Une autre façon de se rencontrer
+                            <ArrowDown size={16} aria-hidden />
+                        </a>
                     </div>
-                    <aside
-                        className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-8"
-                        aria-label="Tes repères"
-                    >
-                        <Heart className="size-8 text-primary" aria-hidden />
-                        <h2 className="mt-4 font-display text-3xl">
-                            De la place pour tes envies.
-                        </h2>
-                        <ul className="mt-6 space-y-5">
-                            {[
-                                {
-                                    icon: MapPin,
-                                    title: 'La proximité',
-                                    text: 'Découvre par ville et distance, selon les membres disponibles.',
-                                },
-                                {
-                                    icon: MessageCircle,
-                                    title: 'Des intentions partagées',
-                                    text: 'Amitié, relation, curiosité : commence par ce qui compte pour toi.',
-                                },
-                                {
-                                    icon: ShieldCheck,
-                                    title: 'Des limites respectées',
-                                    text: 'Blocage, signalement et consentement restent sous ton contrôle.',
-                                },
-                            ].map(({ icon: Icon, title, text }) => (
-                                <li key={title} className="flex gap-3">
-                                    <Icon
-                                        className="mt-1 size-5 shrink-0 text-primary"
-                                        aria-hidden
-                                    />
-                                    <div>
-                                        <h3 className="font-semibold">
-                                            {title}
-                                        </h3>
-                                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                                            {text}
-                                        </p>
+                    <div className="home-hero-art">
+                        <div className="home-art-note">
+                            <Sparkles size={20} aria-hidden />
+                            <span>
+                                Les belles histoires
+                                <br />
+                                commencent par un bonjour.
+                            </span>
+                        </div>
+                        <div className="home-art-frame">
+                            <img
+                                src="/images/rencontre-cafe-photo.webp"
+                                alt="Deux femmes font connaissance autour d’un café en terrasse, visuel photoréaliste."
+                                width={1200}
+                                height={800}
+                                fetchPriority="high"
+                            />
+                        </div>
+                        <div className="home-art-sticker">
+                            <Heart size={22} strokeWidth={1.5} aria-hidden />
+                            <span>
+                                Un café.
+                                <br />
+                                <strong>Et si le courant passait ?</strong>
+                            </span>
+                        </div>
+                        <div className="home-art-caption">
+                            <span className="home-caption-line" />
+                            <span>Un amour. Une amitié. Une possibilité.</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="public-container">
+                    <ul className="home-reassurance">
+                        <li>
+                            <MapPin size={19} aria-hidden />
+                            Des liens près de chez toi
+                        </li>
+                        <li>
+                            <ShieldCheck size={19} aria-hidden />
+                            Des photos examinées par une modératrice
+                        </li>
+                        <li>
+                            <Heart size={19} aria-hidden />
+                            Tes envies, tes limites, ton rythme
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            <section
+                id="les-rencontres"
+                className="home-intentions public-section"
+                aria-labelledby="intentions-title"
+            >
+                <div className="public-container">
+                    <div className="home-section-heading">
+                        <div>
+                            <p className="public-eyebrow">
+                                Pas de case. De la place.
+                            </p>
+                            <h2 id="intentions-title">
+                                Tu viens comme tu es.
+                                <br />
+                                <em>Tu cherches ce qui te plaît.</em>
+                            </h2>
+                        </div>
+                        <p>
+                            On n’a pas toutes les mêmes envies.
+                            <br />
+                            C’est justement ce qui rend chaque rencontre
+                            singulière.
+                        </p>
+                    </div>
+                    <div className="home-intention-grid">
+                        {intentions.map(
+                            ({ icon: Icon, title, tag, text, className }) => (
+                                <article
+                                    key={title}
+                                    className={`home-intention ${className}`}
+                                >
+                                    <div className="home-intention-top">
+                                        <span className="home-intention-icon">
+                                            <Icon
+                                                size={24}
+                                                strokeWidth={1.5}
+                                                aria-hidden
+                                            />
+                                        </span>
+                                        <span>{tag}</span>
                                     </div>
-                                </li>
-                            ))}
+                                    <h3>{title}</h3>
+                                    <p>{text}</p>
+                                    <Link
+                                        href={ctaHref}
+                                        className="home-card-link"
+                                    >
+                                        {isAuthenticated
+                                            ? 'Découvrir les profils'
+                                            : canRegister
+                                              ? 'Faire le premier pas'
+                                              : 'Me connecter'}
+                                        <ArrowUpRight size={19} aria-hidden />
+                                    </Link>
+                                </article>
+                            ),
+                        )}
+                    </div>
+                </div>
+            </section>
+            <section className="home-safety" aria-labelledby="safety-title">
+                <div className="public-container home-safety-grid">
+                    <div className="home-safety-visual" aria-hidden>
+                        <div className="home-safety-seal">
+                            <ShieldCheck size={35} strokeWidth={1.3} />
+                            <span>
+                                DU RESPECT.
+                                <br />
+                                <em>Toujours.</em>
+                            </span>
+                        </div>
+                        <span className="home-safety-script">
+                            Libre de choisir.
+                            <br />
+                            Libre de dire non.
+                        </span>
+                    </div>
+                    <div className="home-safety-copy">
+                        <p className="public-eyebrow">
+                            La confiance, ça se construit.
+                        </p>
+                        <h2 id="safety-title">
+                            De belles rencontres.
+                            <br />
+                            <em>Avec tes propres limites.</em>
+                        </h2>
+                        <p>
+                            Se sentir à sa place, c’est aussi garder la main. Du
+                            premier bonjour aux contenus que tu partages, tu
+                            restes libre de choisir.
+                        </p>
+                        <ul>
+                            <li>
+                                <Check size={17} aria-hidden />
+                                Des photos et un selfie privé examinés
+                                humainement
+                            </li>
+                            <li>
+                                <Check size={17} aria-hidden />
+                                Un accès à ta galerie privée que tu peux retirer
+                            </li>
+                            <li>
+                                <Check size={17} aria-hidden />
+                                Des outils pour bloquer et signaler à tout
+                                moment
+                            </li>
                         </ul>
-                    </aside>
+                        <Link href="/securite" className="public-text-link">
+                            Découvrir nos engagements
+                            <ArrowRight size={18} aria-hidden />
+                        </Link>
+                        <p className="home-safety-fineprint">
+                            Le badge photo ne prouve ni l’identité ni la
+                            majorité et ne garantit pas le comportement d’une
+                            personne.
+                        </p>
+                    </div>
                 </div>
             </section>
             <section
                 id="how-it-works"
-                className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16"
+                className="public-section home-steps"
                 aria-labelledby="steps-title"
             >
-                <p className="text-sm font-semibold text-primary">
-                    Avant la première conversation
-                </p>
-                <h2
-                    id="steps-title"
-                    className="mt-3 font-display text-3xl sm:text-4xl"
-                >
-                    Un parcours que tu peux suivre.
-                </h2>
-                <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    {steps.map((step, index) => (
-                        <li
-                            key={step.title}
-                            className="rounded-2xl border border-border bg-card p-5"
-                        >
-                            <span className="font-display text-3xl text-primary">
-                                0{index + 1}
-                            </span>
-                            <h3 className="mt-4 text-lg font-semibold">
-                                {step.title}
-                            </h3>
-                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                {step.text}
+                <div className="public-container">
+                    <div className="home-section-heading">
+                        <div>
+                            <p className="public-eyebrow">
+                                Un premier pas, simplement.
                             </p>
-                        </li>
-                    ))}
-                </ol>
-                <Link
-                    href="/securite"
-                    className="mt-6 inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
-                >
-                    Comprendre la vérification et les outils de sécurité
-                </Link>
-            </section>
-            <section className="border-y border-border bg-card/60">
-                <div className="mx-auto max-w-3xl px-5 py-12 sm:px-8 sm:py-16">
-                    <h2 className="font-display text-3xl sm:text-4xl">
-                        Avant de nous rejoindre
-                    </h2>
-                    <div className="mt-7 divide-y divide-border border-y border-border">
-                        {questions.map(({ title, text }) => (
-                            <details key={title} className="py-1">
-                                <summary className="min-h-12 cursor-pointer py-4 pr-3 text-base font-semibold">
-                                    {title}
-                                </summary>
-                                <p className="pb-5 text-sm leading-relaxed text-muted-foreground">
-                                    {text}
-                                </p>
-                            </details>
-                        ))}
-                    </div>
-                    <p className="mt-5 text-sm text-muted-foreground">
-                        Besoin d’aide ?{' '}
+                            <h2 id="steps-title">
+                                De toi à <em>la rencontre.</em>
+                            </h2>
+                        </div>
                         <Link
-                            href="/contact"
-                            className="font-medium text-primary underline underline-offset-4"
+                            href="/comment-ca-marche"
+                            className="public-text-link"
                         >
-                            Écris à l’équipe
+                            Comment ça marche
+                            <ArrowUpRight size={18} aria-hidden />
                         </Link>
-                        .
+                    </div>
+                    <ol className="home-steps-grid">
+                        {steps.map(({ title, text }, index) => (
+                            <li key={title}>
+                                <span className="home-step-number">
+                                    0{index + 1}
+                                </span>
+                                <h3>{title}</h3>
+                                <p>{text}</p>
+                            </li>
+                        ))}
+                    </ol>
+                    <p className="home-steps-note">
+                        Et la suite ? Vous l’écrivez à votre rythme.
                     </p>
                 </div>
             </section>
-            <section className="mx-auto max-w-3xl px-5 py-12 text-center sm:py-16">
-                <h2 className="font-display text-3xl sm:text-4xl">
-                    Commence par te présenter.
-                </h2>
-                <p className="mt-4 text-muted-foreground">
-                    Quelques mots sur toi, et la suite à ton rythme.
-                </p>
-                <Link
-                    href="/register"
-                    className="mt-6 inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground"
-                >
-                    Créer mon profil
-                </Link>
-                <Link
-                    href="/tarifs"
-                    className="mx-auto mt-2 flex min-h-11 w-fit items-center text-sm underline underline-offset-4"
-                >
-                    Voir le gratuit et les options Premium
-                </Link>
+            <section
+                className="home-faq public-section"
+                aria-labelledby="faq-title"
+            >
+                <div className="public-container home-faq-grid">
+                    <div>
+                        <p className="public-eyebrow">On en parle ?</p>
+                        <h2 id="faq-title">
+                            C’est normal
+                            <br />
+                            <em>d’avoir des questions.</em>
+                        </h2>
+                        <p>Avant de te lancer, prends tes repères.</p>
+                        <Link href="/contact" className="public-text-link">
+                            Écrire à l’équipe
+                            <ArrowUpRight size={18} aria-hidden />
+                        </Link>
+                    </div>
+                    <div className="home-faq-list">
+                        {questions.map(({ title, text }) => (
+                            <details key={title}>
+                                <summary>
+                                    {title}
+                                    <Plus size={19} aria-hidden />
+                                </summary>
+                                <p>{text}</p>
+                            </details>
+                        ))}
+                        <Link
+                            href="/faq"
+                            className="public-text-link home-faq-more"
+                        >
+                            Toutes les questions
+                            <ArrowRight size={17} aria-hidden />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+            <section className="home-final">
+                <div className="public-container home-final-inner">
+                    <p className="public-eyebrow">
+                        Le prochain bonjour pourrait tout changer.
+                    </p>
+                    <h2>
+                        La suite commence
+                        <br />
+                        <em>avec toi.</em>
+                    </h2>
+                    <Link
+                        href={ctaHref}
+                        className="public-button public-button-cream"
+                    >
+                        {ctaLabel}
+                        <ArrowUpRight size={19} aria-hidden />
+                    </Link>
+                    <Link href="/tarifs" className="home-final-pricing">
+                        Découvrir le gratuit et les options Premium
+                        <ArrowRight size={15} aria-hidden />
+                    </Link>
+                </div>
+                <span className="home-final-flower" aria-hidden>
+                    ✳
+                </span>
             </section>
         </PublicLayout>
     );

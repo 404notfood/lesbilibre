@@ -1,120 +1,179 @@
-import AppLogoIcon from '@/components/app-logo-icon';
-import { Link } from '@inertiajs/react';
+import Brand from '@/components/brand';
+import { type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
+import { useRef } from 'react';
 
-interface PublicLayoutProps {
-    children: React.ReactNode;
-}
+const navigation = [
+    { href: '/comment-ca-marche', label: 'Comment ça marche' },
+    { href: '/securite', label: 'Notre engagement' },
+    { href: '/tarifs', label: 'Tarifs' },
+    { href: '/guides', label: 'Le journal' },
+];
 
-/**
- * Layout for public content pages (about, contact, FAQ, terms, privacy).
- * Unlike the auth layout, the content area is full width so long-form copy
- * stays readable.
- */
 export default function PublicLayout({
     children,
-}: PublicLayoutProps): JSX.Element {
+}: {
+    children: React.ReactNode;
+}): JSX.Element {
+    const { url, props } = usePage<SharedData & { canRegister?: boolean }>();
+    const menu = useRef<HTMLDetailsElement>(null);
+    const isAuthenticated = Boolean(props.auth?.user);
+    const canRegister = props.canRegister !== false;
+    const accountHref = isAuthenticated
+        ? '/dashboard'
+        : canRegister
+          ? '/register'
+          : '/login';
+    const accountLabel = isAuthenticated
+        ? 'Mon espace'
+        : canRegister
+          ? 'Nous rejoindre'
+          : 'Me connecter';
+
     return (
-        <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <a
-                href="#public-content"
-                className="sr-only z-50 rounded-lg bg-card p-3 text-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
-            >
+        <div className="public-site">
+            <a href="#public-content" className="public-skip">
                 Aller au contenu
             </a>
-            <header className="border-b border-border/50">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-                    <Link href="/" className="group flex items-center gap-2">
-                        <AppLogoIcon
-                            className="size-9 rounded-lg transition-transform group-hover:scale-110"
-                            alt=""
-                        />
-                        <span className="font-display text-xl font-bold text-foreground">
-                            LesbiLibre
-                        </span>
-                    </Link>
-
+            <header className="public-header">
+                <div className="public-container public-header-inner">
+                    <Brand />
                     <nav
-                        className="flex items-center gap-3 text-sm sm:gap-5"
-                        aria-label="Navigation publique"
+                        className="public-desktop-nav"
+                        aria-label="Navigation principale"
                     >
-                        <Link
-                            href="/comment-ca-marche"
-                            className="hidden text-muted-foreground transition-colors hover:text-primary sm:inline"
-                        >
-                            Comment ça marche
-                        </Link>
-                        <Link
-                            href="/securite"
-                            className="text-muted-foreground transition-colors hover:text-primary"
-                        >
-                            Sécurité
-                        </Link>
-                        <Link
-                            href="/tarifs"
-                            className="text-muted-foreground transition-colors hover:text-primary"
-                        >
-                            Tarifs
-                        </Link>
-                        <Link
-                            href="/guides"
-                            className="hidden text-muted-foreground transition-colors hover:text-primary md:inline"
-                        >
-                            Guides
-                        </Link>
+                        {navigation.map(({ href, label }) => (
+                            <Link
+                                key={href}
+                                href={href}
+                                aria-current={
+                                    url.split('?')[0] === href
+                                        ? 'page'
+                                        : undefined
+                                }
+                            >
+                                {label}
+                            </Link>
+                        ))}
                     </nav>
+                    <div className="public-header-actions">
+                        {!isAuthenticated && (
+                            <Link href="/login" className="public-login">
+                                Connexion
+                            </Link>
+                        )}
+                        <Link
+                            href={accountHref}
+                            className="public-button public-button-small"
+                        >
+                            {accountLabel}
+                            <ArrowUpRight size={16} aria-hidden />
+                        </Link>
+                    </div>
+                    <details
+                        className="public-mobile-menu"
+                        ref={menu}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Escape' && menu.current) {
+                                menu.current.open = false;
+                                menu.current.querySelector('summary')?.focus();
+                            }
+                        }}
+                    >
+                        <summary aria-label="Menu de navigation">
+                            <Menu className="menu-open" size={23} aria-hidden />
+                            <X className="menu-close" size={23} aria-hidden />
+                        </summary>
+                        <nav aria-label="Navigation mobile">
+                            <Link
+                                href={accountHref}
+                                onClick={() => {
+                                    if (menu.current) menu.current.open = false;
+                                }}
+                            >
+                                {accountLabel}
+                                <ArrowUpRight size={16} aria-hidden />
+                            </Link>
+                            {navigation.map(({ href, label }) => (
+                                <Link
+                                    key={href}
+                                    href={href}
+                                    aria-current={
+                                        url.split('?')[0] === href
+                                            ? 'page'
+                                            : undefined
+                                    }
+                                    onClick={() => {
+                                        if (menu.current)
+                                            menu.current.open = false;
+                                    }}
+                                >
+                                    {label}
+                                    <ArrowUpRight size={16} aria-hidden />
+                                </Link>
+                            ))}
+                            <Link
+                                href="/installer"
+                                onClick={() => {
+                                    if (menu.current) menu.current.open = false;
+                                }}
+                            >
+                                Installer l’application
+                                <ArrowUpRight size={16} aria-hidden />
+                            </Link>
+                        </nav>
+                    </details>
                 </div>
             </header>
-
-            <main id="public-content" className="flex-1">
+            <main id="public-content" className="public-main">
                 {children}
             </main>
-
-            <footer className="border-t border-border/50">
-                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row">
-                    <span>© {new Date().getFullYear()} LesbiLibre</span>
-                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-                        <Link
-                            href="/installer"
-                            className="transition-colors hover:text-primary"
-                        >
-                            Installer l’application
-                        </Link>
-                        <Link
-                            href="/about"
-                            className="transition-colors hover:text-primary"
-                        >
-                            À propos
-                        </Link>
-                        <Link
-                            href="/fonctionnalites"
-                            className="transition-colors hover:text-primary"
-                        >
-                            Fonctionnalités
-                        </Link>
-                        <Link
-                            href="/faq"
-                            className="transition-colors hover:text-primary"
-                        >
-                            FAQ
-                        </Link>
-                        <Link
-                            href="/contact"
-                            className="transition-colors hover:text-primary"
-                        >
-                            Contact
-                        </Link>
-                        <Link
-                            href="/privacy"
-                            className="transition-colors hover:text-primary"
-                        >
-                            Confidentialité
-                        </Link>
-                        <Link
-                            href="/terms"
-                            className="transition-colors hover:text-primary"
-                        >
-                            Conditions
-                        </Link>
+            <footer className="public-footer">
+                <div className="public-container">
+                    <div className="public-footer-top">
+                        <div className="public-footer-brand">
+                            <Brand />
+                            <p>
+                                Des liens sincères.
+                                <br />
+                                Et la liberté d’être toi.
+                            </p>
+                            <span>
+                                Rencontres entre femmes et personnes queer · 18+
+                            </span>
+                        </div>
+                        <div>
+                            <h2>Découvrir</h2>
+                            <Link href="/comment-ca-marche">
+                                Comment ça marche
+                            </Link>
+                            <Link href="/fonctionnalites">
+                                Les fonctionnalités
+                            </Link>
+                            <Link href="/tarifs">Gratuit et Premium</Link>
+                            <Link href="/installer">
+                                Installer l’application
+                            </Link>
+                        </div>
+                        <div>
+                            <h2>Faire connaissance</h2>
+                            <Link href="/about">Notre histoire</Link>
+                            <Link href="/guides">Le journal</Link>
+                            <Link href="/securite">Sécurité et respect</Link>
+                            <Link href="/contact">Nous contacter</Link>
+                        </div>
+                    </div>
+                    <div className="public-footer-bottom">
+                        <span>© {new Date().getFullYear()} LesbiLibre</span>
+                        <div>
+                            <Link href="/privacy">Confidentialité</Link>
+                            <Link href="/terms">Conditions</Link>
+                            <Link href="/faq">FAQ</Link>
+                        </div>
+                        <span className="public-footer-note">
+                            Libre d’être toi, ensemble.
+                        </span>
                     </div>
                 </div>
             </footer>
