@@ -1,0 +1,11 @@
+{
+  "asset": "rencontre-cafe-photo.webp",
+  "generation": "Built-in image_gen tool",
+  "reference": "Original cafe illustration",
+  "prompt": "Use case: style-transfer. Edit target: attached editorial cafe illustration. Transform this scene into an extremely natural, believable, photorealistic editorial lifestyle photograph for the French LesbiLibre dating website. Keep the central concept of two adult women around age 28-35 sharing a warm first-date conversation at a small French cafe terrace. Left: woman with medium brown skin, naturally curly dark hair and burgundy striped shirt. Right: woman with light olive skin, shoulder-length dark brown bob and a casual soft coral blouse. They make eye contact and smile naturally, relaxed unposed body language. Both women must look like actual everyday human adults photographed in real life: realistic skin pores, subtle skin imperfections, flyaway hair, authentic fabric, anatomically correct hands with five fingers, ordinary ceramic espresso cups. Change the painting into a real photographic environment: understated French stone cafe terrace with greenery, softly blurred cafe chairs and windows behind them, no fantasy scenery. Use soft natural late-afternoon light, neutral realistic white balance with gentle warmth, 50mm lens, f/2.8, authentic professional lifestyle photography, subtle natural photographic grain, realistic colors. Landscape 1536x1024, waist-up medium shot, both full heads comfortably inside the image, both faces centered together so the image can be cropped to almost square. No drawing, no sketch, no illustration, no painting, no brush strokes, no paper texture, no cartoon, no 3D render, no plastic skin, no artificial beauty retouch, no exaggerated orange color grade, no text, no logos, no watermark. Preserve the romantic warmth but make every detail photographic.",
+  "optimized": {
+    "format": "webp",
+    "width": 1200,
+    "quality": 88
+  }
+}
