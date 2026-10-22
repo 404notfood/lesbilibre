@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,12 +12,29 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            UserSeeder::class,
-            DemoDataSeeder::class,
+            // Paramètres et catalogues utilisés par les autres seeders.
+            SettingSeeder::class,
             BadgeSeeder::class,
             NaughtyInterestSeeder::class,
-            SettingSeeder::class,
             BillingSeeder::class,
+
+            // Comptes et données de démonstration.
+            UserSeeder::class,
+            DemoUserSeeder::class,
+            DemoDataSeeder::class,
+
+            // Profils et médias des utilisateurs.
+            ProfileSeeder::class,
+            PhotoSeeder::class,
+            VerificationPhotoSeeder::class,
+
+            // Interactions et données liées aux utilisateurs.
+            LikeSeeder::class,
+            UserMatchSeeder::class,
+            ConversationSeeder::class,
+            MessageSeeder::class,
+            ReportSeeder::class,
+            ReferralSeeder::class,
         ]);
     }
 }
