@@ -18,7 +18,7 @@ class DashboardTest extends TestCase
 
     public function test_authenticated_users_can_visit_the_dashboard(): void
     {
-        $this->actingAs($user = User::factory()->create());
+        $this->actingAs($user = User::factory()->communityMember()->create());
 
         $this->get(route('dashboard'))->assertOk();
     }
@@ -29,9 +29,8 @@ class DashboardTest extends TestCase
         // This test verifies the filter is accepted and doesn't cause errors
 
         // Create user without coordinates (to avoid distance calculation issues in SQLite)
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(25),
             'age' => 25,
             'latitude' => null,
@@ -39,9 +38,8 @@ class DashboardTest extends TestCase
         ]);
 
         // Create other user
-        $otherUser = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
-        Profile::create([
-            'user_id' => $otherUser->id,
+        $otherUser = User::factory()->communityMember()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::updateOrCreate(['user_id' => $otherUser->id], [
             'date_of_birth' => now()->subYears(28),
             'age' => 28,
             'latitude' => null,
@@ -64,9 +62,8 @@ class DashboardTest extends TestCase
 
     public function test_quick_filters_do_not_override_the_chosen_sort(): void
     {
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(25),
             'is_discoverable' => true,
         ]);
@@ -82,24 +79,24 @@ class DashboardTest extends TestCase
 
     public function test_looking_for_quick_filter_narrows_the_results(): void
     {
-        $me = User::factory()->create();
-        Profile::create([
-            'user_id' => $me->id,
+        $me = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $me->id], [
             'date_of_birth' => now()->subYears(30),
-            'is_discoverable' => true,
-        ]);
-
-        $serious = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
-        Profile::create([
-            'user_id' => $serious->id,
-            'date_of_birth' => now()->subYears(28),
+            'meeting_intentions' => ['relationship'],
             'looking_for' => 'relationship',
             'is_discoverable' => true,
         ]);
 
-        $friendly = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
-        Profile::create([
-            'user_id' => $friendly->id,
+        $serious = User::factory()->communityMember()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::updateOrCreate(['user_id' => $serious->id], [
+            'date_of_birth' => now()->subYears(28),
+            'looking_for' => 'relationship',
+            'meeting_intentions' => ['relationship'],
+            'is_discoverable' => true,
+        ]);
+
+        $friendly = User::factory()->communityMember()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::updateOrCreate(['user_id' => $friendly->id], [
             'date_of_birth' => now()->subYears(29),
             'looking_for' => 'friendship',
             'is_discoverable' => true,
@@ -117,16 +114,14 @@ class DashboardTest extends TestCase
 
     public function test_verified_quick_filter_excludes_unverified_members(): void
     {
-        $me = User::factory()->create();
-        Profile::create([
-            'user_id' => $me->id,
+        $me = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $me->id], [
             'date_of_birth' => now()->subYears(30),
             'is_discoverable' => true,
         ]);
 
-        $verified = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
-        Profile::create([
-            'user_id' => $verified->id,
+        $verified = User::factory()->communityMember()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::updateOrCreate(['user_id' => $verified->id], [
             'date_of_birth' => now()->subYears(27),
             'is_discoverable' => true,
         ]);
@@ -143,33 +138,30 @@ class DashboardTest extends TestCase
     public function test_online_quick_filter_shows_only_online_users(): void
     {
         // Create user
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(25),
             'age' => 25,
         ]);
 
         // Create online user
-        $onlineUser = User::factory()->create([
+        $onlineUser = User::factory()->communityMember()->create([
             'is_verified' => true,
             'is_banned' => false,
             'last_login_at' => now()->subMinutes(5),
         ]);
-        Profile::create([
-            'user_id' => $onlineUser->id,
+        Profile::updateOrCreate(['user_id' => $onlineUser->id], [
             'date_of_birth' => now()->subYears(28),
             'age' => 28,
         ]);
 
         // Create offline user
-        $offlineUser = User::factory()->create([
+        $offlineUser = User::factory()->communityMember()->create([
             'is_verified' => true,
             'is_banned' => false,
             'last_login_at' => now()->subHours(2),
         ]);
-        Profile::create([
-            'user_id' => $offlineUser->id,
+        Profile::updateOrCreate(['user_id' => $offlineUser->id], [
             'date_of_birth' => now()->subYears(30),
             'age' => 30,
         ]);

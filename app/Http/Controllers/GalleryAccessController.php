@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GalleryAccessRequest;
+use App\Models\User;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,18 +24,18 @@ class GalleryAccessController extends Controller
 
         $requests = $user
             ->galleryAccessRequestsReceived()
-            ->with(['requester.photos' => fn ($query) => $query->where('is_primary', true)])
+            ->with(['requester.avatarPhoto', 'requester.profile', 'owner.avatarPhoto', 'owner.profile'])
             ->where('status', 'pending')
             ->latest()
-            ->get();
+            ->get()->map(fn ($access) => $this->publicAccess($access, $user))->filter()->values();
 
         $accessGranted = $user
             ->galleryAccessRequestsReceived()
-            ->with(['requester.photos' => fn ($query) => $query->where('is_primary', true)])
+            ->with(['requester.avatarPhoto', 'requester.profile', 'owner.avatarPhoto', 'owner.profile'])
             ->where('status', 'accepted')
             ->whereNull('revoked_at')
             ->latest('updated_at')
-            ->get();
+            ->get()->map(fn ($access) => $this->publicAccess($access, $user))->filter()->values();
 
         return Inertia::render('GalleryAccess/Index', [
             'requests' => $requests,
@@ -51,7 +52,8 @@ class GalleryAccessController extends Controller
         $gemsCost = 50; // Default cost, could be configurable
 
         abort_if($user->id === $userId, 422, 'Vous ne pouvez pas demander l’accès à votre propre galerie.');
-        abort_unless(\App\Models\User::whereKey($userId)->exists(), 404);
+        $owner = User::findOrFail($userId);
+        abort_unless($user->canInteractWith($owner), 403, 'Cette interaction n’est plus disponible.');
 
         // Check if user has enough gems
         if ($user->gems < $gemsCost) {
@@ -69,7 +71,7 @@ class GalleryAccessController extends Controller
         }
 
         DB::transaction(function () use ($user, $userId, $gemsCost): void {
-            app(\App\Services\GemService::class)->deductGems(
+            $debit = app(\App\Services\GemService::class)->deductGems(
                 $user,
                 $gemsCost,
                 'spend',
@@ -77,6 +79,7 @@ class GalleryAccessController extends Controller
                 "Demande d'accès à la galerie privée",
                 ['owner_user_id' => $userId]
             );
+            abort_if($debit === null, 402, 'Vous n’avez pas assez de gemmes.');
 
             GalleryAccessRequest::create([
                 'requester_user_id' => $user->id,
@@ -100,6 +103,8 @@ class GalleryAccessController extends Controller
             ->where('owner_user_id', $request->user()->id)
             ->where('status', 'pending')
             ->firstOrFail();
+
+        abort_unless($accessRequest->requester && $request->user()->canInteractWith($accessRequest->requester), 403);
 
         $accessRequest->accept();
 
@@ -125,10 +130,12 @@ class GalleryAccessController extends Controller
         $accessRequest->reject();
 
         // Send notification to the requester
-        $this->notificationService->notifyGalleryAccessRejected(
-            $accessRequest->requester_user_id,
-            $request->user()->id
-        );
+        if ($accessRequest->requester && $request->user()->canInteractWith($accessRequest->requester)) {
+            $this->notificationService->notifyGalleryAccessRejected(
+                $accessRequest->requester_user_id,
+                $request->user()->id
+            );
+        }
 
         return back()->with('success', 'Demande refusée. Les gemmes ont été remboursées.');
     }
@@ -144,17 +151,17 @@ class GalleryAccessController extends Controller
         $accessGranted = GalleryAccessRequest::where('owner_user_id', $user->id)
             ->where('status', 'accepted')
             ->whereNull('revoked_at')
-            ->with('requester')
+            ->with(['requester.avatarPhoto', 'requester.profile', 'owner.avatarPhoto', 'owner.profile'])
             ->latest()
-            ->get();
+            ->get()->map(fn ($access) => $this->publicAccess($access, $user))->filter()->values();
 
         // Access received by me (galleries I can see)
         $accessReceived = GalleryAccessRequest::where('requester_user_id', $user->id)
             ->where('status', 'accepted')
             ->whereNull('revoked_at')
-            ->with('owner')
+            ->with(['requester.avatarPhoto', 'requester.profile', 'owner.avatarPhoto', 'owner.profile'])
             ->latest()
-            ->get();
+            ->get()->map(fn ($access) => $this->publicAccess($access, $user))->filter()->values();
 
         return Inertia::render('GalleryAccess/Manage', [
             'accessGranted' => $accessGranted,
@@ -170,7 +177,8 @@ class GalleryAccessController extends Controller
         $user = $request->user();
 
         abort_if($user->id === $userId, 422, 'Vous ne pouvez pas vous accorder l’accès à vous-même.');
-        abort_unless(\App\Models\User::whereKey($userId)->exists(), 404);
+        $recipient = User::findOrFail($userId);
+        abort_unless($user->canInteractWith($recipient), 403, 'Cette interaction n’est plus disponible.');
 
         // Check if access already exists
         $existingAccess = GalleryAccessRequest::where('requester_user_id', $userId)
@@ -224,5 +232,30 @@ class GalleryAccessController extends Controller
         ]);
 
         return back()->with('success', 'Accès galerie révoqué avec succès.');
+    }
+
+    private function publicAccess(GalleryAccessRequest $access, User $viewer): ?array
+    {
+        $requester = $access->requester;
+        $owner = $access->owner;
+        $other = $access->owner_user_id === $viewer->id ? $requester : $owner;
+        if ($requester === null || $owner === null || $other === null || ! $viewer->canInteractWith($other)) {
+            return null;
+        }
+
+        $publicUser = fn (User $user) => [
+            'id' => $user->id,
+            'pseudo' => $user->pseudo,
+            'avatar_url' => $user->avatarPhoto?->viewUrl(),
+        ];
+
+        return [
+            'id' => $access->id,
+            'gems_cost' => $access->gems_cost,
+            'status' => $access->status,
+            'created_at' => $access->created_at->toIso8601String(),
+            'requester' => $publicUser($requester),
+            'owner' => $publicUser($owner),
+        ];
     }
 }

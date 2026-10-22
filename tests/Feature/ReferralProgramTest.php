@@ -22,7 +22,7 @@ class ReferralProgramTest extends TestCase
 
     public function test_member_can_open_referral_page_and_get_a_personal_code(): void
     {
-        $user = User::factory()->create(['referral_code' => null]);
+        $user = User::factory()->communityMember()->create(['referral_code' => null]);
 
         $this->actingAs($user)
             ->get(route('referrals.index'))
@@ -40,7 +40,7 @@ class ReferralProgramTest extends TestCase
 
     public function test_registration_with_a_valid_code_attributes_the_referral(): void
     {
-        $referrer = User::factory()->create();
+        $referrer = User::factory()->communityMember()->create();
         $code = app(ReferralService::class)->ensureReferralCode($referrer);
 
         $this->post('/register', $this->registrationPayload([
@@ -68,15 +68,16 @@ class ReferralProgramTest extends TestCase
 
     public function test_profile_verification_rewards_both_members_once(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $referrer = User::factory()->create(['gems' => 10]);
-        $referredUser = User::factory()->create(['gems' => 5, 'is_verified' => false]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $referrer = User::factory()->communityMember()->create(['gems' => 10]);
+        $referredUser = User::factory()->communityMember()->create(['gems' => 5, 'is_verified' => false]);
         $code = app(ReferralService::class)->ensureReferralCode($referrer);
         $referral = app(ReferralService::class)->attributeReferral($referredUser, $code);
         $verification = VerificationPhoto::factory()->create(['user_id' => $referredUser->id]);
+        \App\Models\Photo::factory()->approved()->create(['user_id' => $referredUser->id, 'is_primary' => true]);
 
         $this->actingAs($admin)
-            ->post(route('admin.verifications.approve', $verification))
+            ->post(route('admin.verifications.approve', $verification), ['photos_match_confirmed' => true])
             ->assertRedirect();
 
         $this->assertSame(160, $referrer->fresh()->gems);
@@ -92,8 +93,8 @@ class ReferralProgramTest extends TestCase
 
     public function test_banned_referrer_is_not_rewarded(): void
     {
-        $referrer = User::factory()->create(['gems' => 0, 'is_banned' => true]);
-        $referredUser = User::factory()->create(['gems' => 0, 'is_verified' => true]);
+        $referrer = User::factory()->communityMember()->create(['gems' => 0, 'is_banned' => true]);
+        $referredUser = User::factory()->communityMember()->create(['gems' => 0, 'is_verified' => true]);
         $code = app(ReferralService::class)->ensureReferralCode($referrer);
         $referral = app(ReferralService::class)->attributeReferral($referredUser, $code);
 
@@ -106,8 +107,8 @@ class ReferralProgramTest extends TestCase
 
     public function test_only_admin_can_open_referral_tracking(): void
     {
-        $member = User::factory()->create(['is_admin' => false]);
-        $admin = User::factory()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create(['is_admin' => false]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($member)
             ->get(route('admin.referrals.index'))
@@ -124,8 +125,8 @@ class ReferralProgramTest extends TestCase
 
     public function test_referral_is_included_in_the_referrers_data_export(): void
     {
-        $referrer = User::factory()->create();
-        $referredUser = User::factory()->create();
+        $referrer = User::factory()->communityMember()->create();
+        $referredUser = User::factory()->communityMember()->create();
         $code = app(ReferralService::class)->ensureReferralCode($referrer);
         app(ReferralService::class)->attributeReferral($referredUser, $code);
 
@@ -138,8 +139,8 @@ class ReferralProgramTest extends TestCase
 
     public function test_account_erasure_removes_referral_relationships(): void
     {
-        $referrer = User::factory()->create();
-        $referredUser = User::factory()->create();
+        $referrer = User::factory()->communityMember()->create();
+        $referredUser = User::factory()->communityMember()->create();
         $code = app(ReferralService::class)->ensureReferralCode($referrer);
         $referral = app(ReferralService::class)->attributeReferral($referredUser, $code);
 
@@ -147,6 +148,10 @@ class ReferralProgramTest extends TestCase
             ->delete(route('settings.delete-account'), ['confirmation' => 'SUPPRIMER'])
             ->assertRedirect('/');
 
+        $this->assertDatabaseHas('referrals', ['id' => $referral->id]);
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::fake('local');
+        app(\App\Services\AccountErasureService::class)->erase(User::withTrashed()->findOrFail($referrer->id), User::factory()->create(['is_admin' => true]));
         $this->assertDatabaseMissing('referrals', ['id' => $referral->id]);
     }
 
@@ -156,7 +161,10 @@ class ReferralProgramTest extends TestCase
         return array_merge([
             'pseudo' => 'invitee',
             'name' => 'Invitée',
-            'age' => 27,
+            'date_of_birth' => now()->subYears(27)->toDateString(),
+            'community_charter' => true,
+            'data_processing_consent' => true,
+            'meeting_intentions' => ['relationship'],
             'city_name' => 'Paris',
             'city_latitude' => 48.8566,
             'city_longitude' => 2.3522,

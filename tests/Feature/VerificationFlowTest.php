@@ -79,10 +79,10 @@ class VerificationFlowTest extends TestCase
 
         $user = User::factory()->create(['is_verified' => false]);
 
-        $this->actingAs($user)
-            ->post(route('verification.store'), [
-                'photo' => UploadedFile::fake()->image('selfie.jpg', 600, 800),
-            ])
+        $this->actingAs($user)->get(route('verification.create'));
+        $this->actingAs($user)->post(route('verification.store'), [
+            'photo' => UploadedFile::fake()->image('selfie.jpg', 600, 800),
+        ])
             ->assertRedirect(route('verification.create'));
 
         $this->assertDatabaseHas('verification_photos', [
@@ -98,10 +98,10 @@ class VerificationFlowTest extends TestCase
 
         $user = User::factory()->create(['is_verified' => false]);
 
-        $this->actingAs($user)
-            ->post(route('verification.store'), [
-                'photo' => UploadedFile::fake()->image('selfie.jpg', 600, 800),
-            ])
+        $this->actingAs($user)->get(route('verification.create'));
+        $this->actingAs($user)->post(route('verification.store'), [
+            'photo' => UploadedFile::fake()->image('selfie.jpg', 600, 800),
+        ])
             ->assertRedirect();
 
         $path = VerificationPhoto::where('user_id', $user->id)->value('path');
@@ -117,10 +117,10 @@ class VerificationFlowTest extends TestCase
         $user = User::factory()->create(['is_verified' => false]);
         VerificationPhoto::factory()->create(['user_id' => $user->id]);
 
-        $this->actingAs($user)
-            ->post(route('verification.store'), [
-                'photo' => UploadedFile::fake()->image('selfie.jpg', 600, 800),
-            ])
+        $this->actingAs($user)->get(route('verification.create'));
+        $this->actingAs($user)->post(route('verification.store'), [
+            'photo' => UploadedFile::fake()->image('selfie.jpg', 600, 800),
+        ])
             ->assertRedirect();
 
         $this->assertSame(1, $user->verificationPhotos()->count());

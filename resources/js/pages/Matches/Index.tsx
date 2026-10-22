@@ -1,5 +1,5 @@
 import DatingLayout from '@/layouts/dating-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,7 @@ import { Heart, MessageCircle, MapPin, Sparkles } from 'lucide-react';
 
 interface Photo {
     id: number;
-    path: string;
+    url: string;
 }
 
 interface Profile {
@@ -58,7 +58,7 @@ export default function Index({ matches }: { matches: Match[] }) {
                                 <div className="relative aspect-[3/4] bg-gradient-to-br from-pink-200 to-purple-200 dark:from-pink-900/20 dark:to-purple-900/20">
                                     {match.user.photos?.[0] ? (
                                         <img
-                                            src={`/storage/${match.user.photos[0].path}`}
+                                            src={match.user.photos[0].url}
                                             alt={match.user.name}
                                             className="h-full w-full object-cover"
                                         />
@@ -123,18 +123,14 @@ export default function Index({ matches }: { matches: Match[] }) {
                                                 Voir profil
                                             </Button>
                                         </Link>
-                                        <Link
-                                            href={`/conversations?user_id=${match.user.id}`}
-                                            className="flex-1"
+                                        <Button
+                                            size="lg"
+                                            className="w-full flex-1 btn-gradient"
+                                            onClick={() => router.post(`/conversations/${match.user.id}`)}
                                         >
-                                            <Button
-                                                size="lg"
-                                                className="w-full btn-gradient"
-                                            >
-                                                <MessageCircle className="h-5 w-5 mr-2" />
-                                                Message
-                                            </Button>
-                                        </Link>
+                                            <MessageCircle className="h-5 w-5 mr-2" />
+                                            Message
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

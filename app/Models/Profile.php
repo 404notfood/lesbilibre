@@ -12,8 +12,54 @@ class Profile extends Model
     /** @use HasFactory<\Database\Factories\ProfileFactory> */
     use HasFactory;
 
+    protected $hidden = ['date_of_birth', 'birth_date_declared_at'];
+
+    /** Public fields only; coordinates and account preferences stay on the server. */
+    public function publicData(): array
+    {
+        $data = $this->only([
+            'bio', 'meeting_intentions', 'boundaries', 'looking_for',
+            'sexual_orientation', 'interested_in', 'relationship_status',
+            'height', 'body_type', 'hair_color', 'eye_color', 'ethnicity',
+            'education', 'occupation', 'has_children', 'wants_children',
+            'smokes', 'drinks', 'interests', 'languages', 'is_naughty_mode',
+            'show_age', 'show_location',
+        ]);
+        $data['age'] = $this->show_age ? $this->age : null;
+        $data['city'] = $this->show_location ? $this->city : null;
+        $data['country'] = $this->show_location ? $this->country : null;
+
+        array_walk_recursive($data, function (&$value) {
+            if (is_string($value)) {
+                $value = preg_replace('/[A-Z0-9.!#$%&\x27*+\/=?^_`{|}~-]+@[A-Z0-9.-]+\.[A-Z]{2,}/iu', '[adresse masquée]', $value);
+            }
+        });
+
+        return $data;
+    }
+
+    public function intentions(): array
+    {
+        return $this->meeting_intentions ?? ($this->looking_for ? [$this->looking_for] : []);
+    }
+
+    public function acceptsIntentionsOf(self $other): bool
+    {
+        $limits = $this->boundaries ?? [];
+        $mine = in_array('friendship_only', $limits, true) ? ['friendship'] : $this->intentions();
+        $theirs = $other->intentions();
+        if (in_array('no_sexual_requests', $limits, true)) {
+            $theirs = array_diff($theirs, ['casual', 'ongoing']);
+        }
+
+        return count(array_intersect($mine, $theirs)) > 0;
+    }
+
     protected $fillable = [
         'user_id',
+        'birth_date_declared_at',
+        'meeting_intentions',
+        'boundaries',
         'bio',
         'date_of_birth',
         'age',
@@ -51,6 +97,9 @@ class Profile extends Model
     ];
 
     protected $casts = [
+        'birth_date_declared_at' => 'datetime',
+        'meeting_intentions' => 'array',
+        'boundaries' => 'array',
         'date_of_birth' => 'date',
         'age' => 'integer',
         'latitude' => 'decimal:8',

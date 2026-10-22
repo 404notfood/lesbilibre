@@ -15,13 +15,12 @@ class PrivateGalleryAccessTest extends TestCase
 
     protected function createMember(bool $naughtyMode = false): User
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_verified' => true,
             'is_banned' => false,
         ]);
 
-        Profile::create([
-            'user_id' => $user->id,
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(30),
             'is_discoverable' => true,
             'is_naughty_mode' => $naughtyMode,

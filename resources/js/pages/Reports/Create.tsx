@@ -1,16 +1,35 @@
-import DatingLayout from '@/layouts/dating-layout';
-import { Form, Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import DatingLayout from '@/layouts/dating-layout';
+import { Form, Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Flag, ShieldAlert } from 'lucide-react';
 
 interface ReportedUser {
     id: number;
-    name: string;
     pseudo: string;
 }
 
-const REASONS: { value: string; label: string; hint: string }[] = [
+const REASONS = [
+    {
+        value: 'suspected_minor',
+        label: 'Personne potentiellement mineure',
+        hint: 'Traitement prioritaire. Indiquez les éléments concrets, sans jugement sur l’apparence.',
+    },
+    {
+        value: 'impersonation',
+        label: 'Usurpation d’identité',
+        hint: 'Photos volées ou personne différente de celle présentée.',
+    },
+    {
+        value: 'hidden_shared_account',
+        label: 'Compte partagé dissimulé',
+        hint: 'Plusieurs personnes utilisent un même profil.',
+    },
+    {
+        value: 'unwanted_sexual_contact',
+        label: 'Sollicitation sexuelle non souhaitée',
+        hint: 'Messages ou images intimes malgré vos limites ou votre refus.',
+    },
     {
         value: 'harassment',
         label: 'Harcèlement',
@@ -38,7 +57,11 @@ const REASONS: { value: string; label: string; hint: string }[] = [
     },
 ];
 
-export default function Create({ reportedUser }: { reportedUser: ReportedUser }) {
+export default function Create({
+    reportedUser,
+}: {
+    reportedUser: ReportedUser;
+}) {
     return (
         <DatingLayout title="Signaler un profil" showOnlineUsers={false}>
             <Head title={`Signaler ${reportedUser.pseudo}`} />
@@ -46,7 +69,7 @@ export default function Create({ reportedUser }: { reportedUser: ReportedUser })
             <main className="container-responsive max-w-2xl py-8">
                 <Link
                     href={`/profile/${reportedUser.id}`}
-                    className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-2 text-sm transition-colors"
+                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     Retour au profil
@@ -55,16 +78,17 @@ export default function Create({ reportedUser }: { reportedUser: ReportedUser })
                 <Card>
                     <CardHeader>
                         <div className="flex items-start gap-3">
-                            <div className="bg-destructive/10 text-destructive grid h-10 w-10 shrink-0 place-items-center rounded-full">
+                            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-destructive/10 text-destructive">
                                 <Flag className="h-5 w-5" />
                             </div>
                             <div>
                                 <CardTitle>
                                     Signaler {reportedUser.pseudo}
                                 </CardTitle>
-                                <p className="text-muted-foreground mt-1 text-sm">
-                                    Votre signalement est confidentiel. La personne
-                                    concernée n’est pas informée de votre identité.
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Votre signalement est confidentiel. La
+                                    personne concernée n’est pas informée de
+                                    votre identité.
                                 </p>
                             </div>
                         </div>
@@ -88,7 +112,7 @@ export default function Create({ reportedUser }: { reportedUser: ReportedUser })
                                         {REASONS.map((reason) => (
                                             <label
                                                 key={reason.value}
-                                                className="hover:bg-muted/50 has-[:checked]:border-primary flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors"
+                                                className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 has-[:checked]:border-primary"
                                             >
                                                 <input
                                                     type="radio"
@@ -101,7 +125,7 @@ export default function Create({ reportedUser }: { reportedUser: ReportedUser })
                                                     <span className="block text-sm font-medium">
                                                         {reason.label}
                                                     </span>
-                                                    <span className="text-muted-foreground block text-xs">
+                                                    <span className="block text-xs text-muted-foreground">
                                                         {reason.hint}
                                                     </span>
                                                 </span>
@@ -109,7 +133,7 @@ export default function Create({ reportedUser }: { reportedUser: ReportedUser })
                                         ))}
 
                                         {errors.reason && (
-                                            <p className="text-destructive text-sm">
+                                            <p className="text-sm text-destructive">
                                                 {errors.reason}
                                             </p>
                                         )}
@@ -129,28 +153,29 @@ export default function Create({ reportedUser }: { reportedUser: ReportedUser })
                                             required
                                             minLength={10}
                                             maxLength={1000}
-                                            className="border-input bg-background w-full rounded-lg border p-3 text-sm"
+                                            className="w-full rounded-lg border border-input bg-background p-3 text-sm"
                                             placeholder="Décrivez la situation le plus précisément possible : dates, messages reçus, contenu concerné…"
                                         />
-                                        <p className="text-muted-foreground text-xs">
-                                            10 caractères minimum. Ces détails aident
-                                            notre équipe à traiter le signalement
-                                            rapidement.
+                                        <p className="text-xs text-muted-foreground">
+                                            10 caractères minimum. Ces détails
+                                            aident notre équipe à traiter le
+                                            signalement rapidement.
                                         </p>
                                         {errors.description && (
-                                            <p className="text-destructive text-sm">
+                                            <p className="text-sm text-destructive">
                                                 {errors.description}
                                             </p>
                                         )}
                                     </div>
 
-                                    <div className="bg-muted/50 text-muted-foreground flex items-start gap-2 rounded-lg p-3 text-xs">
+                                    <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
                                         <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
                                         <p>
-                                            En cas de danger immédiat, contactez les
-                                            secours. Vous pouvez aussi bloquer cette
-                                            personne depuis son profil pour couper tout
-                                            contact sans attendre notre réponse.
+                                            En cas de danger immédiat, contactez
+                                            les secours. Vous pouvez aussi
+                                            bloquer cette personne depuis son
+                                            profil pour couper tout contact sans
+                                            attendre notre réponse.
                                         </p>
                                     </div>
 
@@ -165,7 +190,9 @@ export default function Create({ reportedUser }: { reportedUser: ReportedUser })
                                                 : 'Envoyer le signalement'}
                                         </Button>
                                         <Button variant="outline" asChild>
-                                            <Link href={`/profile/${reportedUser.id}`}>
+                                            <Link
+                                                href={`/profile/${reportedUser.id}`}
+                                            >
                                                 Annuler
                                             </Link>
                                         </Button>

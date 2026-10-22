@@ -14,12 +14,18 @@ export default function PublicLayout({
     children,
 }: PublicLayoutProps): JSX.Element {
     return (
-        <div className="flex min-h-screen flex-col bg-background">
+        <div className="flex min-h-screen flex-col bg-background text-foreground">
+            <a
+                href="#public-content"
+                className="sr-only z-50 rounded-lg bg-card p-3 text-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+            >
+                Aller au contenu
+            </a>
             <header className="border-b border-border/50">
                 <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
                     <Link href="/" className="group flex items-center gap-2">
                         <Heart className="h-6 w-6 fill-current text-primary transition-transform group-hover:scale-110" />
-                        <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-xl font-bold text-transparent">
+                        <span className="font-display text-xl font-bold text-foreground">
                             LesbiLibre
                         </span>
                     </Link>
@@ -56,12 +62,20 @@ export default function PublicLayout({
                 </div>
             </header>
 
-            <main className="flex-1">{children}</main>
+            <main id="public-content" className="flex-1">
+                {children}
+            </main>
 
             <footer className="border-t border-border/50">
                 <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row">
                     <span>© {new Date().getFullYear()} LesbiLibre</span>
                     <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                        <Link
+                            href="/installer"
+                            className="transition-colors hover:text-primary"
+                        >
+                            Installer l’application
+                        </Link>
                         <Link
                             href="/about"
                             className="transition-colors hover:text-primary"

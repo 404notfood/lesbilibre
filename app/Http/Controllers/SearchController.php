@@ -59,7 +59,8 @@ class SearchController extends Controller
         // Apply sorting
         $query = $this->applySorting($query, $filters['sort_by'] ?? 'distance', $request->user());
 
-        $results = $query->paginate(20)->withQueryString();
+        $results = $query->paginate(20)->withQueryString()
+            ->through(fn (User $member) => $member->publicCommunityData());
 
         return Inertia::render('Search/Index', [
             'filters' => $filters,
@@ -78,7 +79,7 @@ class SearchController extends Controller
         // provenir d'un média coquin ou privé.
         $query = User::with(['profile', 'photos' => function ($query) {
             $query->where('is_approved', true)
-                ->where('moderation_status', '!=', 'rejected')
+                ->where('moderation_status', 'approved')
                 ->where('is_naughty', false)
                 ->where('is_private', false)
                 ->where('media_type', 'photo')
@@ -86,7 +87,8 @@ class SearchController extends Controller
                 ->orderBy('order');
         }])
             ->where('users.id', '!=', $currentUser->id)
-            ->where('users.is_verified', true)
+            ->communityEligible()
+            ->withoutOpenConflictWith($currentUser)
             ->where('users.is_banned', false)
             ->whereHas('profile', fn ($profile) => $profile->where('is_discoverable', true));
 
@@ -154,7 +156,18 @@ class SearchController extends Controller
         foreach ($profileFilters as $filterKey) {
             if (! empty($filters[$filterKey])) {
                 $query->whereHas('profile', function ($q) use ($filterKey, $filters) {
-                    $q->whereIn($filterKey, $filters[$filterKey]);
+                    if ($filterKey === 'looking_for') {
+                        $q->where(function ($intentions) use ($filters) {
+                            foreach ($filters['looking_for'] as $intention) {
+                                $intentions->orWhereJsonContains('meeting_intentions', $intention);
+                            }
+                            $intentions->orWhere(function ($legacy) use ($filters) {
+                                $legacy->whereNull('meeting_intentions')->whereIn('looking_for', $filters['looking_for']);
+                            });
+                        });
+                    } else {
+                        $q->whereIn($filterKey, $filters[$filterKey]);
+                    }
                 });
             }
         }
@@ -180,7 +193,7 @@ class SearchController extends Controller
 
         // Is verified filter
         if (isset($filters['is_verified']) && $filters['is_verified']) {
-            $query->where('is_verified', true);
+            $query->communityEligible();
         }
 
         // Interests filter

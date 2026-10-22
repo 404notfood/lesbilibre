@@ -15,7 +15,7 @@ class ModerationDashboardTest extends TestCase
     public function test_moderation_index_loads_with_open_reports(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
-        $reported = User::factory()->create(['name' => 'Compte signalé']);
+        $reported = User::factory()->create(['name' => 'Identité privée', 'pseudo' => 'Compte signalé']);
         Report::factory()->create(['reported_user_id' => $reported->id]);
 
         $this->actingAs($admin)
@@ -32,7 +32,7 @@ class ModerationDashboardTest extends TestCase
     public function test_admin_dashboard_loads_with_pending_reports(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
-        $reported = User::factory()->create(['name' => 'Compte signalé']);
+        $reported = User::factory()->create(['name' => 'Identité privée', 'pseudo' => 'Compte signalé']);
         Report::factory()->create(['reported_user_id' => $reported->id]);
 
         $this->actingAs($admin)

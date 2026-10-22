@@ -11,12 +11,12 @@ const commitments = [
     {
         icon: ShieldCheck,
         title: 'Des repères de confiance',
-        text: 'Vérification par selfie, modération des médias, blocage et signalement donnent des outils concrets sans promettre un risque zéro.',
+        text: 'Vérification par selfie, validation humaine des messages et médias avant diffusion, blocage et signalement donnent des outils concrets sans promettre un risque zéro.',
     },
     {
         icon: LockKeyhole,
         title: 'Une confidentialité choisie',
-        text: 'Galeries privées, médias éphémères et réglages de visibilité permettent de décider ce qui est partagé et avec qui.',
+        text: 'Vous choisissez les membres autorisées à voir votre galerie. Les administrateurs habilités lisent et examinent les messages et médias, y compris privés et éphémères, avant diffusion.',
     },
     {
         icon: Eye,
@@ -39,9 +39,9 @@ export default function About() {
                     </h1>
                     <p className="mt-6 text-lg leading-8 text-muted-foreground">
                         Le projet est né en 2025 avec une idée simple : créer un
-                        espace de rencontre lisible, confidentiel et centré sur
-                        la qualité des échanges plutôt que sur l’accumulation de
-                        fonctions sociales.
+                        espace de rencontre lisible et centré sur la qualité des
+                        échanges plutôt que sur l’accumulation de fonctions
+                        sociales.
                     </p>
                 </header>
                 <div className="mt-12 grid gap-5 sm:grid-cols-2">

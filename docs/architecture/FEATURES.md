@@ -1,5 +1,7 @@
 # 🌈 Application de Rencontre - Fonctionnalités Complètes
 
+> Ce catalogue conserve des descriptions historiques. Depuis le 21 octobre 2026, chaque message et média attend une validation humaine avant diffusion ; les conversations ne sont pas chiffrées de bout en bout. Une demande membre ferme le compte et notifie les administrateurs, qui seuls peuvent lancer l’effacement définitif. Le contrat courant est décrit dans [Prémodération et fermeture](../PREMODERATION_ET_FERMETURE_2026_10.md).
+
 ## ✨ Vue d'ensemble
 
 Application de rencontre moderne inspirée de **Once**, **2Meet** et **ExtremeChat**, avec un design élégant en rose/violet et toutes les fonctionnalités d'une plateforme de rencontre professionnelle.

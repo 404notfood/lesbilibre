@@ -5,60 +5,61 @@ namespace App\Services;
 use App\Models\PushSubscription;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
+use RuntimeException;
 
 class WebPushService
 {
-    private WebPush $webPush;
+    public function __construct(private PushEndpointPolicy $policy) {}
 
-    public function __construct()
-    {
-        $this->webPush = new WebPush([
-            'VAPID' => [
-                'subject' => config('app.url'),
-                'publicKey' => config('services.webpush.vapid_public_key'),
-                'privateKey' => config('services.webpush.vapid_private_key'),
-            ],
-        ]);
-
-        $this->webPush->setAutomaticPadding(false);
-    }
-
-    /**
-     * @param  array{title: string, body: string, url?: string, tag?: string, actions?: array<int, array{action: string, title: string}>}  $payload
-     */
+    /** @param array{title: string, body: string, url?: string, tag?: string, actions?: array} $payload */
     public function sendToUser(User $user, array $payload): void
     {
-        $subscriptions = PushSubscription::query()
-            ->where('user_id', $user->id)
-            ->get();
-
-        if ($subscriptions->isEmpty()) {
+        $current = User::find($user->id);
+        if (! $current || ! $current->canUseCommunity() || ! config('services.webpush.vapid_public_key') || ! config('services.webpush.vapid_private_key')) {
             return;
         }
+        $subscriptions = PushSubscription::where('user_id', $current->id)->get();
+        foreach ($subscriptions as $stored) {
+            try {
+                $this->policy->validateKeys($stored->p256dh_key, $stored->auth_token);
+                $options = $this->policy->clientOptions($stored->endpoint);
+            } catch (InvalidArgumentException $exception) {
+                // Old/malicious subscriptions must not become outbound traffic.
+                $stored->delete();
+                Log::warning('Rejected unsafe push subscription', ['subscription_id' => $stored->id]);
 
-        $jsonPayload = json_encode($payload, JSON_THROW_ON_ERROR);
-
-        foreach ($subscriptions as $pushSubscription) {
-            $subscription = Subscription::create([
-                'endpoint' => $pushSubscription->endpoint,
-                'publicKey' => $pushSubscription->p256dh_key,
-                'authToken' => $pushSubscription->auth_token,
-                'contentEncoding' => $pushSubscription->content_encoding,
-            ]);
-
-            $this->webPush->queueNotification($subscription, $jsonPayload);
-        }
-
-        foreach ($this->webPush->flush() as $report) {
-            if ($report->isSubscriptionExpired()) {
-                PushSubscription::query()
-                    ->where('endpoint', $report->getEndpoint())
-                    ->delete();
-
-                Log::info('Removed expired push subscription', ['endpoint' => $report->getEndpoint()]);
+                continue;
+            }
+            $client = $this->makeWebPush($options);
+            $client->queueNotification(Subscription::create([
+                'endpoint' => $stored->endpoint,
+                'publicKey' => $stored->p256dh_key,
+                'authToken' => $stored->auth_token,
+                'contentEncoding' => $stored->content_encoding,
+            ]), json_encode($payload, JSON_THROW_ON_ERROR));
+            foreach ($client->flush() as $report) {
+                if ($report->isSubscriptionExpired()) {
+                    $stored->delete();
+                    Log::info('Removed expired push subscription', ['subscription_id' => $stored->id]);
+                } elseif (! $report->isSuccess()) {
+                    // Do not include endpoint tokens, private payloads or raw
+                    // transport errors in logs. A queued listener can retry.
+                    Log::warning('Push delivery failed', ['subscription_id' => $stored->id]);
+                    throw new RuntimeException('Push delivery failed.');
+                }
             }
         }
+    }
+
+    protected function makeWebPush(array $clientOptions): WebPush
+    {
+        return new WebPush(['VAPID' => [
+            'subject' => config('app.url'),
+            'publicKey' => config('services.webpush.vapid_public_key'),
+            'privateKey' => config('services.webpush.vapid_private_key'),
+        ]], [], 10, $clientOptions);
     }
 }

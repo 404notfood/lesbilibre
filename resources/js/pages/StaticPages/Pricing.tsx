@@ -21,14 +21,16 @@ interface GemPackage {
 export default function Pricing({
     plans,
     gemPackages,
+    freeLimits,
 }: {
     plans: Plan[];
     gemPackages: GemPackage[];
+    freeLimits: { likesPerDay: number; firstMessagesPerDay: number };
 }) {
     return (
         <PublicLayout>
             <Head title="Tarifs" />
-            <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+            <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
                 <header className="mx-auto max-w-3xl text-center">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">
                         Des prix lisibles
@@ -63,6 +65,17 @@ export default function Pricing({
                             </li>
                         ))}
                     </ul>
+                    <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+                        {freeLimits.likesPerDay > 0
+                            ? `${freeLimits.likesPerDay} likes par jour`
+                            : 'Likes sans limite quotidienne'}{' '}
+                        et{' '}
+                        {freeLimits.firstMessagesPerDay > 0
+                            ? `${freeLimits.firstMessagesPerDay} nouvelles conversations par jour`
+                            : 'ouvertures de conversation sans limite quotidienne'}
+                        . Les réponses ne sont pas rationnées ; les règles de
+                        contact et de consentement restent applicables.
+                    </p>
                 </section>
 
                 <section className="mt-12" aria-labelledby="premium-title">
@@ -70,7 +83,7 @@ export default function Pricing({
                         Formules Premium
                     </h2>
                     {plans.length > 0 ? (
-                        <div className="mt-6 grid gap-5 md:grid-cols-3">
+                        <div className="mt-6 grid gap-5 md:grid-cols-2">
                             {plans.map((plan) => (
                                 <article
                                     key={`${plan.name}-${plan.durationMonths}`}
@@ -78,7 +91,7 @@ export default function Pricing({
                                 >
                                     {plan.featured && (
                                         <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                                            La plus choisie
+                                            Mise en avant
                                         </span>
                                     )}
                                     <h3 className="mt-4 text-2xl font-semibold">
@@ -94,6 +107,10 @@ export default function Pricing({
                                             style: 'currency',
                                             currency: 'EUR',
                                         })}
+                                    </p>
+                                    <p className="mt-2 text-sm font-medium">
+                                        Montant total pour {plan.durationMonths}{' '}
+                                        mois
                                     </p>
                                     <p className="text-sm text-muted-foreground">
                                         soit{' '}
@@ -128,40 +145,54 @@ export default function Pricing({
                     )}
                 </section>
 
-                <section className="mt-12" aria-labelledby="gems-title">
-                    <div className="flex items-center gap-3">
-                        <Gem className="h-6 w-6 text-primary" />
-                        <h2 id="gems-title" className="text-3xl font-bold">
-                            Gemmes
-                        </h2>
-                    </div>
-                    <p className="mt-3 max-w-3xl text-muted-foreground">
-                        Les gemmes servent aux cadeaux et options ponctuelles.
-                        Leur coût est affiché avant chaque dépense.
-                    </p>
-                    {gemPackages.length > 0 && (
-                        <div className="mt-5 flex flex-wrap gap-3">
-                            {gemPackages.map((pack) => (
-                                <div
-                                    key={`${pack.name}-${pack.gems}`}
-                                    className="rounded-xl border border-border bg-card px-5 py-4"
-                                >
-                                    <strong>
-                                        {pack.gems.toLocaleString('fr-FR')}{' '}
-                                        gemmes
-                                    </strong>
-                                    <span className="ml-3 text-muted-foreground">
-                                        {pack.price.toLocaleString('fr-FR', {
-                                            style: 'currency',
-                                            currency: 'EUR',
-                                        })}
-                                    </span>
-                                </div>
-                            ))}
+                <details className="mt-12 rounded-2xl border border-border p-5">
+                    <summary className="min-h-11 cursor-pointer font-semibold">
+                        Options ponctuelles : gemmes et cadeaux
+                    </summary>
+                    <section className="mt-4" aria-labelledby="gems-title">
+                        <div className="flex items-center gap-3">
+                            <Gem className="h-6 w-6 text-primary" />
+                            <h2 id="gems-title" className="text-3xl font-bold">
+                                Gemmes
+                            </h2>
                         </div>
-                    )}
-                </section>
-
+                        <p className="mt-3 max-w-3xl text-muted-foreground">
+                            Les gemmes servent aux cadeaux et options
+                            ponctuelles. Leur coût est affiché avant chaque
+                            dépense.
+                        </p>
+                        {gemPackages.length > 0 && (
+                            <div className="mt-5 flex flex-wrap gap-3">
+                                {gemPackages.map((pack) => (
+                                    <div
+                                        key={`${pack.name}-${pack.gems}`}
+                                        className="rounded-xl border border-border bg-card px-5 py-4"
+                                    >
+                                        <strong>
+                                            {pack.gems.toLocaleString('fr-FR')}{' '}
+                                            gemmes
+                                        </strong>
+                                        <span className="ml-3 text-muted-foreground">
+                                            {pack.price.toLocaleString(
+                                                'fr-FR',
+                                                {
+                                                    style: 'currency',
+                                                    currency: 'EUR',
+                                                },
+                                            )}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                </details>
+                <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
+                    Les abonnements se renouvellent selon la période choisie. Tu
+                    peux arrêter le renouvellement depuis Premium ; l’accès
+                    reste disponible jusqu’à la fin de la période payée. Le
+                    montant et la périodicité sont rappelés avant le paiement.
+                </p>
                 <div className="mt-12 text-center">
                     <Link
                         href="/register"
@@ -170,7 +201,7 @@ export default function Pricing({
                         Créer mon profil gratuitement
                     </Link>
                 </div>
-            </main>
+            </div>
         </PublicLayout>
     );
 }

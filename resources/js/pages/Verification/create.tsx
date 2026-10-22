@@ -74,7 +74,7 @@ export default function Create({
 
     return (
         <>
-            <Head title="Vérification d'identité" />
+            <Head title="Vérification des photos" />
 
             <div className="min-h-screen bg-background py-12">
                 <div className="container-responsive">
@@ -85,7 +85,7 @@ export default function Create({
                         </div>
                         <div>
                             <h1 className="text-4xl font-bold tracking-tight">
-                                Vérification d'identité
+                                Vérification des photos
                             </h1>
                             <p className="mt-2 text-lg text-muted-foreground">
                                 Obtenez le badge vérifié pour plus de confiance et de visibilité
@@ -107,12 +107,12 @@ export default function Create({
                                             Profil vérifié avec succès !
                                         </h3>
                                         <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                                            Votre identité a été confirmée. Vous avez maintenant le badge vérifié sur votre profil.
+                                            Vos photos ont été vérifiées. Ce badge ne prouve ni votre majorité, ni votre genre, ni votre orientation.
                                         </p>
                                     </div>
                                     <Badge className="bg-green-600 hover:bg-green-700">
                                         <Check className="h-3 w-3 mr-1" />
-                                        Vérifié
+                                        Photos vérifiées
                                     </Badge>
                                 </CardContent>
                             </Card>
@@ -129,7 +129,7 @@ export default function Create({
                                             Vérification en cours
                                         </h3>
                                         <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                                            Votre demande est en cours d'examen. Vous recevrez une réponse sous 24-48h.
+                                            Votre demande est en cours d'examen. Les demandes sont examinées par la modération.
                                         </p>
                                     </div>
                                     <Badge variant="outline" className="border-yellow-600 text-yellow-700">
@@ -153,7 +153,7 @@ export default function Create({
                                             {status.rejected_reason}
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-2">
-                                            Vous pouvez soumettre une nouvelle demande ci-dessous.
+                                            Vous pouvez soumettre une nouvelle demande ci-dessous ou contester la décision depuis la page Contact.
                                         </p>
                                     </div>
                                 </CardContent>
@@ -167,7 +167,7 @@ export default function Create({
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <Camera className="h-5 w-5" />
-                                            Votre code de vérification
+                                            Votre code de vérification (valable 30 minutes)
                                         </CardTitle>
                                         <CardDescription>
                                             Écrivez ce code sur une feuille et tenez-la
@@ -200,11 +200,11 @@ export default function Create({
                                         </ol>
 
                                         <p className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-                                            Ce code change à chaque demande : il prouve que
+                                            Ce code change à chaque demande : il aide à vérifier que
                                             la photo a été prise pour cette vérification, et
-                                            n&apos;a pas été récupérée ailleurs. Votre selfie
+                                            correspond au défi demandé. Votre selfie
                                             n&apos;est jamais publié, il sert uniquement à
-                                            confirmer votre identité auprès de l&apos;équipe.
+                                            comparer votre selfie à vos photos de profil. Aucun document d’identité n’est demandé.
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -214,7 +214,7 @@ export default function Create({
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <FileImage className="h-5 w-5" />
-                                            Télécharger votre selfie
+                                            Envoyer votre selfie
                                         </CardTitle>
                                         <CardDescription>
                                             Format JPG ou PNG, maximum 5 Mo
@@ -318,7 +318,7 @@ export default function Create({
                                             {
                                                 step: 3,
                                                 title: 'Envoyez votre fichier',
-                                                desc: 'Notre équipe examinera sous 24-48 heures',
+                                                desc: 'Notre équipe compare le selfie et la photo principale',
                                             },
                                         ].map((item) => (
                                             <div key={item.step} className="flex gap-3">

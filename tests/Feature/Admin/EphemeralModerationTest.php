@@ -14,10 +14,16 @@ class EphemeralModerationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local');
+    }
+
     private function media(array $state = []): EphemeralMedia
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
 
         $media = EphemeralMedia::factory()->create(array_merge([
             'conversation_id' => Conversation::factory()->between($sender, $recipient),
@@ -32,7 +38,7 @@ class EphemeralModerationTest extends TestCase
 
     public function test_non_admin_cannot_reach_the_ephemeral_console(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
 
         $this->actingAs($user)
             ->get(route('admin.ephemeral.index'))
@@ -43,7 +49,7 @@ class EphemeralModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->media();
         $this->media(['type' => 'video']);
@@ -66,7 +72,7 @@ class EphemeralModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->media();
         $flagged = $this->media(['is_flagged' => true]);
@@ -80,15 +86,14 @@ class EphemeralModerationTest extends TestCase
             );
     }
 
-    public function test_an_unflagged_file_cannot_be_opened_by_an_admin(): void
+    public function test_an_approved_unflagged_file_cannot_be_opened_by_an_admin(): void
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
-        $media = $this->media();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $media = $this->media(['moderation_status' => 'approved']);
 
-        // Cœur de la promesse faite aux membres : sans signalement, personne
-        // ne regarde — pas même une administratrice.
+        // After the publication decision, a new consultation needs a report.
         $this->actingAs($admin)
             ->get(route('admin.ephemeral.file', $media))
             ->assertForbidden();
@@ -98,7 +103,7 @@ class EphemeralModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $media = $this->media(['is_flagged' => true]);
 
         $this->actingAs($admin)
@@ -115,11 +120,11 @@ class EphemeralModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $media = $this->media(['is_flagged' => true]);
 
         $this->actingAs($admin)
-            ->post(route('admin.ephemeral.dismiss', $media))
+            ->post(route('admin.ephemeral.dismiss', $media), ['reason' => 'Après examen, aucun manquement constaté.'])
             ->assertRedirect();
 
         $this->assertFalse($media->fresh()->is_flagged);
@@ -129,7 +134,7 @@ class EphemeralModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $media = $this->media(['is_flagged' => true]);
 
         $this->actingAs($admin)
@@ -146,7 +151,7 @@ class EphemeralModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $media = $this->media(['is_flagged' => true]);
 
         $this->actingAs($admin)

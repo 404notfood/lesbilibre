@@ -96,7 +96,7 @@
     --paper: oklch(99% 0.006 60);
     --ink: oklch(22% 0.04 20);
     --ink-soft: oklch(42% 0.035 20);
-    --ink-mute: oklch(62% 0.025 20);
+    --ink-mute: oklch(46% 0.025 20);
     --line: oklch(86% 0.018 30);
     --line-soft: oklch(91% 0.014 30);
     --wine: oklch(32% 0.09 12);
@@ -113,7 +113,7 @@
     --card-foreground: var(--ink);
     --popover: var(--paper);
     --popover-foreground: var(--ink);
-    --primary: var(--desire);
+    --primary: var(--desire-deep);
     --primary-foreground: oklch(99% 0.005 60);
     --secondary: var(--blush);
     --secondary-foreground: var(--wine-deep);
@@ -153,7 +153,7 @@
     --paper: oklch(17% 0.03 350);
     --ink: oklch(96% 0.01 60);
     --ink-soft: oklch(78% 0.02 30);
-    --ink-mute: oklch(58% 0.025 30);
+    --ink-mute: oklch(76% 0.025 30);
     --line: oklch(28% 0.03 350);
     --line-soft: oklch(22% 0.03 350);
     --wine: oklch(35% 0.11 12);

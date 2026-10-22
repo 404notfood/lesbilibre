@@ -12,8 +12,8 @@ class TogglePremiumTest extends TestCase
 
     public function test_non_admin_cannot_toggle_premium(): void
     {
-        $admin = User::factory()->create(['is_admin' => false]);
-        $user = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => false]);
+        $user = User::factory()->communityMember()->create();
 
         $this->actingAs($admin)
             ->post(route('admin.users.toggle-premium', $user))
@@ -22,8 +22,8 @@ class TogglePremiumTest extends TestCase
 
     public function test_admin_can_activate_premium_with_expiration_date(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $user = User::factory()->create(['is_premium' => false, 'premium_expires_at' => null]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $user = User::factory()->communityMember()->create(['is_premium' => false, 'premium_expires_at' => null]);
 
         $expiresAt = now()->addMonth()->format('Y-m-d');
 
@@ -41,8 +41,8 @@ class TogglePremiumTest extends TestCase
 
     public function test_admin_can_activate_unlimited_premium(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $user = User::factory()->create(['is_premium' => false, 'premium_expires_at' => null]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $user = User::factory()->communityMember()->create(['is_premium' => false, 'premium_expires_at' => null]);
 
         $this->actingAs($admin)
             ->post(route('admin.users.toggle-premium', $user), [
@@ -58,8 +58,8 @@ class TogglePremiumTest extends TestCase
 
     public function test_admin_can_deactivate_premium(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $user = User::factory()->create([
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->addMonth(),
         ]);
@@ -76,7 +76,7 @@ class TogglePremiumTest extends TestCase
 
     public function test_is_premium_returns_true_for_unlimited_premium(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => null,
         ]);
@@ -86,7 +86,7 @@ class TogglePremiumTest extends TestCase
 
     public function test_is_premium_returns_false_for_expired_premium(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->subDay(),
         ]);
@@ -96,8 +96,8 @@ class TogglePremiumTest extends TestCase
 
     public function test_premium_expires_at_must_be_after_today(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $user = User::factory()->create(['is_premium' => false]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $user = User::factory()->communityMember()->create(['is_premium' => false]);
 
         $this->actingAs($admin)
             ->post(route('admin.users.toggle-premium', $user), [

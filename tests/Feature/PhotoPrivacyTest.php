@@ -14,11 +14,17 @@ class PhotoPrivacyTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local');
+        Storage::fake('public');
+    }
+
     private function memberWithConsent(bool $acceptsNaughty): User
     {
-        $user = User::factory()->create();
-        Profile::factory()->create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'is_naughty_mode' => $acceptsNaughty,
         ]);
 
@@ -108,7 +114,7 @@ class PhotoPrivacyTest extends TestCase
 
     public function test_a_sensitive_photo_cannot_become_the_avatar(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $photo = Photo::factory()->approved()->create([
             'user_id' => $user->id,
             'is_naughty' => true,
@@ -123,7 +129,7 @@ class PhotoPrivacyTest extends TestCase
 
     public function test_an_unmoderated_photo_cannot_become_the_avatar(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create([
             'user_id' => $user->id,
             'is_approved' => true,
@@ -139,7 +145,7 @@ class PhotoPrivacyTest extends TestCase
 
     public function test_member_can_request_avatar_validation(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create([
             'user_id' => $user->id,
             'moderation_status' => 'pending',
@@ -154,7 +160,7 @@ class PhotoPrivacyTest extends TestCase
 
     public function test_a_sensitive_photo_cannot_be_submitted_as_avatar(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create([
             'user_id' => $user->id,
             'is_naughty' => true,
@@ -169,8 +175,8 @@ class PhotoPrivacyTest extends TestCase
 
     public function test_approving_a_requested_photo_promotes_it_to_avatar(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
 
         $previous = Photo::factory()->primary()->create(['user_id' => $member->id]);
         $photo = Photo::factory()->create([
@@ -190,7 +196,7 @@ class PhotoPrivacyTest extends TestCase
 
     public function test_rejecting_a_photo_retires_it_from_the_gallery(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $photo = Photo::factory()->primary()->create([
             'avatar_requested_at' => now(),
         ]);
@@ -207,14 +213,14 @@ class PhotoPrivacyTest extends TestCase
         $this->assertNull($photo->avatar_requested_at);
     }
 
-    // --- Publication immédiate en galerie ---
+    // --- Validation avant publication en galerie ---
 
-    public function test_gallery_photos_are_visible_as_soon_as_they_are_added(): void
+    public function test_gallery_photos_remain_hidden_until_admin_approval(): void
     {
         Storage::fake('public');
         \Illuminate\Support\Facades\Queue::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('photos.store'), [
@@ -224,9 +230,12 @@ class PhotoPrivacyTest extends TestCase
 
         $this->assertDatabaseHas('photos', [
             'user_id' => $user->id,
-            'is_approved' => true,
+            'is_approved' => false,
             'moderation_status' => 'pending',
         ]);
+        $photo = $user->photos()->sole();
+        $this->actingAs(User::factory()->communityMember()->create())
+            ->get(route('media.photo', $photo))->assertNotFound();
     }
 
     // --- Route média ---

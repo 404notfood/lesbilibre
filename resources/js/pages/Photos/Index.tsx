@@ -1,4 +1,6 @@
+import PhotoLightbox from '@/components/photo-lightbox';
 import DatingLayout from '@/layouts/dating-layout';
+import { cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     Clock,
@@ -14,8 +16,6 @@ import {
     Video,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
-import PhotoLightbox from '@/components/photo-lightbox';
 
 interface Photo {
     id: number;
@@ -49,13 +49,20 @@ export default function Index({ photos }: { photos: Photo[] }) {
     const photoCount = photos.filter((media) => !isVideo(media)).length;
     const videoCount = photos.filter(isVideo).length;
 
-    // Onglet actif : on ne garde que le type sélectionné, puis on sépare ce qui
-    // est en ligne de ce que la modération a retiré.
+    // The owner can preview pending media; publication needs a human decision.
     const inTab = photos.filter((media) =>
         tab === 'video' ? isVideo(media) : !isVideo(media),
     );
     const published = inTab.filter((p) => p.moderation_status !== 'rejected');
     const rejected = inTab.filter((p) => p.moderation_status === 'rejected');
+    const approvedCount = inTab.filter(
+        (p) => p.moderation_status === 'approved',
+    ).length;
+    const pendingCount = inTab.filter(
+        (p) =>
+            p.moderation_status === 'pending' ||
+            p.moderation_status === 'quarantined',
+    ).length;
 
     // La visionneuse ne parcourt que les médias visibles de l'onglet courant.
     const lightboxItems = published.map((media) => ({
@@ -78,7 +85,9 @@ export default function Index({ photos }: { photos: Photo[] }) {
         const isImage = file.type.startsWith('image/');
 
         if (!isImage && !isVideo) {
-            setError('Le fichier doit être une image (JPEG, PNG) ou une vidéo (MP4, MOV, WEBM).');
+            setError(
+                'Le fichier doit être une image (JPEG, PNG) ou une vidéo (MP4, MOV, WEBM).',
+            );
             return;
         }
 
@@ -87,7 +96,7 @@ export default function Index({ photos }: { photos: Photo[] }) {
             setError(
                 isVideo
                     ? 'La vidéo ne peut pas dépasser 100 Mo.'
-                    : 'L’image ne peut pas dépasser 10 Mo.'
+                    : 'L’image ne peut pas dépasser 10 Mo.',
             );
             return;
         }
@@ -97,7 +106,10 @@ export default function Index({ photos }: { photos: Photo[] }) {
         formData.append('photo', file);
         formData.append('is_naughty', markAsNaughty ? '1' : '0');
         // Une vidéo coquine est toujours privée : pas de floutage vidéo possible.
-        formData.append('is_private', markAsPrivate || (isVideo && markAsNaughty) ? '1' : '0');
+        formData.append(
+            'is_private',
+            markAsPrivate || (isVideo && markAsNaughty) ? '1' : '0',
+        );
 
         setUploading(true);
         router.post('/photos', formData, {
@@ -134,18 +146,22 @@ export default function Index({ photos }: { photos: Photo[] }) {
                         className="editorial-eyebrow"
                         style={{ color: 'var(--ink-mute)' }}
                     >
-                        {photos.length} sur {MAX_PHOTOS} · {published.length} en ligne
+                        {photos.length} sur {MAX_PHOTOS} · {approvedCount}{' '}
+                        validé{approvedCount > 1 ? 's' : ''} · {pendingCount} en
+                        attente
                     </p>
-                    <h1 className="font-display mt-2 text-4xl font-medium">
+                    <h1 className="mt-2 font-display text-4xl font-medium">
                         Mes photos
                     </h1>
                     <p
                         className="mt-2 max-w-xl text-sm"
                         style={{ color: 'var(--ink-mute)' }}
                     >
-                        Vos photos sont visibles dès l’ajout. Seule la photo de profil
-                        passe par une validation. Les photos marquées coquines restent
-                        floutées pour celles qui n’ont pas activé le mode coquin.
+                        Chaque photo et vidéo est examinée par une
+                        administratrice avant sa diffusion aux autres membres.
+                        Vous pouvez prévisualiser vos dépôts pendant cette
+                        attente. Les contenus coquins restent soumis aux
+                        autorisations de la destinataire après validation.
                     </p>
 
                     <div
@@ -242,7 +258,9 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                     <input
                                         type="checkbox"
                                         checked={markAsNaughty}
-                                        onChange={(e) => setMarkAsNaughty(e.target.checked)}
+                                        onChange={(e) =>
+                                            setMarkAsNaughty(e.target.checked)
+                                        }
                                         disabled={uploading}
                                     />
                                     <EyeOff className="h-3.5 w-3.5" />
@@ -256,7 +274,9 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                     <input
                                         type="checkbox"
                                         checked={markAsPrivate}
-                                        onChange={(e) => setMarkAsPrivate(e.target.checked)}
+                                        onChange={(e) =>
+                                            setMarkAsPrivate(e.target.checked)
+                                        }
                                         disabled={uploading}
                                     />
                                     <Lock className="h-3.5 w-3.5" />
@@ -267,8 +287,8 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                     className="mt-1 text-[11px]"
                                     style={{ color: 'var(--ink-mute)' }}
                                 >
-                                    Les vidéos coquines sont automatiquement mises en galerie
-                                    privée.
+                                    Les vidéos coquines sont automatiquement
+                                    mises en galerie privée.
                                 </p>
 
                                 <input
@@ -308,7 +328,8 @@ export default function Index({ photos }: { photos: Photo[] }) {
                         <Info className="mt-0.5 h-4 w-4 shrink-0" />
                         <p>
                             Vous avez atteint la limite de {MAX_PHOTOS} photos.
-                            Supprimez-en une pour pouvoir en ajouter une nouvelle.
+                            Supprimez-en une pour pouvoir en ajouter une
+                            nouvelle.
                         </p>
                     </section>
                 )}
@@ -329,8 +350,9 @@ export default function Index({ photos }: { photos: Photo[] }) {
                             className="mx-auto mt-2 max-w-sm text-sm"
                             style={{ color: 'var(--ink-mute)' }}
                         >
-                            Les profils avec photos reçoivent bien plus de visites.
-                            Commencez par un portrait où l’on vous voit clairement.
+                            Les profils avec photos reçoivent bien plus de
+                            visites. Commencez par un portrait où l’on vous voit
+                            clairement.
                         </p>
                     </section>
                 )}
@@ -347,8 +369,16 @@ export default function Index({ photos }: { photos: Photo[] }) {
                     >
                         {(
                             [
-                                { value: 'photo', label: 'Photos', count: photoCount },
-                                { value: 'video', label: 'Vidéos', count: videoCount },
+                                {
+                                    value: 'photo',
+                                    label: 'Photos',
+                                    count: photoCount,
+                                },
+                                {
+                                    value: 'video',
+                                    label: 'Vidéos',
+                                    count: videoCount,
+                                },
                             ] as const
                         ).map(({ value, label, count }) => (
                             <button
@@ -372,7 +402,9 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                             ? 'var(--wine-deep)'
                                             : 'transparent',
                                     color:
-                                        tab === value ? 'white' : 'var(--ink-soft)',
+                                        tab === value
+                                            ? 'white'
+                                            : 'var(--ink-soft)',
                                 }}
                             >
                                 {value === 'video' ? (
@@ -382,7 +414,7 @@ export default function Index({ photos }: { photos: Photo[] }) {
                                 )}
                                 {label}
                                 <span
-                                    className="font-mono grid h-5 min-w-[20px] place-items-center rounded px-1 text-[10px] font-bold"
+                                    className="grid h-5 min-w-[20px] place-items-center rounded px-1 font-mono text-[10px] font-bold"
                                     style={{
                                         background:
                                             tab === value
@@ -410,7 +442,10 @@ export default function Index({ photos }: { photos: Photo[] }) {
                             background: 'var(--paper)',
                         }}
                     >
-                        <p className="text-sm" style={{ color: 'var(--ink-mute)' }}>
+                        <p
+                            className="text-sm"
+                            style={{ color: 'var(--ink-mute)' }}
+                        >
                             {tab === 'video'
                                 ? 'Aucune vidéo dans votre galerie pour l’instant.'
                                 : 'Aucune photo dans votre galerie pour l’instant.'}
@@ -421,7 +456,7 @@ export default function Index({ photos }: { photos: Photo[] }) {
                 {/* ---- Médias en ligne ------------------------------------ */}
                 {published.length > 0 && (
                     <PhotoSection
-                        eyebrow={`${published.length} visible${published.length > 1 ? 's' : ''} sur votre profil`}
+                        eyebrow={`${approvedCount} validé${approvedCount > 1 ? 's' : ''} · ${pendingCount} en attente de validation`}
                         title={tab === 'video' ? 'Mes vidéos' : 'Mes photos'}
                     >
                         {published.map((photo, index) => (
@@ -465,7 +500,9 @@ export default function Index({ photos }: { photos: Photo[] }) {
                             <EyeOff className="h-4 w-4" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-semibold">Galerie privée</h2>
+                            <h2 className="text-sm font-semibold">
+                                Galerie privée
+                            </h2>
                             <p
                                 className="mt-0.5 text-sm"
                                 style={{ color: 'var(--ink-mute)' }}
@@ -515,7 +552,9 @@ function PhotoSection({
                 >
                     {eyebrow}
                 </p>
-                <h2 className="font-display mt-1 text-2xl font-medium">{title}</h2>
+                <h2 className="mt-1 font-display text-2xl font-medium">
+                    {title}
+                </h2>
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {children}
@@ -537,7 +576,11 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
 
     const act = (url: string) => {
         setBusy(true);
-        router.post(url, {}, { preserveScroll: true, onFinish: () => setBusy(false) });
+        router.post(
+            url,
+            {},
+            { preserveScroll: true, onFinish: () => setBusy(false) },
+        );
     };
 
     const remove = () => {
@@ -564,7 +607,7 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
                 className={cn(
-                    'h-full w-full select-none object-cover transition-transform duration-300 group-hover:scale-[1.03]',
+                    'h-full w-full object-cover transition-transform duration-300 select-none group-hover:scale-[1.03]',
                     isRejected && 'opacity-50 grayscale',
                 )}
             />
@@ -577,9 +620,7 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
                     onClick={onOpen}
                     onContextMenu={(e) => e.preventDefault()}
                     className="absolute inset-0 cursor-zoom-in"
-                    aria-label={
-                        isVideo ? 'Lire la vidéo' : 'Agrandir la photo'
-                    }
+                    aria-label={isVideo ? 'Lire la vidéo' : 'Agrandir la photo'}
                 />
             ) : (
                 <span
@@ -606,7 +647,7 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
                 <div className="flex flex-wrap gap-1">
                     {photo.is_primary && (
                         <span
-                            className="font-mono inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase"
                             style={{
                                 background: 'var(--gold)',
                                 color: 'var(--wine-deep)',
@@ -616,9 +657,9 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
                             Profil
                         </span>
                     )}
-                    {photo.avatar_requested && (
+                    {!isApproved && !isRejected && (
                         <span
-                            className="font-mono inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase"
                             style={{
                                 background: 'oklch(100% 0 0 / 0.9)',
                                 color: 'var(--ink)',
@@ -630,8 +671,11 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
                     )}
                     {isRejected && (
                         <span
-                            className="font-mono inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                            style={{ background: 'var(--desire)', color: 'white' }}
+                            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase"
+                            style={{
+                                background: 'var(--desire)',
+                                color: 'white',
+                            }}
                         >
                             Retirée
                         </span>
@@ -653,7 +697,7 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
             <figcaption
                 className={cn(
                     'absolute inset-x-0 bottom-0 z-10 flex flex-col gap-1 p-2 opacity-0 transition-opacity',
-                    'group-hover:opacity-100 group-focus-within:opacity-100',
+                    'group-focus-within:opacity-100 group-hover:opacity-100',
                 )}
                 style={{
                     background:
@@ -673,7 +717,9 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
                         (isApproved ? (
                             <button
                                 type="button"
-                                onClick={() => act(`/photos/${photo.id}/primary`)}
+                                onClick={() =>
+                                    act(`/photos/${photo.id}/primary`)
+                                }
                                 disabled={busy}
                                 title="Définir comme photo de profil"
                                 aria-label="Définir comme photo de profil"
@@ -690,7 +736,9 @@ function PhotoTile({ photo, onOpen }: { photo: Photo; onOpen?: () => void }) {
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        act(`/photos/${photo.id}/request-avatar`)
+                                        act(
+                                            `/photos/${photo.id}/request-avatar`,
+                                        )
                                     }
                                     disabled={busy}
                                     className="rounded-lg px-2 py-1.5 text-[11px] font-semibold backdrop-blur disabled:opacity-50"

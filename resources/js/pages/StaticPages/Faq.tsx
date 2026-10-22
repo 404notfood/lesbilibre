@@ -17,7 +17,7 @@ const sections = [
             },
             {
                 q: 'Comment supprimer mon compte ?',
-                a: 'Dans Paramètres > Confidentialité, vous pouvez demander la suppression. Les médias et données de profil sont supprimés, les messages déjà envoyés sont anonymisés pour préserver la cohérence des conversations, puis le compte est désactivé et anonymisé.',
+                a: 'Dans Paramètres > Confidentialité, vous pouvez demander la suppression. Votre compte est fermé immédiatement et les administrateurs sont notifiés. Vos données restent en attente de traitement : seul un administrateur peut déclencher leur effacement définitif. Les éléments nécessaires à un signalement en cours peuvent être conservés pendant son examen.',
             },
         ],
     },
@@ -26,15 +26,19 @@ const sections = [
         questions: [
             {
                 q: 'Quels médias puis-je ajouter à ma galerie ?',
-                a: 'La galerie accepte les images JPEG ou PNG et les vidéos MP4, MOV ou WebM, dans la limite de 100 Mo par fichier. Une image choisie comme photo principale doit être validée par la modération.',
+                a: 'La galerie accepte les images JPEG ou PNG et les vidéos MP4, MOV ou WebM, dans la limite de 100 Mo par fichier. Chaque photo et vidéo, publique ou privée, attend la validation d’un administrateur avant de devenir accessible aux autres membres.',
+            },
+            {
+                q: 'Mes messages sont-ils lus par la modération ?',
+                a: 'Oui. Un administrateur habilité lit chaque message et examine chaque photo, vidéo ou pièce jointe avant sa diffusion, même sans signalement. Les contenus en attente ou rejetés ne sont pas transmis à la destinataire. Les conversations ne sont pas chiffrées de bout en bout et aucun délai de validation n’est garanti.',
             },
             {
                 q: 'Que sont les médias éphémères ?',
-                a: 'Une photo ou une vidéo éphémère est envoyée dans une conversation et servie sans URL publique partageable. Elle reste soumise au signalement et aux limites techniques : aucun service ne peut empêcher absolument une capture avec un autre appareil.',
+                a: 'Une photo ou une vidéo éphémère attend d’abord la validation d’un administrateur avant de pouvoir être ouverte dans la conversation. Elle est servie sans URL publique partageable. L’administration peut l’examiner pour la modération et un signalement peut nécessiter sa conservation. Aucun service ne peut empêcher absolument une capture avec un autre appareil.',
             },
             {
                 q: 'Qui voit ma galerie privée ?',
-                a: 'Uniquement les membres auxquelles vous avez accordé un accès. Vous pouvez consulter et révoquer ces accès depuis la gestion de votre galerie.',
+                a: 'Les membres auxquelles vous avez accordé un accès voient les médias approuvés. Les administrateurs habilités examinent aussi chaque média privé avant diffusion. Vous pouvez consulter et révoquer les accès des membres depuis la gestion de votre galerie.',
             },
         ],
     },
@@ -43,7 +47,7 @@ const sections = [
         questions: [
             {
                 q: 'Comment fonctionne la vérification ?',
-                a: 'Vous réalisez un selfie selon une consigne affichée. Le média de vérification n’est pas publié sur votre profil. Après validation, un badge vérifié est ajouté au compte.',
+                a: 'Vous réalisez un selfie selon une consigne affichée. Le média de vérification n’est pas publié sur votre profil. Après comparaison à la photo principale, le badge Photos vérifiées est ajouté. La majorité est déclarée : ce selfie ne prouve ni l’âge ni le genre. Une nouvelle photo principale demande une nouvelle vérification.',
             },
             {
                 q: 'Comment bloquer ou signaler un compte ?',

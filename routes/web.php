@@ -1,8 +1,5 @@
 <?php
 
-use App\Models\User;
-use App\Models\UserMatch;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -12,17 +9,9 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap
 Route::get('/indexnow-key.txt', [\App\Http\Controllers\SeoController::class, 'indexNowKey'])->name('seo.indexnow-key');
 
 Route::get('/', function () {
-    // Courte mise en cache : preuve sociale fraîche, sans trois COUNT à chaque
-    // affichage de la landing.
-    $stats = Cache::remember('public.home.stats', now()->addMinutes(5), fn () => [
-        'total_users' => User::where('is_verified', true)->where('is_banned', false)->count(),
-        'active_today' => User::where('last_login_at', '>=', now()->startOfDay())->count(),
-        'total_matches' => UserMatch::count(),
-    ]);
-
     return Inertia::render('home', [
         'canRegister' => Features::enabled(Features::registration()),
-        'stats' => $stats,
+        'pilot' => config('community.pilot'),
     ]);
 })->name('home');
 
@@ -30,6 +19,7 @@ Route::get('/', function () {
 Route::get('/terms', [\App\Http\Controllers\StaticPageController::class, 'terms'])->name('terms');
 Route::get('/privacy', [\App\Http\Controllers\StaticPageController::class, 'privacy'])->name('privacy');
 Route::get('/faq', [\App\Http\Controllers\StaticPageController::class, 'faq'])->name('faq');
+Route::inertia('/installer', 'StaticPages/Install')->name('install');
 Route::get('/about', [\App\Http\Controllers\StaticPageController::class, 'about'])->name('about');
 Route::get('/contact', [\App\Http\Controllers\StaticPageController::class, 'contact'])->name('contact');
 Route::get('/comment-ca-marche', [\App\Http\Controllers\StaticPageController::class, 'howItWorks'])->name('how-it-works');
@@ -42,6 +32,9 @@ Route::get('/guides/{slug}', [\App\Http\Controllers\StaticPageController::class,
     ->name('guides.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('community/onboarding', [\App\Http\Controllers\CommunityController::class, 'show'])->name('community.onboarding');
+    Route::put('admin/users/{user}/birth-date', [\App\Http\Controllers\CommunityController::class, 'correctDate'])->middleware('admin')->name('admin.users.birth-date');
+    Route::post('community/onboarding', [\App\Http\Controllers\CommunityController::class, 'store'])->name('community.store')->middleware('throttle:10,1');
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Profile routes
@@ -100,6 +93,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Message routes
     Route::post('conversations/{conversation}/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store')->middleware('throttle:20,1');
+    Route::get('conversations/{conversation}/messages/sync', [\App\Http\Controllers\ConversationController::class, 'sync'])->name('conversations.sync')->middleware('throttle:120,1');
+    Route::post('conversations/{conversation}/messages/read', [\App\Http\Controllers\MessageController::class, 'markVisibleAsRead'])->name('conversations.read')->middleware('throttle:120,1');
+    Route::put('conversations/{conversation}/intimate-consent', [\App\Http\Controllers\IntimateConsentController::class, 'update'])->name('conversations.intimate-consent');
     Route::post('messages/{message}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('messages.read');
 
     // Contenus éphémères — servis une vue à la fois, jamais par une URL partageable.
@@ -181,6 +177,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         // Dashboard
         Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('account-deletions', [\App\Http\Controllers\Admin\AccountDeletionController::class, 'index'])->name('account-deletions.index');
+        Route::delete('account-deletions/{erasure}', [\App\Http\Controllers\Admin\AccountDeletionController::class, 'destroy'])->name('account-deletions.destroy');
+        Route::get('messages', [\App\Http\Controllers\Admin\MessageModerationController::class, 'index'])->name('messages.index');
+        Route::post('messages/{message}/approve', [\App\Http\Controllers\Admin\MessageModerationController::class, 'approve'])->name('messages.approve');
+        Route::post('messages/{message}/reject', [\App\Http\Controllers\Admin\MessageModerationController::class, 'reject'])->name('messages.reject');
 
         // User management
         Route::get('users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
@@ -226,6 +227,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Éphémères — statistiques agrégées et file des signalements
         Route::get('ephemeral', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'index'])->name('ephemeral.index');
         Route::get('ephemeral/{medium}/file', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'show'])->name('ephemeral.file');
+        Route::post('ephemeral/{medium}/approve', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'approve'])->name('ephemeral.approve');
+        Route::post('ephemeral/{medium}/reject', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'reject'])->name('ephemeral.reject');
         Route::post('ephemeral/{medium}/dismiss', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'dismiss'])->name('ephemeral.dismiss');
         Route::delete('ephemeral/{medium}', [\App\Http\Controllers\Admin\EphemeralMediaController::class, 'destroy'])->name('ephemeral.destroy');
 

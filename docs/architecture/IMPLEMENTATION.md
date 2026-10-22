@@ -1,5 +1,7 @@
 # Implémentations récentes - Lesbi-Libre
 
+> Évolution du 21 octobre 2026 : les descriptions antérieures de chat immédiat ou d’effacement membre doivent être lues avec [Prémodération et fermeture des comptes](../PREMODERATION_ET_FERMETURE_2026_10.md). Tout message et média attend l’administration avant diffusion. Les échanges sont lisibles par les administrateurs habilités ; la fermeture membre et l’effacement définitif administratif sont distincts.
+
 ## Vue d'ensemble
 
 Ce document récapitule toutes les implémentations et améliorations apportées à l'application de rencontre Lesbi-Libre.

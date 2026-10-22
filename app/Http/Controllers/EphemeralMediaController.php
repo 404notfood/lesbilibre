@@ -6,12 +6,14 @@ use App\Jobs\TranscodeEphemeralVideo;
 use App\Models\Conversation;
 use App\Models\EphemeralMedia;
 use App\Services\EntitlementService;
+use App\Services\EphemeralReportService;
 use App\Services\GemService;
 use App\Services\PhotoProcessingService;
 use App\Services\VideoProcessingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -40,7 +42,7 @@ class EphemeralMediaController extends Controller
             ? $conversation->user2
             : $conversation->user1;
 
-        abort_unless($user->canInteractWith($recipient), 403, 'Cette conversation n’est plus disponible.');
+        abort_unless($recipient && $user->canInteractWith($recipient), 403, 'Cette conversation n’est plus disponible.');
 
         $validated = $request->validate([
             'file' => [
@@ -52,8 +54,14 @@ class EphemeralMediaController extends Controller
             'is_naughty' => ['boolean'],
         ]);
 
+        abort_if($request->boolean('is_naughty') && (! $conversation->acceptsIntimateMedia($recipient->id) || in_array('no_sexual_requests', $recipient->profile?->boundaries ?? [], true) || in_array('friendship_only', $recipient->profile?->boundaries ?? [], true)), 403, 'Cette personne n’autorise pas les médias intimes dans cette conversation.');
+
         $file = $request->file('file');
         $isVideo = str_starts_with((string) $file->getMimeType(), 'video/');
+
+        if (! $isVideo) {
+            $request->validate(['file' => [new \App\Rules\SafeImageDimensions]]);
+        }
 
         if ($isVideo) {
             return $this->storeVideo($request, $conversation, $recipient->id, $file, $validated);
@@ -67,11 +75,26 @@ class EphemeralMediaController extends Controller
      */
     public function show(Request $request, EphemeralMedia $medium): Response
     {
+        return DB::transaction(function () use ($request, $medium) {
+            $current = EphemeralMedia::query()->lockForUpdate()->findOrFail($medium->id);
+
+            return $this->openMedia($request, $current);
+        });
+    }
+
+    private function openMedia(Request $request, EphemeralMedia $medium): Response
+    {
         $user = $request->user();
 
         abort_unless($medium->recipient_id === $user->id, 403);
+        abort_unless($medium->sender && $user->canInteractWith($medium->sender), 403);
+        abort_if($medium->is_naughty && (! $medium->conversation->acceptsIntimateMedia($user->id) || in_array('no_sexual_requests', $user->profile?->boundaries ?? [], true) || in_array('friendship_only', $user->profile?->boundaries ?? [], true)), 403, 'Autorisez explicitement les médias intimes dans cette conversation pour ouvrir ce contenu.');
         abort_if($medium->purged_at !== null, 410, 'Ce contenu n’est plus disponible.');
+        abort_if($medium->moderation_status !== 'approved', 403, 'Ce contenu doit être validé par la modération avant sa diffusion.');
         abort_if($medium->processing_status !== 'ready', 425, 'Ce contenu est encore en préparation.');
+
+        $contents = Storage::disk('local')->get($medium->path);
+        abort_if($contents === null, 410, 'Ce contenu n’est plus disponible.');
 
         if ($medium->wouldBeReplay()) {
             abort_unless(
@@ -86,10 +109,6 @@ class EphemeralMediaController extends Controller
             $medium->markFirstView();
         }
 
-        $contents = Storage::disk('local')->get($medium->path);
-
-        abort_if($contents === null, 410, 'Ce contenu n’est plus disponible.');
-
         return response($contents, 200, [
             'Content-Type' => $medium->type === 'video' ? 'video/mp4' : 'image/jpeg',
             'Cache-Control' => 'private, no-store, max-age=0',
@@ -101,9 +120,8 @@ class EphemeralMediaController extends Controller
     /**
      * Report an ephemeral media.
      *
-     * Flagging freezes the retention clock and is the only thing that makes
-     * the file visible to a moderator — that is the whole bargain we offer
-     * members about ephemeral content.
+     * Flagging preserves evidence after prepublication review and permits
+     * a moderator to consult it again while the report remains open.
      */
     public function report(Request $request, EphemeralMedia $medium): RedirectResponse
     {
@@ -115,18 +133,7 @@ class EphemeralMediaController extends Controller
             'reason' => ['required', 'string', 'min:10', 'max:1000'],
         ]);
 
-        $medium->update([
-            'is_flagged' => true,
-            // La rétention est gelée le temps du traitement.
-            'purge_after' => now()->addDays(EphemeralMedia::RETENTION_DAYS),
-        ]);
-
-        \App\Models\Report::create([
-            'reporter_id' => $user->id,
-            'reported_user_id' => $medium->sender_id,
-            'reason' => 'inappropriate_content',
-            'description' => "[Contenu éphémère #{$medium->id}] ".$request->string('reason'),
-        ]);
+        app(EphemeralReportService::class)->report($medium, $user, $request->string('reason')->toString());
 
         return back()->with(
             'success',
@@ -190,10 +197,11 @@ class EphemeralMediaController extends Controller
             'path' => $path,
             'is_naughty' => (bool) ($validated['is_naughty'] ?? false),
             'processing_status' => 'ready',
+            'moderation_status' => 'pending',
             'purge_after' => now()->addDays(EphemeralMedia::RETENTION_DAYS),
         ]);
 
-        return back()->with('success', 'Photo éphémère envoyée.');
+        return back()->with('success', 'Photo déposée. Elle sera visible après validation de la modération.');
     }
 
     private function storeVideo(
@@ -229,11 +237,12 @@ class EphemeralMediaController extends Controller
             'path' => $path,
             'is_naughty' => (bool) ($validated['is_naughty'] ?? false),
             'processing_status' => 'pending',
+            'moderation_status' => 'pending',
             'purge_after' => now()->addDays(EphemeralMedia::RETENTION_DAYS),
         ]);
 
         TranscodeEphemeralVideo::dispatch($media->id);
 
-        return back()->with('success', 'Vidéo envoyée : elle sera disponible dans un instant.');
+        return back()->with('success', 'Vidéo déposée : préparation puis validation de la modération avant sa diffusion.');
     }
 }

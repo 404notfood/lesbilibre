@@ -1,3 +1,7 @@
+import {
+    meetingBoundaries,
+    meetingIntentions,
+} from '@/components/community-fields';
 import PhotoLightbox, { type LightboxItem } from '@/components/photo-lightbox';
 import {
     Dialog,
@@ -44,6 +48,9 @@ interface Photo {
 
 interface Profile {
     bio?: string;
+    meeting_intentions?: string[];
+    boundaries?: string[];
+    looking_for?: string;
     city?: string;
     age?: number;
     sexual_orientation?: string;
@@ -64,6 +71,7 @@ interface Profile {
 interface UserData {
     id: number;
     name: string;
+    pseudo?: string;
     is_verified: boolean;
     profile?: Profile;
 }
@@ -112,6 +120,7 @@ export default function View({
     matchScore: number;
     profileOptions: ProfileOptions;
 }) {
+    const displayName = user.pseudo || user.name;
     const [showMatchScore, setShowMatchScore] = useState(false);
     const [blockDialogOpen, setBlockDialogOpen] = useState(false);
     const [processingLike, setProcessingLike] = useState(false);
@@ -140,7 +149,7 @@ export default function View({
         url: photo.url,
         mediaType: photo.media_type ?? 'photo',
         posterUrl: photo.media_type === 'video' ? `${photo.url}?thumb=1` : null,
-        caption: `${user.name} — ${photo.media_type === 'video' ? 'vidéo' : 'photo'}`,
+        caption: `${displayName} — ${photo.media_type === 'video' ? 'vidéo' : 'photo'}`,
     }));
     const openLightbox = (photoId: number) => {
         const index = viewableMedia.findIndex((photo) => photo.id === photoId);
@@ -149,7 +158,7 @@ export default function View({
             setLightboxIndex(index);
         }
     };
-    const initials = user.name.slice(0, 2).toUpperCase();
+    const initials = displayName.slice(0, 2).toUpperCase();
 
     const handleLike = () => {
         if (hasLiked) {
@@ -200,80 +209,21 @@ export default function View({
 
     return (
         <DatingLayout title="Profil" showOnlineUsers={false}>
-            <Head title={`${user.name} — Profil`} />
+            <Head title={`${displayName} — Profil`} />
 
-            <div className="px-8 pt-7 pb-20 lg:px-11">
+            <div className="px-4 pt-6 pb-20 sm:px-7 lg:px-10">
                 {/* ===========================================
                  * EDITORIAL HERO
                  * =========================================*/}
-                <header
-                    className="relative mb-8 grid items-start gap-9 border-t border-b py-9 lg:grid-cols-[1fr_280px]"
-                    style={{
-                        borderTopColor: 'var(--ink)',
-                        borderBottomColor: 'var(--line)',
-                    }}
-                >
-                    {/* Left: Big editorial intro */}
-                    <div>
-                        <div className="editorial-eyebrow mb-5 text-foreground/55">
-                            <span className="magenta-dot text-[color:var(--desire)]">
-                                Profil · LesbiLibre
-                            </span>
-                        </div>
-                        <h1 className="m-0 font-display text-5xl leading-[0.96] font-medium tracking-[-0.02em] md:text-6xl xl:text-7xl">
-                            {user.name},{' '}
-                            <em className="text-[color:var(--desire-deep)] italic">
-                                {user.profile?.age ?? '—'}
-                            </em>
-                        </h1>
-                        {user.profile?.city && (
-                            <p className="mt-4 flex items-center gap-2 text-sm text-foreground/65">
-                                <MapPin className="h-4 w-4" />
-                                {user.profile.city}
-                            </p>
-                        )}
-
-                        {user.profile?.bio && (
-                            <p className="mt-6 max-w-2xl font-display text-xl leading-snug font-medium text-[color:var(--wine-deep)] italic md:text-2xl">
-                                « {user.profile.bio} »
-                            </p>
-                        )}
-
-                        <div className="mt-8 flex flex-wrap items-center gap-3">
-                            {user.is_verified && (
-                                <span
-                                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
-                                    style={{
-                                        background: 'var(--blush)',
-                                        color: 'var(--wine-deep)',
-                                    }}
-                                >
-                                    <BadgeCheck className="h-3.5 w-3.5" />
-                                    Vérifiée par selfie
-                                </span>
-                            )}
-                            {hasMatched && (
-                                <span
-                                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-white"
-                                    style={{ background: 'var(--desire)' }}
-                                >
-                                    <Heart className="h-3.5 w-3.5 fill-current" />
-                                    C&apos;est un match
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right: Primary photo + match score (compact, top-aligned) */}
-                    <div className="flex flex-col gap-3">
+                <header className="mb-6 grid items-start gap-7 rounded-[1.6rem] border border-border bg-card p-5 shadow-[0_12px_50px_-35px_oklch(20%_0.04_350_/_0.35)] sm:p-7 md:grid-cols-[minmax(0,240px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,300px)_minmax(0,1fr)] xl:gap-10">
+                    <div className="mx-auto flex w-full max-w-[300px] flex-col gap-3 md:mx-0">
                         {primaryPhoto ? (
                             <button
                                 type="button"
                                 onClick={() => openLightbox(primaryPhoto.id)}
                                 disabled={primaryPhoto.is_blurred}
-                                aria-label={`Agrandir la photo de profil de ${user.name}`}
-                                className="group relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl border shadow-[0_20px_50px_-30px_oklch(0%_0_0_/_0.35)] focus-visible:ring-2 focus-visible:ring-[color:var(--desire)] focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed"
-                                style={{ borderColor: 'var(--line)' }}
+                                aria-label={`Agrandir la photo de profil de ${displayName}`}
+                                className="group relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[color:var(--blush)] focus-visible:ring-2 focus-visible:ring-[color:var(--desire)] focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed"
                             >
                                 <img
                                     src={
@@ -281,28 +231,114 @@ export default function View({
                                             ? `${primaryPhoto.url}?thumb=1`
                                             : primaryPhoto.url
                                     }
-                                    alt={user.name}
-                                    className="h-full w-full object-cover transition-transform duration-300 group-enabled:group-hover:scale-[1.03]"
+                                    alt={displayName}
+                                    decoding="async"
+                                    fetchPriority="high"
+                                    className="h-full w-full object-cover transition-transform duration-300 motion-safe:group-enabled:group-hover:scale-[1.03]"
                                 />
-                                <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-3 pt-8 pb-3 text-left text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                                    Agrandir
+                                <span className="pointer-events-none absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-1.5 text-xs font-medium text-[color:var(--wine-deep)] shadow-sm">
+                                    {primaryPhoto.is_blurred ? (
+                                        <Lock className="h-3.5 w-3.5" />
+                                    ) : (
+                                        <Camera className="h-3.5 w-3.5" />
+                                    )}
+                                    {primaryPhoto.is_blurred
+                                        ? 'Accès réservé'
+                                        : 'Voir la photo'}
                                 </span>
                             </button>
                         ) : (
-                            <div
-                                className="relative aspect-square w-full max-w-[280px] overflow-hidden rounded-2xl border shadow-[0_20px_50px_-30px_oklch(0%_0_0_/_0.35)]"
-                                style={{ borderColor: 'var(--line)' }}
-                            >
+                            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[color:var(--blush)]">
                                 <NoPhotoCover initials={initials} />
                             </div>
                         )}
 
-                        {/* Match score block */}
                         <MatchScoreBlock
                             score={matchScore}
                             shown={showMatchScore}
                             onReveal={() => setShowMatchScore(true)}
                         />
+                    </div>
+
+                    <div className="min-w-0 py-1 md:py-3">
+                        <p className="text-xs font-semibold tracking-[0.15em] text-[color:var(--wine)] uppercase">
+                            Une personne à découvrir
+                        </p>
+                        <h1 className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-4xl leading-tight font-medium tracking-tight text-[color:var(--wine-deep)] sm:text-5xl">
+                            <span className="break-all">{displayName}</span>
+                            {user.profile?.age ? (
+                                <span className="text-2xl font-normal text-foreground/50 sm:text-3xl">
+                                    {user.profile.age} ans
+                                </span>
+                            ) : null}
+                        </h1>
+                        {user.profile?.city ? (
+                            <p className="mt-3 flex items-center gap-2 text-sm text-foreground/65">
+                                <MapPin className="h-4 w-4 shrink-0" />
+                                {user.profile.city}
+                            </p>
+                        ) : null}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {user.is_verified ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-[color:var(--wine-deep)]">
+                                    <BadgeCheck className="h-3.5 w-3.5" />
+                                    Photos vérifiées
+                                </span>
+                            ) : null}
+                            {hasMatched ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--blush)] px-3 py-1.5 text-xs font-medium text-[color:var(--wine-deep)]">
+                                    <Heart className="h-3.5 w-3.5 fill-current" />
+                                    Vous vous plaisez
+                                </span>
+                            ) : null}
+                        </div>
+                        {user.profile?.bio ? (
+                            <p className="mt-6 line-clamp-4 max-w-2xl text-base leading-relaxed text-foreground/75">
+                                {user.profile.bio}
+                            </p>
+                        ) : null}
+
+                        <div className="mt-6 border-t border-border pt-5">
+                            <p className="mb-2.5 text-xs font-semibold tracking-wide text-foreground/50 uppercase">
+                                Ses envies de rencontre
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {(
+                                    user.profile?.meeting_intentions ?? [
+                                        user.profile?.looking_for ?? '',
+                                    ]
+                                )
+                                    .map((key) => meetingIntentions[key])
+                                    .filter(Boolean)
+                                    .map((label) => (
+                                        <span
+                                            key={label}
+                                            className="rounded-lg bg-[color:var(--blush)] px-3 py-2 text-sm text-[color:var(--wine-deep)]"
+                                        >
+                                            {label}
+                                        </span>
+                                    ))}
+                                {!(
+                                    user.profile?.meeting_intentions?.length ||
+                                    user.profile?.looking_for
+                                ) ? (
+                                    <span className="text-sm text-foreground/60">
+                                        À découvrir ensemble
+                                    </span>
+                                ) : null}
+                            </div>
+                            {(user.profile?.boundaries?.length ?? 0) > 0 ? (
+                                <p className="mt-4 text-sm leading-relaxed text-foreground/65">
+                                    <span className="font-medium text-foreground/80">
+                                        Ses limites ·{' '}
+                                    </span>
+                                    {(user.profile?.boundaries ?? [])
+                                        .map((key) => meetingBoundaries[key])
+                                        .filter(Boolean)
+                                        .join(' · ')}
+                                </p>
+                            ) : null}
+                        </div>
                     </div>
                 </header>
 
@@ -316,7 +352,7 @@ export default function View({
                     processingLike={processingLike}
                     processingMessage={processingMessage}
                     userId={user.id}
-                    userName={user.name}
+                    userName={displayName}
                     onLike={handleLike}
                     onMessage={handleMessage}
                     onBlock={() => setBlockDialogOpen(true)}
@@ -425,7 +461,7 @@ export default function View({
                             <Section eyebrow="Galerie" number="05">
                                 <ProfileMediaGallery
                                     media={otherPhotos}
-                                    userName={user.name}
+                                    userName={displayName}
                                     onOpenMedia={openLightbox}
                                 />
 
@@ -569,7 +605,7 @@ export default function View({
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle className="font-display text-2xl font-medium italic">
-                                Bloquer {user.name} ?
+                                Bloquer {displayName} ?
                             </DialogTitle>
                             <DialogDescription>
                                 Cette personne ne pourra plus voir ton profil,

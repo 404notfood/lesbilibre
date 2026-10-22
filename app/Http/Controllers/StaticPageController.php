@@ -44,9 +44,9 @@ class StaticPageController extends Controller
             'De votre inscription à une première conversation, vous gardez la main sur votre profil, vos préférences et votre rythme.',
             [
                 ['title' => '1. Créez un profil précis', 'text' => 'Présentez vos envies, vos centres d’intérêt et vos critères. Plus les informations sont concrètes, plus les suggestions peuvent être pertinentes.'],
-                ['title' => '2. Ajoutez une photo puis vérifiez votre profil', 'text' => 'Les photos sont soumises à modération. La vérification par selfie ajoute un repère de confiance sans rendre le selfie public.'],
+                ['title' => '2. Ajoutez une photo puis vérifiez votre profil', 'text' => 'Chaque photo et vidéo attend la validation d’un administrateur avant d’être diffusée. La vérification par selfie ajoute un repère de confiance sans rendre le selfie public.'],
                 ['title' => '3. Découvrez des profils expliqués', 'text' => 'Les recommandations mettent en avant les intérêts communs, l’intention recherchée, la proximité et l’activité récente. Le score reste un indice, jamais une promesse.'],
-                ['title' => '4. Échangez à votre rythme', 'text' => 'Après un match, commencez une conversation. Vous pouvez contrôler les notifications, bloquer un compte et signaler un comportement à tout moment.'],
+                ['title' => '4. Échangez à votre rythme', 'text' => 'Chaque message et pièce jointe est lu ou examiné par un administrateur habilité avant d’être transmis, sans délai garanti. Les échanges ne sont pas chiffrés de bout en bout. Vous pouvez contrôler les notifications, bloquer un compte et signaler un comportement.'],
             ]
         );
     }
@@ -58,7 +58,8 @@ class StaticPageController extends Controller
             'Les outils techniques aident, mais vous restez toujours libre de ralentir, refuser, bloquer ou signaler.',
             [
                 ['title' => 'Profils et photos vérifiés', 'text' => 'La vérification par selfie et la modération des médias donnent des repères supplémentaires. Elles ne remplacent pas votre jugement lors d’un échange.'],
-                ['title' => 'Galeries privées sous contrôle', 'text' => 'Vous choisissez qui peut accéder à votre galerie privée et pouvez retirer cet accès. Les médias éphémères sont servis sans URL publique partageable.'],
+                ['title' => 'Examen humain avant chaque diffusion', 'text' => 'Un administrateur habilité lit chaque message et examine chaque photo, vidéo ou pièce jointe, y compris privée et éphémère, avant diffusion. Cet accès ne dépend pas d’un signalement. Les conversations ne sont pas chiffrées de bout en bout ; un envoi en attente ou rejeté n’est pas transmis à sa destinataire.'],
+                ['title' => 'Galeries privées sous contrôle', 'text' => 'Vous choisissez les membres qui peuvent accéder aux médias approuvés de votre galerie privée et pouvez retirer leur accès. Les administrateurs habilités gardent l’accès nécessaire à la modération. Les médias éphémères sont servis sans URL publique partageable.'],
                 ['title' => 'Blocage et signalement', 'text' => 'Un blocage coupe les interactions entre les deux comptes. Un signalement transmet les éléments utiles à la modération sans vous obliger à confronter la personne.'],
                 ['title' => 'Première rencontre', 'text' => 'Privilégiez un lieu public, votre propre moyen de transport et informez une personne de confiance. En cas de danger immédiat, contactez les services d’urgence.'],
             ],
@@ -74,7 +75,7 @@ class StaticPageController extends Controller
             'LesbiLibre privilégie la découverte, la conversation et le contrôle de la confidentialité.',
             [
                 ['title' => 'Recherche et recommandations', 'text' => 'Filtrez par âge, distance, intentions et centres d’intérêt. Les raisons principales d’une recommandation sont affichées directement sur les profils.'],
-                ['title' => 'Likes, matchs et messages', 'text' => 'Un match est créé lorsque l’intérêt est réciproque. La messagerie permet ensuite d’échanger dans l’espace membre.'],
+                ['title' => 'Likes, matchs et messages', 'text' => 'Un match est créé lorsque l’intérêt est réciproque. Chaque message et pièce jointe attend ensuite une lecture ou un examen par un administrateur avant diffusion dans l’espace membre.'],
                 ['title' => 'Photos, vidéos et galeries privées', 'text' => 'Gérez vos médias publics ou privés, les demandes d’accès et les contenus éphémères envoyés en conversation.'],
                 ['title' => 'Confidentialité et préférences', 'text' => 'Réglez votre visibilité, vos sessions, vos consentements et la fréquence de chaque catégorie de notification.'],
             ]
@@ -102,6 +103,10 @@ class StaticPageController extends Controller
         return Inertia::render('StaticPages/Pricing', [
             'plans' => $plans,
             'gemPackages' => $packages,
+            'freeLimits' => [
+                'likesPerDay' => (int) config('entitlements.free.likes_per_day'),
+                'firstMessagesPerDay' => (int) config('entitlements.free.first_messages_per_day'),
+            ],
         ]);
     }
 

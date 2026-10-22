@@ -101,7 +101,6 @@ interface ReportRow {
 interface UserRow {
     id: number;
     name: string;
-    email: string;
     is_premium: boolean;
     is_verified: boolean;
     is_banned: boolean;
@@ -710,9 +709,8 @@ export default function Index({
                                                         )}
                                                     </div>
                                                     <p className="mt-0.5 truncate text-xs text-[color:var(--ink-soft)]">
-                                                        {user.email}
                                                         {user.city
-                                                            ? ` · ${user.city}`
+                                                            ? user.city
                                                             : ''}
                                                     </p>
                                                 </div>

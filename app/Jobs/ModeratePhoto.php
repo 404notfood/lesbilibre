@@ -40,6 +40,7 @@ class ModeratePhoto implements ShouldQueue
         if ($nsfwScore >= config('services.moderation.quarantine_threshold')) {
             $photo->update([
                 'moderation_status' => 'quarantined',
+                'is_approved' => false,
                 'rejection_reason' => 'Photo mise en quarantaine pour vérification manuelle.',
             ]);
             logger()->warning('Photo quarantined by local moderation', ['photo_id' => $photo->id, 'score' => $nsfwScore]);

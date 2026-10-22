@@ -31,6 +31,7 @@ import { useDebouncedCallback } from 'use-debounce';
 interface Profile {
     id: number;
     name: string;
+    pseudo?: string;
     age: number;
     city: string;
     distance: number | null;
@@ -38,6 +39,8 @@ interface Profile {
     primary_photo: string | null;
     photo_count: number;
     is_online: boolean;
+    is_verified?: boolean;
+    meeting_intentions?: string[];
     compatibility_score: number;
     recommendation_reasons: string[];
 }
@@ -390,7 +393,7 @@ export default function Dashboard({
                 {visibleProfiles.length === 0 ? (
                     <EmptyState onReset={() => router.get('/dashboard')} />
                 ) : (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                    <div className="grid grid-cols-1 gap-5 min-[520px]:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                         {visibleProfiles.map((profile) => (
                             <ProfileCard
                                 key={profile.id}
@@ -871,8 +874,9 @@ function EmptyState({ onReset }: { onReset: () => void }): JSX.Element {
                     </span>
                 </h2>
                 <p className="mx-auto mt-5 max-w-md text-sm text-foreground/65">
-                    Élargis tes filtres, change la ville, ou attends quelques
-                    heures. Les profils arrivent tout le temps.
+                    Aucun profil ne correspond à tes critères pour le moment. Tu
+                    peux élargir la distance ou ajuster tes filtres, en gardant
+                    les envies et limites qui comptent pour toi.
                 </p>
                 <div className="mt-8 flex flex-wrap justify-center gap-3">
                     <button

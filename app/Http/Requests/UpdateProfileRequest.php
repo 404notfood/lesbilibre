@@ -28,10 +28,20 @@ class UpdateProfileRequest extends FormRequest
             'country' => ['nullable', 'string', 'max:255'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
-            'sexual_orientation' => ['required', 'in:lesbian,bisexual,pansexual,queer,questioning,other'],
+            'date_of_birth' => ['sometimes', 'required', new \App\Rules\AdultBirthDate, function ($attribute, $value, $fail) {
+                $profile = $this->user()->profile;
+                if ($this->user()->is_verified && $profile?->birth_date_declared_at && $profile->date_of_birth?->toDateString() !== $value) {
+                    $fail('Pour corriger votre date après vérification des photos, contactez la modération depuis la page Contact.');
+                }
+            }],
+            'sexual_orientation' => ['nullable', 'in:lesbian,bisexual,pansexual,queer,questioning,other'],
+            'meeting_intentions' => ['sometimes', 'required', 'array', 'list', 'min:1', 'max:6'],
+            'meeting_intentions.*' => ['required', 'distinct', \Illuminate\Validation\Rule::in(array_keys(config('community.intentions')))],
+            'boundaries' => ['sometimes', 'array', 'max:3'],
+            'boundaries.*' => ['required', 'distinct', \Illuminate\Validation\Rule::in(array_keys(config('community.boundaries')))],
+            'data_processing_consent' => ['required', 'accepted'],
             'interested_in' => ['nullable', 'string', 'max:255'],
-            'looking_for' => ['nullable', 'string', 'max:255'],
+            'looking_for' => ['nullable', 'in:friendship,dating,relationship,casual,open'],
             'relationship_status' => ['nullable', 'in:single,in_relationship,complicated,open,other'],
             'height' => ['nullable', 'string', 'max:50'],
             'body_type' => ['nullable', 'string', 'max:100'],
@@ -70,6 +80,9 @@ class UpdateProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'data_processing_consent.required' => 'Confirmez votre consentement au traitement des informations renseignées.',
+            'data_processing_consent.accepted' => 'Confirmez votre consentement au traitement des informations renseignées.',
+            'meeting_intentions.min' => 'Choisissez au moins une envie de rencontre.',
             'bio.max' => 'La biographie ne peut pas dépasser 1000 caractères.',
             'sexual_orientation.required' => 'L\'orientation sexuelle est requise.',
             'sexual_orientation.in' => 'L\'orientation sexuelle sélectionnée n\'est pas valide.',

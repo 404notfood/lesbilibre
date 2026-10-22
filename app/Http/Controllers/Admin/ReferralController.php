@@ -13,8 +13,8 @@ class ReferralController extends Controller
     {
         $referrals = Referral::query()
             ->with([
-                'referrer:id,pseudo,email',
-                'referredUser:id,pseudo,email,is_verified',
+                'referrer:id,pseudo',
+                'referredUser:id,pseudo,is_verified',
             ])
             ->latest()
             ->paginate(50)
@@ -26,8 +26,8 @@ class ReferralController extends Controller
                 'referred_reward' => $referral->referred_reward,
                 'created_at' => $referral->created_at->toISOString(),
                 'rewarded_at' => $referral->rewarded_at?->toISOString(),
-                'referrer' => $referral->referrer,
-                'referred_user' => $referral->referredUser,
+                'referrer' => $referral->referrer ? ['id' => $referral->referrer->id, 'pseudo' => $referral->referrer->pseudo ?: 'Membre'] : null,
+                'referred_user' => $referral->referredUser ? ['id' => $referral->referredUser->id, 'pseudo' => $referral->referredUser->pseudo ?: 'Membre', 'is_verified' => $referral->referredUser->is_verified] : null,
             ]);
 
         $totals = Referral::query()

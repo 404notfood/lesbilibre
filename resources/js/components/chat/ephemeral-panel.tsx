@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import {
     AlertTriangle,
@@ -11,7 +12,6 @@ import {
     X,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
 
 export interface EphemeralItem {
     id: number;
@@ -24,6 +24,8 @@ export interface EphemeralItem {
     replayed: boolean;
     replay_open: boolean;
     can_open: boolean;
+    moderation_status?: 'pending' | 'approved' | 'rejected';
+    moderation_reason?: string | null;
     created_at: string;
 }
 
@@ -76,7 +78,10 @@ export function EphemeralComposer({
                 title="Envoyer un contenu éphémère"
                 aria-label="Envoyer un contenu éphémère"
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-xl transition-colors disabled:opacity-50"
-                style={{ background: 'var(--blush)', color: 'var(--wine-deep)' }}
+                style={{
+                    background: 'var(--blush)',
+                    color: 'var(--wine-deep)',
+                }}
             >
                 {sending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -94,7 +99,9 @@ export function EphemeralComposer({
                     }}
                 >
                     <div className="mb-2 flex items-start justify-between gap-2">
-                        <h3 className="text-sm font-semibold">Envoi éphémère</h3>
+                        <h3 className="text-sm font-semibold">
+                            Envoi éphémère
+                        </h3>
                         <button
                             type="button"
                             onClick={() => setOpen(false)}
@@ -108,8 +115,10 @@ export function EphemeralComposer({
                         className="mb-3 text-xs leading-relaxed"
                         style={{ color: 'var(--ink-mute)' }}
                     >
-                        Visible une seule fois. Elle pourra le revoir une fois dans
-                        les 24 h qui suivent son ouverture.
+                        Chaque photo ou vidéo est examinée par la modération
+                        avant d’être visible à l’autre personne. Visible une
+                        seule fois. Elle pourra le revoir une fois dans les 24 h
+                        qui suivent son ouverture.
                     </p>
 
                     <label
@@ -183,22 +192,32 @@ export function EphemeralBubble({
             <div className="flex justify-end">
                 <div
                     className="max-w-[70%] rounded-2xl rounded-br-sm px-4 py-3 text-sm"
-                    style={{ background: 'var(--bg-soft)', color: 'var(--ink-soft)' }}
+                    style={{
+                        background: 'var(--bg-soft)',
+                        color: 'var(--ink-soft)',
+                    }}
                 >
                     <div className="flex items-center gap-2 font-medium">
                         <Flame className="h-3.5 w-3.5" />
                         {label}
                     </div>
-                    <p className="mt-1 text-xs" style={{ color: 'var(--ink-mute)' }}>
-                        {item.processing
-                            ? 'Préparation en cours…'
-                            : item.failed
-                              ? 'Échec de l’envoi'
-                              : item.replayed
-                                ? 'Vue et revue'
-                                : item.opened
-                                  ? 'Vue'
-                                  : 'Pas encore ouverte'}
+                    <p
+                        className="mt-1 text-xs"
+                        style={{ color: 'var(--ink-mute)' }}
+                    >
+                        {item.moderation_status === 'pending'
+                            ? 'En attente de validation — non transmis'
+                            : item.moderation_status === 'rejected'
+                              ? `Refusé par la modération — non transmis${item.moderation_reason ? ` : ${item.moderation_reason}` : ''}`
+                              : item.processing
+                                ? 'Préparation en cours…'
+                                : item.failed
+                                  ? 'Échec de l’envoi'
+                                  : item.replayed
+                                    ? 'Vue et revue'
+                                    : item.opened
+                                      ? 'Vue'
+                                      : 'Pas encore ouverte'}
                     </p>
                 </div>
             </div>
@@ -235,7 +254,10 @@ export function EphemeralBubble({
                         )}
                         {label}
                         {item.is_naughty && (
-                            <EyeOff className="h-3 w-3" aria-label="Contenu coquin" />
+                            <EyeOff
+                                className="h-3 w-3"
+                                aria-label="Contenu coquin"
+                            />
                         )}
                     </span>
 
@@ -248,8 +270,8 @@ export function EphemeralBubble({
                                 ? 'Plus disponible'
                                 : isReplay
                                   ? settings.free_replays
-                                    ? 'Revoir (inclus dans votre abonnement)'
-                                    : `Revoir pour ${settings.replay_cost} gemmes`
+                                      ? 'Revoir (inclus dans votre abonnement)'
+                                      : `Revoir pour ${settings.replay_cost} gemmes`
                                   : 'Appuyez pour ouvrir — une seule fois'}
                     </span>
                 </button>
@@ -310,7 +332,7 @@ function EphemeralViewer({
                 type="button"
                 onClick={onClose}
                 aria-label="Fermer"
-                className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full text-white"
+                className="absolute top-4 right-4 grid h-10 w-10 place-items-center rounded-full text-white"
                 style={{ background: 'oklch(100% 0 0 / 0.15)' }}
             >
                 <X className="h-5 w-5" />
@@ -323,7 +345,10 @@ function EphemeralViewer({
                 >
                     <div
                         className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full"
-                        style={{ background: 'var(--blush)', color: 'var(--wine-deep)' }}
+                        style={{
+                            background: 'var(--blush)',
+                            color: 'var(--wine-deep)',
+                        }}
                     >
                         <AlertTriangle className="h-5 w-5" />
                     </div>
@@ -334,15 +359,18 @@ function EphemeralViewer({
                         className="mt-2 text-sm"
                         style={{ color: 'var(--ink-mute)' }}
                     >
-                        Cela coûte {settings.replay_cost} gemmes et ne pourra plus
-                        être fait ensuite.
+                        Cela coûte {settings.replay_cost} gemmes et ne pourra
+                        plus être fait ensuite.
                     </p>
                     <div className="mt-4 flex gap-2">
                         <button
                             type="button"
                             onClick={() => setConfirmed(true)}
                             className="flex-1 rounded-lg px-4 py-2 text-sm font-semibold"
-                            style={{ background: 'var(--ink)', color: 'var(--bg)' }}
+                            style={{
+                                background: 'var(--ink)',
+                                color: 'var(--bg)',
+                            }}
                         >
                             Revoir
                         </button>
@@ -374,7 +402,7 @@ function EphemeralViewer({
                             alt=""
                             draggable={false}
                             onContextMenu={(e) => e.preventDefault()}
-                            className="max-h-[75vh] w-full select-none rounded-xl object-contain"
+                            className="max-h-[75vh] w-full rounded-xl object-contain select-none"
                         />
                     )}
 

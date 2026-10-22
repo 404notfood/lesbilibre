@@ -14,8 +14,8 @@ class ReportCreationTest extends TestCase
 
     public function test_report_form_shows_the_reported_user(): void
     {
-        $user = User::factory()->create();
-        $target = User::factory()->create(['pseudo' => 'profil-cible']);
+        $user = User::factory()->communityMember()->create();
+        $target = User::factory()->communityMember()->create(['pseudo' => 'profil-cible']);
 
         $this->actingAs($user)
             ->get(route('reports.create', ['userId' => $target->id]))
@@ -29,7 +29,7 @@ class ReportCreationTest extends TestCase
 
     public function test_report_form_returns_404_for_an_unknown_user(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->get(route('reports.create', ['userId' => 999999]))
@@ -38,8 +38,8 @@ class ReportCreationTest extends TestCase
 
     public function test_user_can_submit_a_report(): void
     {
-        $user = User::factory()->create();
-        $target = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $target = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('reports.store'), [
@@ -47,7 +47,7 @@ class ReportCreationTest extends TestCase
                 'reason' => 'harassment',
                 'description' => 'Messages insistants malgré un refus explicite.',
             ])
-            ->assertRedirect(route('profile.view', $target->id));
+            ->assertRedirect(route('reports.create', $target->id));
 
         $this->assertDatabaseHas('reports', [
             'reporter_id' => $user->id,
@@ -59,7 +59,7 @@ class ReportCreationTest extends TestCase
 
     public function test_user_cannot_report_themselves(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('reports.store'), [
@@ -74,8 +74,8 @@ class ReportCreationTest extends TestCase
 
     public function test_user_cannot_report_the_same_person_twice_while_pending(): void
     {
-        $user = User::factory()->create();
-        $target = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $target = User::factory()->communityMember()->create();
 
         Report::factory()->create([
             'reporter_id' => $user->id,
@@ -96,8 +96,8 @@ class ReportCreationTest extends TestCase
 
     public function test_description_must_be_long_enough(): void
     {
-        $user = User::factory()->create();
-        $target = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $target = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('reports.store'), [
@@ -112,8 +112,8 @@ class ReportCreationTest extends TestCase
 
     public function test_reason_must_be_a_known_value(): void
     {
-        $user = User::factory()->create();
-        $target = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $target = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('reports.store'), [

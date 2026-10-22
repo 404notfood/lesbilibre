@@ -15,7 +15,7 @@ interface User {
         bio: string;
     };
     photos: Array<{
-        path: string;
+        url: string;
     }>;
 }
 
@@ -91,7 +91,7 @@ export default function Received({ likes, isPremium }: ReceivedProps) {
                                         {/* Blurred photo */}
                                         {like.user.photos.length > 0 ? (
                                             <img
-                                                src={`/storage/${like.user.photos[0].path}`}
+                                                src={like.user.photos[0].url}
                                                 alt=""
                                                 className="w-full h-full object-cover blur-md"
                                                 draggable={false}
@@ -182,7 +182,7 @@ export default function Received({ likes, isPremium }: ReceivedProps) {
                                             <div className="aspect-[3/4] relative">
                                                 {like.user.photos.length > 0 ? (
                                                     <img
-                                                        src={`/storage/${like.user.photos[0].path}`}
+                                                        src={like.user.photos[0].url}
                                                         alt={like.user.name}
                                                         className="w-full h-full object-cover"
                                                     />

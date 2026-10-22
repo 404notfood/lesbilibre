@@ -18,6 +18,7 @@ class Report extends Model
         'description',
         'status',
         'admin_notes',
+        'ephemeral_media_id',
     ];
 
     /**
@@ -25,7 +26,7 @@ class Report extends Model
      */
     public function reporter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'reporter_id');
+        return $this->belongsTo(User::class, 'reporter_id')->withTrashed();
     }
 
     /**
@@ -33,6 +34,11 @@ class Report extends Model
      */
     public function reportedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'reported_user_id');
+        return $this->belongsTo(User::class, 'reported_user_id')->withTrashed();
+    }
+
+    public function ephemeralMedia(): BelongsTo
+    {
+        return $this->belongsTo(EphemeralMedia::class);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UploadPhotoRequest;
 use App\Jobs\ModeratePhoto;
+use App\Models\Message;
 use App\Models\Photo;
 use App\Services\ModerationAuditService;
 use App\Services\PhotoProcessingService;
@@ -11,6 +12,7 @@ use App\Services\VideoProcessingService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,7 +41,7 @@ class PhotoController extends Controller
                 'is_primary' => $photo->is_primary,
                 'is_naughty' => $photo->is_naughty,
                 'moderation_status' => $photo->moderation_status,
-                'rejection_reason' => $photo->rejection_reason,
+                'rejection_reason' => $photo->rejection_reason ? Message::maskEmails($photo->rejection_reason) : null,
                 'avatar_requested' => $photo->avatar_requested_at !== null,
                 'order' => $photo->order,
             ]);
@@ -62,8 +64,14 @@ class PhotoController extends Controller
         }
 
         $file = $request->file('photo');
-        $isVideo = in_array(strtolower($file->getClientOriginalExtension()), ['mp4', 'mov', 'webm'], true);
+        $isVideo = str_starts_with((string) $file->getMimeType(), 'video/');
         $isNaughty = $request->boolean('is_naughty');
+
+        // Reject known duplicates before generating another original/poster.
+        $contentHash = hash_file('sha256', $file->getRealPath());
+        if ($user->photos()->where('content_hash', $contentHash)->exists()) {
+            return back()->with('error', 'Ce média a déjà été ajouté à votre profil.');
+        }
 
         // Aucun floutage n'est produit pour une vidéo : une vidéo coquine ne
         // peut être protégée que par la galerie privée.
@@ -81,26 +89,39 @@ class PhotoController extends Controller
             $stored = app(PhotoProcessingService::class)->storePublicPhoto($file);
         }
 
-        if (Photo::where('user_id', $user->id)->where('content_hash', $stored['content_hash'])->exists()) {
-            return redirect()->back()->with('error', 'Ce média a déjà été ajouté à votre profil.');
+        try {
+            $photo = DB::transaction(function () use ($user, $stored, $isVideo, $isNaughty, $isPrivate) {
+                // Only the final checks need a lock; video processing stays
+                // outside the transaction so it cannot hold an account lock.
+                \App\Models\User::query()->lockForUpdate()->findOrFail($user->id);
+                if ($user->photos()->count() >= 10 || $user->photos()->where('content_hash', $stored['content_hash'])->exists()) {
+                    return null;
+                }
+
+                return Photo::create([
+                    'user_id' => $user->id,
+                    'media_type' => $isVideo ? 'video' : 'photo',
+                    'path' => $stored['path'],
+                    'content_hash' => $stored['content_hash'],
+                    'thumbnail_path' => $stored['thumbnail_path'],
+                    'duration' => $stored['duration'] ?? null,
+                    'moderation_status' => 'pending',
+                    'is_approved' => false,
+                    'is_naughty' => $isNaughty,
+                    'is_private' => $isPrivate,
+                    'order' => $user->photos()->max('order') + 1,
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            $this->discardStoredUpload($stored, $isVideo);
+            throw $exception;
         }
 
-        // Les médias de galerie sont publiés immédiatement : la modération se
-        // fait a posteriori (file admin + signalements). Seule la photo de
-        // profil exige une validation préalable, via setPrimary().
-        $photo = Photo::create([
-            'user_id' => $user->id,
-            'media_type' => $isVideo ? 'video' : 'photo',
-            'path' => $stored['path'],
-            'content_hash' => $stored['content_hash'],
-            'thumbnail_path' => $stored['thumbnail_path'],
-            'duration' => $stored['duration'] ?? null,
-            'moderation_status' => 'pending',
-            'is_approved' => true,
-            'is_naughty' => $isNaughty,
-            'is_private' => $isPrivate,
-            'order' => $user->photos()->max('order') + 1,
-        ]);
+        if ($photo === null) {
+            $this->discardStoredUpload($stored, $isVideo);
+
+            return back()->with('error', 'Ce média existe déjà ou votre galerie a atteint sa limite de 10 médias.');
+        }
 
         if (! $isVideo) {
             ModeratePhoto::dispatch($photo->id);
@@ -108,8 +129,18 @@ class PhotoController extends Controller
 
         return redirect()->back()->with(
             'success',
-            $isVideo ? 'Vidéo ajoutée à votre galerie.' : 'Photo ajoutée à votre galerie.'
+            $isVideo ? 'Vidéo déposée, en attente de validation de la modération.' : 'Photo déposée, en attente de validation de la modération.'
         );
+    }
+
+    private function discardStoredUpload(array $stored, bool $isVideo): void
+    {
+        $disk = Storage::disk($isVideo ? 'local' : 'public');
+        foreach (array_filter([$stored['path'], $stored['thumbnail_path'] ?? null]) as $path) {
+            if (! $disk->delete($path)) {
+                throw new \RuntimeException('Le stockage a refusé le nettoyage du média non enregistré.');
+            }
+        }
     }
 
     /**
@@ -136,7 +167,7 @@ class PhotoController extends Controller
             return redirect()->back()->with('error', 'Cette photo a été refusée par la modération.');
         }
 
-        // La photo de profil est le seul contenu soumis à validation préalable.
+        // A profile photo requires the same human approval as gallery media.
         if ($photo->moderation_status !== 'approved') {
             return redirect()->back()->with(
                 'error',
@@ -145,6 +176,9 @@ class PhotoController extends Controller
         }
 
         // Remove primary from other photos
+        if (! $photo->is_primary) {
+            $user->forceFill(['is_verified' => false])->save();
+        }
         $user->photos()->update(['is_primary' => false]);
 
         // Set this photo as primary
@@ -182,7 +216,7 @@ class PhotoController extends Controller
 
         return redirect()->back()->with(
             'success',
-            'Demande envoyée. Votre photo de profil sera validée sous 48 h.'
+            'Demande envoyée. Vous pouvez suivre son état depuis votre galerie ; aucun délai fixe de validation n’est garanti.'
         );
     }
 
@@ -197,15 +231,12 @@ class PhotoController extends Controller
             abort(403, 'Cette photo ne vous appartient pas.');
         }
 
-        // Delete files
-        $disk = Storage::disk($photo->isVideo() ? 'local' : 'public');
-
-        $disk->delete($photo->path);
-        if ($photo->thumbnail_path) {
-            $disk->delete($photo->thumbnail_path);
-        }
+        app(\App\Services\MediaDeletionService::class)->deletePhoto($photo);
 
         // Delete record
+        if ($photo->is_primary) {
+            $user->forceFill(['is_verified' => false])->save();
+        }
         $photo->delete();
 
         return redirect()->back()->with('success', 'Photo supprimée.');
@@ -221,8 +252,10 @@ class PhotoController extends Controller
      */
     public function pending(Request $request): Response
     {
-        $photos = Photo::with('user:id,name,pseudo,email')
-            ->where('moderation_status', 'pending')
+        $photos = Photo::with('user:id,pseudo')
+            ->whereHas('user')
+            ->whereIn('moderation_status', ['pending', 'quarantined'])
+            ->orderByRaw("CASE WHEN moderation_status = 'quarantined' THEN 0 ELSE 1 END")
             ->orderByDesc('avatar_requested_at')
             ->latest()
             ->paginate(20)
@@ -245,6 +278,7 @@ class PhotoController extends Controller
                     'media_type' => $photo->isVideo() ? 'video' : 'photo',
                     'available' => $available,
                     'is_naughty' => $photo->is_naughty,
+                    'moderation_status' => $photo->moderation_status,
                     'awaiting_avatar' => $photo->avatar_requested_at !== null,
                     'created_at' => $photo->created_at->toISOString(),
                     'user' => $owner,
@@ -263,7 +297,9 @@ class PhotoController extends Controller
     {
         $this->authorize('update', $photo);
 
-        $photo->update(['is_approved' => true, 'moderation_status' => 'approved']);
+        abort_unless($photo->user !== null, 409, 'Ce compte est fermé. Le média est conservé pour le traitement de la demande de suppression.');
+
+        $photo->update(['is_approved' => true, 'moderation_status' => 'approved', 'rejection_reason' => null]);
 
         // La membre attendait cette validation pour en faire son avatar :
         // on la promeut directement plutôt que de lui demander de revenir.
@@ -291,6 +327,8 @@ class PhotoController extends Controller
     public function reject(Request $request, Photo $photo): RedirectResponse
     {
         $this->authorize('update', $photo);
+
+        abort_unless($photo->user !== null, 409, 'Ce compte est fermé. Le média est conservé pour le traitement de la demande de suppression.');
 
         $request->validate([
             'rejection_reason' => ['required', 'string', 'max:500'],

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\PremiumPlan;
 use App\Models\StripeEvent;
 use App\Models\Subscription;
 use App\Models\User;
@@ -90,6 +91,7 @@ class StripeWebhookTest extends TestCase
             'customer' => 'cus_test',
             'amount_total' => 1000,
             'payment_intent' => 'pi_test',
+            'payment_status' => 'paid',
             'metadata' => [
                 'type' => 'gems',
                 'gems' => 100,
@@ -132,6 +134,7 @@ class StripeWebhookTest extends TestCase
             'customer' => 'cus_test',
             'amount_total' => 1000, // €10.00
             'payment_intent' => 'pi_test',
+            'payment_status' => 'paid',
             'metadata' => [
                 'type' => 'gems',
                 'gems' => 100,
@@ -161,6 +164,7 @@ class StripeWebhookTest extends TestCase
 
     public function test_handles_subscription_created(): void
     {
+        PremiumPlan::factory()->create(['stripe_price_id' => 'price_premium_monthly']);
         $user = User::factory()->create([
             'is_premium' => false,
             'gems' => 0,
@@ -257,6 +261,8 @@ class StripeWebhookTest extends TestCase
             'status' => 'active',
         ]);
 
+        PremiumPlan::factory()->create(['stripe_price_id' => $subscription->stripe_price_id, 'gems_per_month' => 100]);
+
         $eventData = $this->createEventPayload('invoice.payment_succeeded', [
             'id' => 'in_test_123',
             'subscription' => 'sub_test_123',
@@ -284,6 +290,7 @@ class StripeWebhookTest extends TestCase
             'customer' => 'cus_test',
             'amount_total' => 1000,
             'payment_intent' => 'pi_test',
+            'payment_status' => 'paid',
             'metadata' => [
                 'type' => 'gems',
                 'gems' => 100,

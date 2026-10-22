@@ -26,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecureHeaders::class,
             \App\Http\Middleware\SearchIndexingHeaders::class,
             \App\Http\Middleware\CheckNotBanned::class,
+            \App\Http\Middleware\EnsureCommunityAccess::class,
+            \App\Http\Middleware\EnsureAdminSecurity::class,
             \App\Http\Middleware\TrackUserPresence::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,

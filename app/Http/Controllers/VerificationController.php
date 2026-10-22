@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UploadVerificationPhotoRequest;
+use App\Models\Message;
 use App\Models\VerificationPhoto;
 use App\Services\ModerationAuditService;
 use App\Services\PhotoProcessingService;
@@ -33,7 +34,7 @@ class VerificationController extends Controller
                 'is_verified' => (bool) $user->is_verified,
                 'has_pending' => $latestVerification?->status === 'pending',
                 'rejected_reason' => $latestVerification?->status === 'rejected'
-                    ? $latestVerification->rejection_reason
+                    ? Message::maskEmails($latestVerification->rejection_reason ?? '')
                     : null,
             ],
             // Le code doit être connu avant la prise de vue et rester identique
@@ -48,6 +49,9 @@ class VerificationController extends Controller
     public function store(UploadVerificationPhotoRequest $request): RedirectResponse
     {
         $user = $request->user();
+        if (! $request->session()->has('verification_challenge_code') || $request->session()->get('verification_challenge_expires_at', 0) < time()) {
+            return back()->withErrors(['photo' => 'Le défi a expiré. Rechargez la page et prenez un nouveau selfie avec le nouveau code.']);
+        }
 
         // Check if user already has a pending verification
         $hasPending = $user->verificationPhotos()
@@ -76,7 +80,7 @@ class VerificationController extends Controller
         $request->session()->forget('verification_challenge_code');
 
         return redirect()->route('verification.create')
-            ->with('success', 'Votre photo de vérification a été envoyée. Elle sera examinée sous 48h.');
+            ->with('success', 'Votre photo de vérification a été envoyée. Elle sera examinée par la modération.');
     }
 
     /**
@@ -89,11 +93,16 @@ class VerificationController extends Controller
      */
     private function currentChallengeCode(Request $request): string
     {
+        if ($request->session()->get('verification_challenge_expires_at', 0) < time()) {
+            $request->session()->forget('verification_challenge_code');
+        }
+
         return $request->session()->remember('verification_challenge_code', function (): string {
             // Chiffres uniquement : rien à interpréter entre une lettre écrite
             // à la main et son sosie typographique. Longueur variable pour
             // qu'un code ne soit pas devinable à partir d'un autre.
             $length = random_int(5, 9);
+            request()->session()->put('verification_challenge_expires_at', time() + 1800);
             $code = '';
 
             for ($i = 0; $i < $length; $i++) {
@@ -111,7 +120,8 @@ class VerificationController extends Controller
     {
         $this->authorize('viewAny', VerificationPhoto::class);
 
-        $verifications = VerificationPhoto::with('user:id,name,pseudo,email,is_verified')
+        $verifications = VerificationPhoto::with(['user:id,pseudo,is_verified', 'user.photos'])
+            ->whereHas('user')
             ->where('status', 'pending')
             ->latest()
             ->paginate(20)
@@ -120,7 +130,8 @@ class VerificationController extends Controller
                 'image_url' => route('admin.verifications.image', $verification),
                 'challenge_code' => $verification->challenge_code,
                 'created_at' => $verification->created_at->toISOString(),
-                'user' => $verification->user,
+                'user' => $verification->user?->only(['id', 'pseudo', 'is_verified']),
+                'primary_photo_url' => ($photo = $verification->user?->photos->firstWhere('is_primary', true)) ? route('admin.users.photos.file', [$verification->user, $photo]) : null,
             ]);
 
         return Inertia::render('Admin/Verification/Index', [
@@ -135,7 +146,9 @@ class VerificationController extends Controller
     {
         $this->authorize('view', $verification);
 
-        abort_unless(Storage::disk('local')->exists($verification->path), 404);
+        abort_unless($verification->user !== null, 404);
+
+        abort_unless(filled($verification->path) && Storage::disk('local')->exists($verification->path), 404);
 
         return Storage::disk('local')->response($verification->path, null, [
             'Cache-Control' => 'private, no-store',
@@ -149,6 +162,10 @@ class VerificationController extends Controller
     public function approve(Request $request, VerificationPhoto $verification): RedirectResponse
     {
         $this->authorize('update', $verification);
+        abort_unless($verification->user !== null, 409, 'Ce compte est fermé. Le selfie est conservé pour le traitement de la demande de suppression.');
+        abort_unless($verification->status === 'pending', 409);
+        $request->validate(['photos_match_confirmed' => ['accepted']]);
+        abort_unless($verification->user->photos()->where('is_primary', true)->where('moderation_status', 'approved')->exists(), 422, 'Validez une photo principale avant de comparer le selfie.');
 
         $verification->update([
             'status' => 'approved',
@@ -178,6 +195,8 @@ class VerificationController extends Controller
     public function reject(Request $request, VerificationPhoto $verification): RedirectResponse
     {
         $this->authorize('update', $verification);
+        abort_unless($verification->user !== null, 409, 'Ce compte est fermé. Le selfie est conservé pour le traitement de la demande de suppression.');
+        abort_unless($verification->status === 'pending', 409);
 
         $request->validate([
             'rejection_reason' => ['required', 'string', 'max:1000'],

@@ -33,6 +33,11 @@ class AntiAbuseService
 
     public function assertMessageAllowed(User $user, string $content): void
     {
+        if (preg_match('/[A-Z0-9.!#$%&\x27*+\/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9.-]*[A-Z0-9])?\.[A-Z]{2,}/iu', $content)) {
+            throw ValidationException::withMessages([
+                'content' => 'Les adresses e-mail ne peuvent pas être partagées dans les messages. Utilisez uniquement votre pseudo.',
+            ]);
+        }
         $normalized = preg_replace('/\s+/', ' ', trim(mb_strtolower($content)));
         $window = now()->subMinutes(config('anti_abuse.duplicate_message_window_minutes'));
 

@@ -27,13 +27,12 @@ class SearchDistanceTest extends TestCase
 
     protected function createUserAt(string $city, float $lat, float $lng, bool $verified = true): User
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_verified' => $verified,
             'is_banned' => false,
         ]);
 
-        Profile::create([
-            'user_id' => $user->id,
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(30),
             'city' => $city,
             'latitude' => $lat,
@@ -113,9 +112,8 @@ class SearchDistanceTest extends TestCase
 
     public function test_search_does_not_fail_for_a_user_without_coordinates(): void
     {
-        $me = User::factory()->create(['is_verified' => true]);
-        Profile::create([
-            'user_id' => $me->id,
+        $me = User::factory()->communityMember()->create(['is_verified' => true]);
+        Profile::updateOrCreate(['user_id' => $me->id], [
             'date_of_birth' => now()->subYears(30),
             'city' => 'Paris',
         ]);

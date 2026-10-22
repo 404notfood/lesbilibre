@@ -123,12 +123,20 @@ class LikeController extends Controller
         $user = $request->user();
 
         $likes = $user->likesReceived()
+            ->whereHas('user', fn ($query) => $query->communityEligible())
+            ->whereNotIn('user_id', $user->blockedUsers()->select('blocked_id'))
+            ->whereNotIn('user_id', $user->blockedBy()->select('blocker_id'))
             ->with(['user.profile', 'user.photos' => function ($query) {
                 $query->where('is_approved', true)
                     ->where('is_primary', true);
             }])
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->through(fn ($like) => [
+                'id' => $like->id,
+                'created_at' => $like->created_at->toISOString(),
+                'user' => $like->user->publicCommunityData(),
+            ]);
 
         return Inertia::render('Likes/Received', [
             'likes' => $likes,

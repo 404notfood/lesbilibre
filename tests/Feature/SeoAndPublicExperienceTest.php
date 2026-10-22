@@ -11,6 +11,14 @@ class SeoAndPublicExperienceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_home_describes_the_laval_pilot_without_unverified_social_proof(): void
+    {
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('home')->where('pilot.city', 'Laval')->where('pilot.department', '53')
+            ->missing('stats')->missing('testimonials'));
+        $this->get('/installer')->assertOk()->assertInertia(fn (Assert $page) => $page->component('StaticPages/Install'));
+    }
+
     public function test_preview_environment_is_noindex_by_default(): void
     {
         config()->set('seo.indexing_enabled', false);

@@ -1,18 +1,30 @@
-import DatingLayout from '@/layouts/dating-layout';
-import { Head, router } from '@inertiajs/react';
+import InterestSelector, {
+    NaughtyInterest,
+} from '@/components/InterestSelector';
+import ProfilePreviewCard from '@/components/ProfilePreviewCard';
+import { CityAutocomplete } from '@/components/city-autocomplete';
+import {
+    IntentionCheckboxes,
+    meetingBoundaries,
+} from '@/components/community-fields';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import ProfilePreviewCard from '@/components/ProfilePreviewCard';
-import InterestSelector, { NaughtyInterest } from '@/components/InterestSelector';
-import { CityAutocomplete } from '@/components/city-autocomplete';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import DatingLayout from '@/layouts/dating-layout';
+import { Head, router } from '@inertiajs/react';
+import { Flame, Search, Sliders, User } from 'lucide-react';
 import { useState } from 'react';
-import { Flame, User, Search, Sliders } from 'lucide-react';
 
 interface Profile {
     bio?: string;
@@ -22,6 +34,9 @@ interface Profile {
     longitude?: number | null;
     age?: number;
     date_of_birth?: string;
+    birth_date_declared_at?: string;
+    meeting_intentions?: string[];
+    boundaries?: string[];
     sexual_orientation?: string;
     interested_in?: string;
     looking_for?: string;
@@ -92,9 +107,14 @@ export default function Edit({
         latitude: user.profile?.latitude ?? null,
         longitude: user.profile?.longitude ?? null,
         date_of_birth: user.profile?.date_of_birth?.substring(0, 10) || '',
-        sexual_orientation: user.profile?.sexual_orientation || 'lesbian',
+        sexual_orientation: user.profile?.sexual_orientation || 'other',
         interested_in: user.profile?.interested_in || '',
         looking_for: user.profile?.looking_for || '',
+        meeting_intentions:
+            user.profile?.meeting_intentions ??
+            (user.profile?.looking_for ? [user.profile.looking_for] : []),
+        boundaries: user.profile?.boundaries ?? [],
+        data_processing_consent: false,
         relationship_status: user.profile?.relationship_status || 'single',
         height: user.profile?.height || '',
         body_type: user.profile?.body_type || '',
@@ -145,7 +165,10 @@ export default function Edit({
         });
     };
 
-    const handleChange = (field: string, value: string | boolean | number | undefined) => {
+    const handleChange = (
+        field: string,
+        value: string | string[] | boolean | number | undefined,
+    ) => {
         setFormData({ ...formData, [field]: value });
     };
 
@@ -162,7 +185,10 @@ export default function Edit({
             <Head title="Modifier mon profil" />
 
             <div className="p-6">
-                <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
+                <form
+                    onSubmit={handleSubmit}
+                    className="mx-auto max-w-6xl space-y-6"
+                >
                     {/* Preview Card */}
                     <ProfilePreviewCard
                         profile={{
@@ -184,27 +210,45 @@ export default function Edit({
 
                     {/* Tabs */}
                     <Tabs defaultValue="profile" className="w-full">
-                        <TabsList className="grid w-full grid-cols-4 h-auto p-1">
-                            <TabsTrigger value="profile" className="flex items-center gap-2 py-3">
+                        <TabsList className="grid h-auto w-full grid-cols-4 p-1">
+                            <TabsTrigger
+                                value="profile"
+                                className="flex items-center gap-2 py-3"
+                            >
                                 <User className="h-4 w-4" />
                                 <span className="hidden sm:inline">Profil</span>
                             </TabsTrigger>
-                            <TabsTrigger value="search" className="flex items-center gap-2 py-3">
+                            <TabsTrigger
+                                value="search"
+                                className="flex items-center gap-2 py-3"
+                            >
                                 <Search className="h-4 w-4" />
-                                <span className="hidden sm:inline">Recherche</span>
+                                <span className="hidden sm:inline">
+                                    Recherche
+                                </span>
                             </TabsTrigger>
-                            <TabsTrigger value="naughty" className="flex items-center gap-2 py-3">
+                            <TabsTrigger
+                                value="naughty"
+                                className="flex items-center gap-2 py-3"
+                            >
                                 <Flame className="h-4 w-4" />
-                                <span className="hidden sm:inline">Mode Coquin</span>
+                                <span className="hidden sm:inline">
+                                    Mode Coquin
+                                </span>
                             </TabsTrigger>
-                            <TabsTrigger value="preferences" className="flex items-center gap-2 py-3">
+                            <TabsTrigger
+                                value="preferences"
+                                className="flex items-center gap-2 py-3"
+                            >
                                 <Sliders className="h-4 w-4" />
-                                <span className="hidden sm:inline">Préférences</span>
+                                <span className="hidden sm:inline">
+                                    Préférences
+                                </span>
                             </TabsTrigger>
                         </TabsList>
 
                         {/* Profile Tab */}
-                        <TabsContent value="profile" className="space-y-6 mt-6">
+                        <TabsContent value="profile" className="mt-6 space-y-6">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Informations de base</CardTitle>
@@ -216,11 +260,18 @@ export default function Edit({
                                             id="bio"
                                             rows={4}
                                             value={formData.bio}
-                                            onChange={(e) => handleChange('bio', e.target.value)}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    'bio',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="Parlez-nous de vous..."
                                         />
                                         {errors?.bio && (
-                                            <p className="text-sm text-destructive">{errors.bio}</p>
+                                            <p className="text-sm text-destructive">
+                                                {errors.bio}
+                                            </p>
                                         )}
                                     </div>
 
@@ -231,11 +282,14 @@ export default function Edit({
                                         placeholder="Cherchez par ville ou code postal..."
                                         onChange={(city) => {
                                             if (city) {
-                                                const [lng, lat] = city.centre.coordinates;
+                                                const [lng, lat] =
+                                                    city.centre.coordinates;
                                                 setFormData((previous) => ({
                                                     ...previous,
                                                     city: city.nom,
-                                                    postal_code: city.codesPostaux[0] || '',
+                                                    postal_code:
+                                                        city.codesPostaux[0] ||
+                                                        '',
                                                     latitude: lat,
                                                     longitude: lng,
                                                 }));
@@ -245,35 +299,104 @@ export default function Edit({
                                     />
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="date_of_birth">Date de naissance</Label>
+                                        <Label htmlFor="date_of_birth">
+                                            Date de naissance (privée)
+                                        </Label>
                                         <Input
                                             id="date_of_birth"
                                             type="date"
+                                            required
                                             value={formData.date_of_birth}
                                             onChange={(e) =>
-                                                handleChange('date_of_birth', e.target.value)
+                                                handleChange(
+                                                    'date_of_birth',
+                                                    e.target.value,
+                                                )
                                             }
                                         />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="looking_for">Je recherche</Label>
-                                        <Select
-                                            value={formData.looking_for}
-                                            onValueChange={(value) => handleChange('looking_for', value)}
+                                    <p className="text-sm text-destructive">
+                                        {errors?.date_of_birth}
+                                    </p>
+                                    <p className="text-xs">
+                                        Après vérification des photos, demandez
+                                        toute correction de date via{' '}
+                                        <a
+                                            href="/contact"
+                                            className="underline"
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Sélectionnez..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {Object.entries(profileOptions.looking_for).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
-                                                        {label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                            Contact
+                                        </a>
+                                        .
+                                    </p>
+                                    <IntentionCheckboxes
+                                        value={formData.meeting_intentions}
+                                        onChange={(value) =>
+                                            handleChange(
+                                                'meeting_intentions',
+                                                value,
+                                            )
+                                        }
+                                    />
+                                    <p className="text-sm text-destructive">
+                                        {errors?.meeting_intentions}
+                                    </p>
+                                    <fieldset className="space-y-2">
+                                        <legend>Mes limites</legend>
+                                        {Object.entries(meetingBoundaries).map(
+                                            ([key, label]) => (
+                                                <label
+                                                    key={key}
+                                                    className="flex gap-3 text-sm"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.boundaries.includes(
+                                                            key,
+                                                        )}
+                                                        onChange={(e) =>
+                                                            handleChange(
+                                                                'boundaries',
+                                                                e.target.checked
+                                                                    ? [
+                                                                          ...formData.boundaries,
+                                                                          key,
+                                                                      ]
+                                                                    : formData.boundaries.filter(
+                                                                          (
+                                                                              item,
+                                                                          ) =>
+                                                                              item !==
+                                                                              key,
+                                                                      ),
+                                                            )
+                                                        }
+                                                    />
+                                                    {label}
+                                                </label>
+                                            ),
+                                        )}
+                                    </fieldset>
+                                    <label className="flex gap-3 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            required
+                                            checked={
+                                                formData.data_processing_consent
+                                            }
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    'data_processing_consent',
+                                                    e.target.checked,
+                                                )
+                                            }
+                                        />
+                                        Je consens au traitement et à
+                                        l’affichage de mes choix de rencontre et
+                                        des données sensibles que je renseigne.
+                                        Retrait possible dans Confidentialité.
+                                    </label>
                                 </CardContent>
                             </Card>
 
@@ -288,14 +411,24 @@ export default function Edit({
                                         </Label>
                                         <Select
                                             value={formData.sexual_orientation}
-                                            onValueChange={(value) => handleChange('sexual_orientation', value)}
+                                            onValueChange={(value) =>
+                                                handleChange(
+                                                    'sexual_orientation',
+                                                    value,
+                                                )
+                                            }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Sélectionnez..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(profileOptions.sexual_orientation).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    profileOptions.sexual_orientation,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -304,17 +437,29 @@ export default function Edit({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="relationship_status">Statut relationnel</Label>
+                                        <Label htmlFor="relationship_status">
+                                            Statut relationnel
+                                        </Label>
                                         <Select
                                             value={formData.relationship_status}
-                                            onValueChange={(value) => handleChange('relationship_status', value)}
+                                            onValueChange={(value) =>
+                                                handleChange(
+                                                    'relationship_status',
+                                                    value,
+                                                )
+                                            }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Sélectionnez..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(profileOptions.relationship_status).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    profileOptions.relationship_status,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -328,30 +473,44 @@ export default function Edit({
                                 <CardHeader>
                                     <CardTitle>Apparence</CardTitle>
                                 </CardHeader>
-                                <CardContent className="grid md:grid-cols-2 gap-4">
+                                <CardContent className="grid gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
                                         <Label htmlFor="height">Taille</Label>
                                         <Input
                                             id="height"
                                             type="text"
                                             value={formData.height}
-                                            onChange={(e) => handleChange('height', e.target.value)}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    'height',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="170 cm"
                                         />
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="body_type">Morphologie</Label>
+                                        <Label htmlFor="body_type">
+                                            Morphologie
+                                        </Label>
                                         <Select
                                             value={formData.body_type}
-                                            onValueChange={(value) => handleChange('body_type', value)}
+                                            onValueChange={(value) =>
+                                                handleChange('body_type', value)
+                                            }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Sélectionnez..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(profileOptions.body_type).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    profileOptions.body_type,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -360,17 +519,29 @@ export default function Edit({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="hair_color">Couleur de cheveux</Label>
+                                        <Label htmlFor="hair_color">
+                                            Couleur de cheveux
+                                        </Label>
                                         <Select
                                             value={formData.hair_color}
-                                            onValueChange={(value) => handleChange('hair_color', value)}
+                                            onValueChange={(value) =>
+                                                handleChange(
+                                                    'hair_color',
+                                                    value,
+                                                )
+                                            }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Sélectionnez..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(profileOptions.hair_color).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    profileOptions.hair_color,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -379,17 +550,26 @@ export default function Edit({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="eye_color">Couleur des yeux</Label>
+                                        <Label htmlFor="eye_color">
+                                            Couleur des yeux
+                                        </Label>
                                         <Select
                                             value={formData.eye_color}
-                                            onValueChange={(value) => handleChange('eye_color', value)}
+                                            onValueChange={(value) =>
+                                                handleChange('eye_color', value)
+                                            }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Sélectionnez..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(profileOptions.eye_color).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    profileOptions.eye_color,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -398,17 +578,26 @@ export default function Edit({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="ethnicity">Origine</Label>
+                                        <Label htmlFor="ethnicity">
+                                            Origine
+                                        </Label>
                                         <Select
                                             value={formData.ethnicity}
-                                            onValueChange={(value) => handleChange('ethnicity', value)}
+                                            onValueChange={(value) =>
+                                                handleChange('ethnicity', value)
+                                            }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Sélectionnez..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(profileOptions.ethnicity).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    profileOptions.ethnicity,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -422,32 +611,46 @@ export default function Edit({
                                 <CardHeader>
                                     <CardTitle>Vie professionnelle</CardTitle>
                                 </CardHeader>
-                                <CardContent className="grid md:grid-cols-2 gap-4">
+                                <CardContent className="grid gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor="occupation">Profession</Label>
+                                        <Label htmlFor="occupation">
+                                            Profession
+                                        </Label>
                                         <Input
                                             id="occupation"
                                             type="text"
                                             value={formData.occupation}
                                             onChange={(e) =>
-                                                handleChange('occupation', e.target.value)
+                                                handleChange(
+                                                    'occupation',
+                                                    e.target.value,
+                                                )
                                             }
                                             placeholder="Ingénieure, Artiste..."
                                         />
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="education">Niveau d'éducation</Label>
+                                        <Label htmlFor="education">
+                                            Niveau d'éducation
+                                        </Label>
                                         <Select
                                             value={formData.education}
-                                            onValueChange={(value) => handleChange('education', value)}
+                                            onValueChange={(value) =>
+                                                handleChange('education', value)
+                                            }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Sélectionnez..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(profileOptions.education).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
+                                                {Object.entries(
+                                                    profileOptions.education,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -463,23 +666,33 @@ export default function Edit({
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="has_children">J'ai des enfants</Label>
+                                        <Label htmlFor="has_children">
+                                            J'ai des enfants
+                                        </Label>
                                         <Switch
                                             id="has_children"
                                             checked={formData.has_children}
                                             onCheckedChange={(checked) =>
-                                                handleChange('has_children', checked)
+                                                handleChange(
+                                                    'has_children',
+                                                    checked,
+                                                )
                                             }
                                         />
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="wants_children">J'en veux</Label>
+                                        <Label htmlFor="wants_children">
+                                            J'en veux
+                                        </Label>
                                         <Switch
                                             id="wants_children"
                                             checked={formData.wants_children}
                                             onCheckedChange={(checked) =>
-                                                handleChange('wants_children', checked)
+                                                handleChange(
+                                                    'wants_children',
+                                                    checked,
+                                                )
                                             }
                                         />
                                     </div>
@@ -496,7 +709,9 @@ export default function Edit({
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="drinks">Je bois de l'alcool</Label>
+                                        <Label htmlFor="drinks">
+                                            Je bois de l'alcool
+                                        </Label>
                                         <Switch
                                             id="drinks"
                                             checked={formData.drinks}
@@ -515,26 +730,38 @@ export default function Edit({
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="interests">
-                                            Centres d'intérêt (séparés par des virgules)
+                                            Centres d'intérêt (séparés par des
+                                            virgules)
                                         </Label>
                                         <Input
                                             id="interests"
                                             type="text"
                                             value={formData.interests}
-                                            onChange={(e) => handleChange('interests', e.target.value)}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    'interests',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="Lecture, Voyage, Musique..."
                                         />
                                     </div>
 
                                     <div className="space-y-2">
                                         <Label htmlFor="languages">
-                                            Langues parlées (séparées par des virgules)
+                                            Langues parlées (séparées par des
+                                            virgules)
                                         </Label>
                                         <Input
                                             id="languages"
                                             type="text"
                                             value={formData.languages}
-                                            onChange={(e) => handleChange('languages', e.target.value)}
+                                            onChange={(e) =>
+                                                handleChange(
+                                                    'languages',
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder="Français, Anglais, Espagnol..."
                                         />
                                     </div>
@@ -543,7 +770,7 @@ export default function Edit({
                         </TabsContent>
 
                         {/* Search Tab */}
-                        <TabsContent value="search" className="space-y-6 mt-6">
+                        <TabsContent value="search" className="mt-6 space-y-6">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Critères de recherche</CardTitle>
@@ -551,7 +778,8 @@ export default function Edit({
                                 <CardContent className="space-y-6">
                                     <div className="space-y-2">
                                         <Label htmlFor="search_radius">
-                                            Rayon de recherche: {formData.search_radius} km
+                                            Rayon de recherche:{' '}
+                                            {formData.search_radius} km
                                         </Label>
                                         <input
                                             id="search_radius"
@@ -560,9 +788,12 @@ export default function Edit({
                                             max="500"
                                             value={formData.search_radius}
                                             onChange={(e) =>
-                                                handleChange('search_radius', parseInt(e.target.value))
+                                                handleChange(
+                                                    'search_radius',
+                                                    parseInt(e.target.value),
+                                                )
                                             }
-                                            className="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                                            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-pink-200 accent-pink-500"
                                         />
                                         <div className="flex justify-between text-xs text-gray-500">
                                             <span>5 km</span>
@@ -574,54 +805,81 @@ export default function Edit({
                                         <Label>Tranche d'âge</Label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <Label htmlFor="min_age_preference" className="text-sm">
-                                                    De {formData.min_age_preference} ans
+                                                <Label
+                                                    htmlFor="min_age_preference"
+                                                    className="text-sm"
+                                                >
+                                                    De{' '}
+                                                    {
+                                                        formData.min_age_preference
+                                                    }{' '}
+                                                    ans
                                                 </Label>
                                                 <input
                                                     id="min_age_preference"
                                                     type="range"
                                                     min="18"
                                                     max="99"
-                                                    value={formData.min_age_preference}
+                                                    value={
+                                                        formData.min_age_preference
+                                                    }
                                                     onChange={(e) =>
                                                         handleChange(
                                                             'min_age_preference',
-                                                            parseInt(e.target.value),
+                                                            parseInt(
+                                                                e.target.value,
+                                                            ),
                                                         )
                                                     }
-                                                    className="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                                                    className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-pink-200 accent-pink-500"
                                                 />
                                             </div>
                                             <div>
-                                                <Label htmlFor="max_age_preference" className="text-sm">
-                                                    À {formData.max_age_preference} ans
+                                                <Label
+                                                    htmlFor="max_age_preference"
+                                                    className="text-sm"
+                                                >
+                                                    À{' '}
+                                                    {
+                                                        formData.max_age_preference
+                                                    }{' '}
+                                                    ans
                                                 </Label>
                                                 <input
                                                     id="max_age_preference"
                                                     type="range"
                                                     min="18"
                                                     max="99"
-                                                    value={formData.max_age_preference}
+                                                    value={
+                                                        formData.max_age_preference
+                                                    }
                                                     onChange={(e) =>
                                                         handleChange(
                                                             'max_age_preference',
-                                                            parseInt(e.target.value),
+                                                            parseInt(
+                                                                e.target.value,
+                                                            ),
                                                         )
                                                     }
-                                                    className="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                                                    className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-pink-200 accent-pink-500"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="interested_in">Intéressée par</Label>
+                                        <Label htmlFor="interested_in">
+                                            Intéressée par
+                                        </Label>
                                         <Input
                                             id="interested_in"
                                             type="text"
                                             value={formData.interested_in}
                                             onChange={(e) =>
-                                                handleChange('interested_in', e.target.value)
+                                                handleChange(
+                                                    'interested_in',
+                                                    e.target.value,
+                                                )
                                             }
                                             placeholder="Femmes, Personnes non-binaires..."
                                         />
@@ -631,7 +889,7 @@ export default function Edit({
                         </TabsContent>
 
                         {/* Naughty Tab */}
-                        <TabsContent value="naughty" className="space-y-6 mt-6">
+                        <TabsContent value="naughty" className="mt-6 space-y-6">
                             <Card>
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
@@ -640,12 +898,12 @@ export default function Edit({
                                                 <Flame className="h-5 w-5 text-pink-500" />
                                                 Mode Coquin
                                                 {user.is_premium && (
-                                                    <span className="text-xs bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-0.5 rounded-full">
+                                                    <span className="rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 px-2 py-0.5 text-xs text-white">
                                                         PREMIUM
                                                     </span>
                                                 )}
                                             </CardTitle>
-                                            <p className="text-sm text-muted-foreground mt-1">
+                                            <p className="mt-1 text-sm text-muted-foreground">
                                                 {user.is_premium
                                                     ? 'Partagez vos préférences intimes pour trouver des partenaires compatibles'
                                                     : 'Fonctionnalité réservée aux membres Premium'}
@@ -653,9 +911,14 @@ export default function Edit({
                                         </div>
                                         {user.is_premium && (
                                             <Switch
-                                                checked={formData.is_naughty_mode}
+                                                checked={
+                                                    formData.is_naughty_mode
+                                                }
                                                 onCheckedChange={(checked) =>
-                                                    handleChange('is_naughty_mode', checked)
+                                                    handleChange(
+                                                        'is_naughty_mode',
+                                                        checked,
+                                                    )
                                                 }
                                             />
                                         )}
@@ -663,22 +926,26 @@ export default function Edit({
                                 </CardHeader>
                                 <CardContent>
                                     {!user.is_premium ? (
-                                        <div className="text-center py-12">
-                                            <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                        <div className="py-12 text-center">
+                                            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600">
                                                 <Flame className="h-10 w-10 text-white" />
                                             </div>
-                                            <h3 className="text-lg font-semibold mb-2">
+                                            <h3 className="mb-2 text-lg font-semibold">
                                                 Mode Coquin Premium
                                             </h3>
-                                            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                                                Partagez vos désirs et trouvez des partenaires qui partagent
-                                                vos préférences intimes. Cette fonctionnalité est réservée
-                                                aux membres Premium.
+                                            <p className="mx-auto mb-6 max-w-md text-gray-600 dark:text-gray-400">
+                                                Partagez vos désirs et trouvez
+                                                des partenaires qui partagent
+                                                vos préférences intimes. Cette
+                                                fonctionnalité est réservée aux
+                                                membres Premium.
                                             </p>
                                             <Button
                                                 type="button"
                                                 className="btn-gradient"
-                                                onClick={() => router.visit('/premium')}
+                                                onClick={() =>
+                                                    router.visit('/premium')
+                                                }
                                             >
                                                 Passer Premium
                                             </Button>
@@ -686,9 +953,11 @@ export default function Edit({
                                     ) : formData.is_naughty_mode ? (
                                         <div className="space-y-4">
                                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                Sélectionnez vos intérêts coquins. Ceux-ci seront
-                                                visibles uniquement par les autres membres ayant activé
-                                                le mode coquin.
+                                                Sélectionnez vos intérêts
+                                                coquins. Ceux-ci seront visibles
+                                                uniquement par les autres
+                                                membres ayant activé le mode
+                                                coquin.
                                             </p>
                                             <InterestSelector
                                                 interests={naughtyInterests}
@@ -697,11 +966,11 @@ export default function Edit({
                                             />
                                         </div>
                                     ) : (
-                                        <div className="text-center py-12">
-                                            <Flame className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                                        <div className="py-12 text-center">
+                                            <Flame className="mx-auto mb-4 h-16 w-16 text-gray-300" />
                                             <p className="text-gray-500">
-                                                Activez le mode coquin pour partager vos préférences
-                                                intimes
+                                                Activez le mode coquin pour
+                                                partager vos préférences intimes
                                             </p>
                                         </div>
                                     )}
@@ -710,7 +979,10 @@ export default function Edit({
                         </TabsContent>
 
                         {/* Preferences Tab */}
-                        <TabsContent value="preferences" className="space-y-6 mt-6">
+                        <TabsContent
+                            value="preferences"
+                            className="mt-6 space-y-6"
+                        >
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Confidentialité</CardTitle>
@@ -718,17 +990,22 @@ export default function Edit({
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <Label htmlFor="show_age">Afficher mon âge</Label>
+                                            <Label htmlFor="show_age">
+                                                Afficher mon âge
+                                            </Label>
                                             <p className="text-sm text-muted-foreground">
-                                                Les autres utilisateurs verront votre âge sur votre
-                                                profil
+                                                Les autres utilisateurs verront
+                                                votre âge sur votre profil
                                             </p>
                                         </div>
                                         <Switch
                                             id="show_age"
                                             checked={formData.show_age}
                                             onCheckedChange={(checked) =>
-                                                handleChange('show_age', checked)
+                                                handleChange(
+                                                    'show_age',
+                                                    checked,
+                                                )
                                             }
                                         />
                                     </div>
@@ -739,14 +1016,18 @@ export default function Edit({
                                                 Afficher ma localisation
                                             </Label>
                                             <p className="text-sm text-muted-foreground">
-                                                Les autres utilisateurs verront votre ville
+                                                Les autres utilisateurs verront
+                                                votre ville
                                             </p>
                                         </div>
                                         <Switch
                                             id="show_location"
                                             checked={formData.show_location}
                                             onCheckedChange={(checked) =>
-                                                handleChange('show_location', checked)
+                                                handleChange(
+                                                    'show_location',
+                                                    checked,
+                                                )
                                             }
                                         />
                                     </div>
@@ -756,7 +1037,7 @@ export default function Edit({
                     </Tabs>
 
                     {/* Save Buttons */}
-                    <div className="flex gap-4 sticky bottom-0 bg-background/95 backdrop-blur-sm p-4 -mx-4 border-t border-border">
+                    <div className="sticky bottom-0 -mx-4 flex gap-4 border-t border-border bg-background/95 p-4 backdrop-blur-sm">
                         <Button
                             type="button"
                             variant="outline"
@@ -765,7 +1046,7 @@ export default function Edit({
                         >
                             Annuler
                         </Button>
-                        <Button type="submit" className="flex-1 btn-gradient">
+                        <Button type="submit" className="btn-gradient flex-1">
                             Enregistrer les modifications
                         </Button>
                     </div>

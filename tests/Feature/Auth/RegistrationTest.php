@@ -21,7 +21,10 @@ class RegistrationTest extends TestCase
         $response = $this->post(route('register.store'), [
             'pseudo' => 'test-user',
             'name' => 'Test User',
-            'age' => 28,
+            'date_of_birth' => '1998-04-12',
+            'community_charter' => true,
+            'data_processing_consent' => true,
+            'meeting_intentions' => ['relationship'],
             'city_name' => 'Paris',
             'city_latitude' => 48.8566,
             'city_longitude' => 2.3522,

@@ -179,7 +179,8 @@ class DataPrivacyTest extends TestCase
         // User should be soft-deleted
         $this->assertSoftDeleted('users', ['id' => $user->id]);
 
-        // User data should be anonymized
+        // Closure is immediate; only an administrator performs final erasure.
+        $this->completeDeletion($user);
         $deletedUser = User::withTrashed()->find($user->id);
         $this->assertSame("deleted_{$user->id}@deleted.local", $deletedUser->email);
         $this->assertSame('Utilisateur supprimé', $deletedUser->name);
@@ -237,6 +238,7 @@ class DataPrivacyTest extends TestCase
                 'confirmation' => 'SUPPRIMER',
             ]);
 
+        $this->completeDeletion($user);
         $message->refresh();
         $this->assertSame('[message supprimé]', $message->content);
     }
@@ -263,6 +265,8 @@ class DataPrivacyTest extends TestCase
                 'confirmation' => 'SUPPRIMER',
             ]);
 
+        Storage::disk('public')->assertExists('photos/test-photo.jpg');
+        $this->completeDeletion($user);
         Storage::disk('public')->assertMissing('photos/test-photo.jpg');
         $this->assertDatabaseMissing('photos', ['user_id' => $user->id]);
     }
@@ -284,6 +288,7 @@ class DataPrivacyTest extends TestCase
                 'confirmation' => 'SUPPRIMER',
             ]);
 
+        $this->completeDeletion($user);
         $this->assertDatabaseMissing('likes', ['user_id' => $user->id]);
         $this->assertDatabaseMissing('likes', ['liked_user_id' => $user->id]);
         $this->assertDatabaseMissing('user_matches', ['user1_id' => $user->id]);
@@ -304,6 +309,7 @@ class DataPrivacyTest extends TestCase
                 'confirmation' => 'SUPPRIMER',
             ]);
 
+        $this->completeDeletion($user);
         $this->assertDatabaseMissing('blocked_users', ['blocker_id' => $user->id]);
     }
 
@@ -333,11 +339,12 @@ class DataPrivacyTest extends TestCase
                 'confirmation' => 'SUPPRIMER',
             ]);
 
+        $this->completeDeletion($user);
         $this->assertDatabaseMissing('notifications', ['user_id' => $user->id]);
         $this->assertDatabaseMissing('gem_transactions', ['user_id' => $user->id]);
     }
 
-    public function test_delete_account_removes_reports_made_by_user(): void
+    public function test_delete_account_keeps_moderation_reports_with_anonymized_reporter(): void
     {
         Storage::fake('public');
 
@@ -357,6 +364,14 @@ class DataPrivacyTest extends TestCase
                 'confirmation' => 'SUPPRIMER',
             ]);
 
-        $this->assertDatabaseMissing('reports', ['reporter_id' => $user->id]);
+        $this->assertDatabaseHas('reports', ['reporter_id' => $user->id, 'status' => 'pending']);
+        $this->completeDeletion($user);
+        $this->assertSame('Utilisateur supprimé', User::withTrashed()->findOrFail($user->id)->name);
+    }
+
+    private function completeDeletion(User $user): void
+    {
+        Storage::fake('local');
+        app(\App\Services\AccountErasureService::class)->erase(User::withTrashed()->findOrFail($user->id), User::factory()->create(['is_admin' => true]));
     }
 }

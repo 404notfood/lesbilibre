@@ -1,14 +1,14 @@
 {
     "name": "LesbiLibre",
     "short_name": "LesbiLibre",
-    "description": "Rencontres sincères pour les femmes qui aiment les femmes.",
+    "description": "Des rencontres entre femmes et personnes queer, près de chez toi, à ton rythme.",
     "start_url": "/dashboard",
     "scope": "/",
     "id": "/",
     "display": "standalone",
     "background_color": "#170b10",
     "theme_color": "#170b10",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "icons": [
         {
             "src": "/images/branding/icon-192.png",

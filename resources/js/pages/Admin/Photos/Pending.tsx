@@ -1,3 +1,4 @@
+import PhotoLightbox, { LightboxItem } from '@/components/photo-lightbox';
 import AdminLayout, {
     AdminBadge,
     AdminButton,
@@ -6,16 +7,13 @@ import AdminLayout, {
     AdminMeta,
     AdminPagination,
 } from '@/layouts/admin-layout';
-import PhotoLightbox, { LightboxItem } from '@/components/photo-lightbox';
 import { Head, Link, router } from '@inertiajs/react';
 import { Check, ImageOff, Video, X, ZoomIn } from 'lucide-react';
 import { useState } from 'react';
 
 interface PhotoUser {
     id: number;
-    name: string;
     pseudo: string;
-    email: string;
 }
 
 interface Photo {
@@ -25,6 +23,7 @@ interface Photo {
     media_type: 'photo' | 'video';
     available: boolean;
     is_naughty: boolean;
+    moderation_status: string;
     /** La membre demande à en faire sa photo de profil : à traiter en priorité. */
     awaiting_avatar: boolean;
     created_at: string;
@@ -53,7 +52,7 @@ export default function Pending({ photos }: Props) {
                       mediaType: photo.media_type,
                       posterUrl: photo.thumbnail_url,
                       caption: photo.user
-                          ? `Média soumis par ${photo.user.pseudo || photo.user.name}`
+                          ? `Média soumis par ${photo.user.pseudo}`
                           : 'Compte supprimé',
                   },
               ]
@@ -66,7 +65,7 @@ export default function Pending({ photos }: Props) {
     return (
         <AdminLayout
             title="Photos en attente"
-            subtitle="Valider ou refuser les photos avant leur publication sur les profils"
+            subtitle="Examiner les médias en attente et les quarantaines, puis valider ou retirer leur publication"
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
                 { label: 'Modération', href: '/admin/moderation' },
@@ -134,7 +133,13 @@ export default function Pending({ photos }: Props) {
     );
 }
 
-function PhotoCard({ photo, onPreview }: { photo: Photo; onPreview: () => void }) {
+function PhotoCard({
+    photo,
+    onPreview,
+}: {
+    photo: Photo;
+    onPreview: () => void;
+}) {
     const [processing, setProcessing] = useState(false);
     const [rejecting, setRejecting] = useState(false);
     const [reason, setReason] = useState('');
@@ -163,6 +168,11 @@ function PhotoCard({ photo, onPreview }: { photo: Photo; onPreview: () => void }
 
     return (
         <AdminCard padded={false}>
+            {photo.moderation_status === 'quarantined' && (
+                <div className="bg-destructive/10 p-3 text-xs font-semibold text-destructive">
+                    Quarantaine : média retiré de la diffusion aux membres
+                </div>
+            )}
             <div className="relative aspect-[4/3] overflow-hidden bg-[color:var(--bg-soft)]">
                 {!photo.available || !photo.url ? (
                     <div className="flex h-full flex-col items-center justify-center gap-2 px-3 text-center text-xs text-[color:var(--ink-mute)]">
@@ -200,7 +210,9 @@ function PhotoCard({ photo, onPreview }: { photo: Photo; onPreview: () => void }
                 )}
                 <div className="absolute inset-x-3 top-3 flex flex-wrap gap-1">
                     {photo.awaiting_avatar && (
-                        <AdminBadge tone="gold">Demande d&apos;avatar</AdminBadge>
+                        <AdminBadge tone="gold">
+                            Demande d&apos;avatar
+                        </AdminBadge>
                     )}
                     {photo.is_naughty && (
                         <AdminBadge tone="danger">Contenu coquin</AdminBadge>
@@ -215,7 +227,7 @@ function PhotoCard({ photo, onPreview }: { photo: Photo; onPreview: () => void }
                             href={`/admin/users/${photo.user.id}`}
                             className="block truncate text-sm font-semibold text-[color:var(--ink)] underline decoration-dotted underline-offset-2"
                         >
-                            {photo.user.pseudo || photo.user.name}
+                            {photo.user.pseudo}
                         </Link>
                     ) : (
                         <span className="text-sm font-semibold text-[color:var(--ink-mute)]">

@@ -17,7 +17,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_premium_page_lists_active_plans_only(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         PremiumPlan::factory()->create(['name' => 'Visible', 'display_order' => 1]);
         PremiumPlan::factory()->inactive()->create(['name' => 'Masqué']);
 
@@ -32,7 +32,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_premium_plans_follow_the_display_order(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         PremiumPlan::factory()->create(['name' => 'Second', 'display_order' => 2]);
         PremiumPlan::factory()->create(['name' => 'Premier', 'display_order' => 1]);
 
@@ -47,7 +47,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_premium_page_exposes_perks_and_savings(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         PremiumPlan::factory()->create([
             'name' => 'Mensuel',
             'duration_months' => 1,
@@ -77,7 +77,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_subscribing_to_an_inactive_plan_is_refused(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $plan = PremiumPlan::factory()->inactive()->create();
 
         $this->actingAs($user)
@@ -87,7 +87,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_subscribing_to_a_plan_without_stripe_price_is_refused(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $plan = PremiumPlan::factory()->withoutStripePrice()->create();
 
         $this->actingAs($user)
@@ -98,7 +98,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_subscribing_to_an_unknown_plan_fails_validation(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('premium.subscribe'), ['plan_id' => 999999])
@@ -109,7 +109,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_shop_lists_active_packages_only(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         GemPackage::factory()->create(['name' => 'En vente', 'display_order' => 1]);
         GemPackage::factory()->inactive()->create(['name' => 'Retiré']);
 
@@ -124,7 +124,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_purchasing_an_inactive_package_is_refused(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $package = GemPackage::factory()->inactive()->create();
 
         $this->actingAs($user)
@@ -134,7 +134,7 @@ class BillingCatalogUsageTest extends TestCase
 
     public function test_purchasing_an_unknown_package_fails_validation(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('shop.gems.purchase'), ['package_id' => 999999])

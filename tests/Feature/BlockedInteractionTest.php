@@ -13,8 +13,8 @@ class BlockedInteractionTest extends TestCase
 
     public function test_a_blocked_user_cannot_view_the_blockers_profile(): void
     {
-        $blocker = User::factory()->create();
-        $blocked = User::factory()->create();
+        $blocker = User::factory()->communityMember()->create();
+        $blocked = User::factory()->communityMember()->create();
         BlockedUser::create(['blocker_id' => $blocker->id, 'blocked_id' => $blocked->id]);
 
         $this->actingAs($blocked)
@@ -24,8 +24,8 @@ class BlockedInteractionTest extends TestCase
 
     public function test_like_is_refused_when_either_user_has_blocked_the_other(): void
     {
-        $blocker = User::factory()->create();
-        $blocked = User::factory()->create();
+        $blocker = User::factory()->communityMember()->create();
+        $blocked = User::factory()->communityMember()->create();
         BlockedUser::create(['blocker_id' => $blocker->id, 'blocked_id' => $blocked->id]);
 
         $this->actingAs($blocked)

@@ -23,50 +23,6 @@ class PremiumController extends Controller
     {
         $user = $request->user();
 
-        // Premium features
-        $features = [
-            [
-                'icon' => '👁️',
-                'title' => 'Voir qui te like',
-                'description' => 'Découvre qui a liké ton profil avant de matcher',
-            ],
-            [
-                'icon' => '❤️',
-                'title' => 'Likes illimités',
-                'description' => 'Like autant de profils que tu veux sans limite',
-            ],
-            [
-                'icon' => '🚀',
-                'title' => 'Boost ton profil',
-                'description' => 'Apparais en première position pendant 30 minutes',
-            ],
-            [
-                'icon' => '🔍',
-                'title' => 'Filtres avancés',
-                'description' => 'Affine ta recherche avec des critères exclusifs',
-            ],
-            [
-                'icon' => '⏮️',
-                'title' => 'Retour en arrière',
-                'description' => 'Reviens sur un profil que tu as passé par erreur',
-            ],
-            [
-                'icon' => '🎯',
-                'title' => 'Super Like',
-                'description' => '5 Super Likes par jour pour te démarquer',
-            ],
-            [
-                'icon' => '🔒',
-                'title' => 'Mode privé',
-                'description' => 'Contrôle qui peut voir ton profil',
-            ],
-            [
-                'icon' => '💬',
-                'title' => 'Messages prioritaires',
-                'description' => 'Tes messages apparaissent en premier',
-            ],
-        ];
-
         // Premium plans — managed from the admin console (premium_plans table)
         $offered = PremiumPlan::offered()->get();
         $reference = (float) ($offered->sortBy('duration_months')->first()?->pricePerMonth() ?? 0);
@@ -82,25 +38,6 @@ class PremiumController extends Controller
             'perks' => $plan->perks ?? [],
             'available' => $plan->isPurchasable(),
         ])->values();
-
-        // Social proof
-        $testimonials = [
-            [
-                'name' => 'Sophie',
-                'rating' => 5,
-                'comment' => 'Grâce au premium, j\'ai trouvé l\'amour en 2 semaines ! 💕',
-            ],
-            [
-                'name' => 'Marie',
-                'rating' => 5,
-                'comment' => 'Les filtres avancés m\'ont fait gagner beaucoup de temps',
-            ],
-            [
-                'name' => 'Claire',
-                'rating' => 5,
-                'comment' => 'Le boost de profil est incroyable, j\'ai eu 10x plus de matches !',
-            ],
-        ];
 
         // Dernier abonnement encore valide, s'il en existe un. Un compte peut
         // très bien être premium sans aucune ligne ici : premium accordé depuis
@@ -118,9 +55,7 @@ class PremiumController extends Controller
         $managedByStripe = filled($currentSubscription?->stripe_customer_id);
 
         return Inertia::render('Premium/Index', [
-            'features' => $features,
             'plans' => $plans,
-            'testimonials' => $testimonials,
             'currentSubscription' => $currentSubscription ? [
                 'id' => $currentSubscription->id,
                 'plan' => $currentSubscription->plan,

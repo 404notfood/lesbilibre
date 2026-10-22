@@ -16,92 +16,10 @@ class BillingSeeder extends Seeder
      */
     public function run(): void
     {
-        $plans = [
-            [
-                'slug' => '1-month',
-                'name' => '1 mois',
-                'tagline' => 'Pour essayer sans engagement',
-                'duration_months' => 1,
-                'price' => 19.99,
-                'stripe_price_id' => config('services.stripe.price_1_month'),
-                'perks' => [
-                    'Likes illimités',
-                    'Voir qui vous a likée',
-                    'Filtres de recherche avancés',
-                    'Mode incognito',
-                    'Messages prioritaires',
-                ],
-                'entitlements' => [
-                    'unlimited_likes' => true,
-                    'first_messages_per_day' => 0,
-                    'see_who_liked' => true,
-                    'advanced_filters' => true,
-                    'incognito' => true,
-                    'priority_messages' => true,
-                ],
-                'gems_on_signup' => 0,
-                'gems_per_month' => 0,
-                'is_featured' => false,
-                'display_order' => 1,
-            ],
-            [
-                'slug' => '3-months',
-                'name' => '3 mois',
-                'tagline' => 'Le meilleur rapport qualité-prix',
-                'duration_months' => 3,
-                'price' => 44.99,
-                'stripe_price_id' => config('services.stripe.price_3_months'),
-                'perks' => [
-                    'Likes illimités',
-                    'Voir qui vous a likée',
-                    'Filtres de recherche avancés',
-                    'Mode incognito',
-                    'Messages prioritaires',
-                ],
-                'entitlements' => [
-                    'unlimited_likes' => true,
-                    'first_messages_per_day' => 0,
-                    'see_who_liked' => true,
-                    'advanced_filters' => true,
-                    'incognito' => true,
-                    'priority_messages' => true,
-                ],
-                'gems_on_signup' => 0,
-                'gems_per_month' => 0,
-                'is_featured' => true,
-                'display_order' => 2,
-            ],
-            [
-                'slug' => '6-months',
-                'name' => '6 mois',
-                'tagline' => 'L’engagement le plus avantageux',
-                'duration_months' => 6,
-                'price' => 69.99,
-                'stripe_price_id' => config('services.stripe.price_6_months'),
-                'perks' => [
-                    'Likes illimités',
-                    'Voir qui vous a likée',
-                    'Filtres de recherche avancés',
-                    'Mode incognito',
-                    'Messages prioritaires',
-                ],
-                'entitlements' => [
-                    'unlimited_likes' => true,
-                    'first_messages_per_day' => 0,
-                    'see_who_liked' => true,
-                    'advanced_filters' => true,
-                    'incognito' => true,
-                    'priority_messages' => true,
-                ],
-                'gems_on_signup' => 0,
-                'gems_per_month' => 0,
-                'is_featured' => false,
-                'display_order' => 3,
-            ],
-        ];
-
-        foreach ($plans as $plan) {
-            PremiumPlan::updateOrCreate(['slug' => $plan['slug']], $plan);
+        // New installations use the launch catalogue. Existing admin edits and
+        // historical Stripe prices are preserved on subsequent seeding.
+        foreach (config('launch-pricing.plans') as $slug => $plan) {
+            PremiumPlan::firstOrCreate(['slug' => $slug], $plan + ['is_active' => true]);
         }
 
         $packages = [

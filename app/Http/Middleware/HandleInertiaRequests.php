@@ -61,6 +61,7 @@ class HandleInertiaRequests extends Middleware
             })
                 ->whereHas('messages', function ($query) use ($user) {
                     $query->where('sender_id', '!=', $user->id)
+                        ->where('moderation_status', 'approved')
                         ->where('read_at', null);
                 })
                 ->count();
@@ -125,8 +126,10 @@ class HandleInertiaRequests extends Middleware
         $adminAlerts = null;
         if ($user && ($user->is_admin ?? false)) {
             $adminAlerts = [
-                'pending_photos' => Photo::where('is_approved', false)->count(),
-                'pending_verifications' => VerificationPhoto::where('status', 'pending')->count(),
+                'pending_photos' => Photo::whereHas('user')->whereIn('moderation_status', ['pending', 'quarantined'])->count(),
+                'pending_messages' => \App\Models\Message::where('moderation_status', 'pending')->count(),
+                'account_deletions' => \Illuminate\Support\Facades\Schema::hasTable('account_erasures') ? \App\Models\AccountErasure::where('status', '!=', 'completed')->count() : 0,
+                'pending_verifications' => VerificationPhoto::whereHas('user')->where('status', 'pending')->count(),
                 'open_reports' => Report::where('status', 'pending')->count(),
                 'flagged_ephemeral' => EphemeralMedia::where('is_flagged', true)
                     ->whereNull('purged_at')

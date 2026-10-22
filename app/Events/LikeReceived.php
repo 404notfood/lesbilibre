@@ -46,13 +46,11 @@ class LikeReceived implements ShouldBroadcast
         return [
             'id' => $this->like->id,
             'type' => 'like',
-            'message' => $this->like->user->name.' a liké votre profil',
+            'message' => $this->like->user->pseudo.' a liké votre profil',
             'user' => [
                 'id' => $this->like->user->id,
-                'name' => $this->like->user->name,
-                'photo' => $this->like->user->photos->where('is_primary', true)->first()?->path
-                    ? asset('storage/'.$this->like->user->photos->where('is_primary', true)->first()->path)
-                    : null,
+                'name' => $this->like->user->pseudo,
+                'photo' => $this->like->user->avatarPhoto?->viewUrl(thumbnail: true),
             ],
             'created_at' => $this->like->created_at->toISOString(),
         ];

@@ -65,74 +65,78 @@ class ActivityController extends Controller
         })->where('created_at', '>=', now()->startOfDay())->count();
 
         // Activités récentes combinées (visites, likes, matches)
-        $recentLikes = Like::with(['liker.profile', 'liker.photos'])
+        $recentLikes = Like::with(['liker.profile', 'liker.avatarPhoto'])
             ->where('liked_user_id', $userId)
             ->latest()
             ->limit(20)
             ->get()
+            ->filter(fn ($like) => $like->liker && $user->canInteractWith($like->liker))
             ->map(function ($like) {
-                $primaryPhoto = $like->liker->photos->where('is_primary', true)->first();
 
                 return [
                     'id' => $like->id,
                     'type' => 'like',
                     'user' => [
                         'id' => $like->liker->id,
-                        'name' => $like->liker->name,
-                        'age' => $like->liker->profile->age ?? null,
-                        'photo' => $primaryPhoto ? asset('storage/'.$primaryPhoto->path) : null,
+                        'name' => $like->liker->pseudo,
+                        'age' => $like->liker->profile?->show_age ? $like->liker->profile->age : null,
+                        'photo' => $like->liker->avatarPhoto?->viewUrl(thumbnail: true),
                         'online' => $like->liker->is_online ?? false,
                     ],
                     'created_at' => $like->created_at->toISOString(),
                 ];
-            });
+            })->values();
 
-        $recentVisits = ProfileVisit::with(['visitor.profile', 'visitor.photos'])
+        $recentVisits = ProfileVisit::with(['visitor.profile', 'visitor.avatarPhoto'])
             ->where('visited_user_id', $userId)
             ->latest()
             ->limit(20)
             ->get()
+            ->filter(fn ($visit) => $visit->visitor && $user->canInteractWith($visit->visitor))
             ->map(function ($visit) {
-                $primaryPhoto = $visit->visitor->photos->where('is_primary', true)->first();
 
                 return [
                     'id' => $visit->id,
                     'type' => 'visit',
                     'user' => [
                         'id' => $visit->visitor->id,
-                        'name' => $visit->visitor->name,
-                        'age' => $visit->visitor->profile->age ?? null,
-                        'photo' => $primaryPhoto ? asset('storage/'.$primaryPhoto->path) : null,
+                        'name' => $visit->visitor->pseudo,
+                        'age' => $visit->visitor->profile?->show_age ? $visit->visitor->profile->age : null,
+                        'photo' => $visit->visitor->avatarPhoto?->viewUrl(thumbnail: true),
                         'online' => $visit->visitor->is_online ?? false,
                     ],
                     'created_at' => $visit->created_at->toISOString(),
                 ];
-            });
+            })->values();
 
-        $recentMatches = UserMatch::with(['user1.profile', 'user1.photos', 'user2.profile', 'user2.photos'])
+        $recentMatches = UserMatch::with(['user1.profile', 'user1.avatarPhoto', 'user2.profile', 'user2.avatarPhoto'])
             ->where(function ($query) use ($userId) {
                 $query->where('user1_id', $userId)->orWhere('user2_id', $userId);
             })
             ->latest()
             ->limit(10)
             ->get()
+            ->filter(function ($match) use ($userId, $user) {
+                $other = $match->user1_id == $userId ? $match->user2 : $match->user1;
+
+                return $other && $user->canInteractWith($other);
+            })
             ->map(function ($match) use ($userId) {
                 $otherUser = $match->user1_id == $userId ? $match->user2 : $match->user1;
-                $primaryPhoto = $otherUser->photos->where('is_primary', true)->first();
 
                 return [
                     'id' => $match->id,
                     'type' => 'match',
                     'user' => [
                         'id' => $otherUser->id,
-                        'name' => $otherUser->name,
-                        'age' => $otherUser->profile->age ?? null,
-                        'photo' => $primaryPhoto ? asset('storage/'.$primaryPhoto->path) : null,
+                        'name' => $otherUser->pseudo,
+                        'age' => $otherUser->profile?->show_age ? $otherUser->profile->age : null,
+                        'photo' => $otherUser->avatarPhoto?->viewUrl(thumbnail: true),
                         'online' => $otherUser->is_online ?? false,
                     ],
                     'created_at' => $match->created_at->toISOString(),
                 ];
-            });
+            })->values();
 
         $activities = $recentLikes->concat($recentVisits)->concat($recentMatches)
             ->sortByDesc('created_at')
@@ -141,26 +145,26 @@ class ActivityController extends Controller
             ->toArray();
 
         // Temple de la renommée (top utilisateurs par nombre de likes)
-        $hallOfFame = User::select('users.id', 'users.name', 'users.pseudo')
+        $hallOfFame = User::select('users.*')
             ->selectRaw('COUNT(likes.id) as likes_count')
-            ->with(['profile', 'photos' => function ($query) {
-                $query->where('is_primary', true);
-            }])
+            ->with(['profile', 'avatarPhoto'])
             ->join('likes', 'users.id', '=', 'likes.liked_user_id')
             ->where('users.id', '!=', $userId)
+            ->communityEligible()
             ->groupBy('users.id', 'users.name', 'users.pseudo')
             ->orderByDesc('likes_count')
             ->limit(5)
             ->get()
+            ->filter(fn ($candidate) => $user->canInteractWith($candidate))
+            ->values()
             ->map(function ($user, $index) {
-                $primaryPhoto = $user->photos->first();
 
                 return [
                     'id' => $user->id,
                     'rank' => $index + 1,
-                    'name' => $user->name,
-                    'age' => $user->profile->age ?? null,
-                    'photo' => $primaryPhoto ? asset('storage/'.$primaryPhoto->path) : null,
+                    'name' => $user->pseudo,
+                    'age' => $user->profile?->show_age ? $user->profile->age : null,
+                    'photo' => $user->avatarPhoto?->viewUrl(thumbnail: true),
                     'likes_count' => $user->likes_count,
                 ];
             })

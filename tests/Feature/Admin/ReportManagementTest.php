@@ -15,7 +15,7 @@ class ReportManagementTest extends TestCase
 
     public function test_non_admin_cannot_list_reports(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
 
         $this->actingAs($user)
             ->get(route('admin.reports.index'))
@@ -24,7 +24,7 @@ class ReportManagementTest extends TestCase
 
     public function test_admin_sees_pending_reports_by_default(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         Report::factory()->create();
         Report::factory()->dismissed()->create();
 
@@ -42,7 +42,7 @@ class ReportManagementTest extends TestCase
 
     public function test_admin_can_filter_reports_by_status(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         Report::factory()->create();
         Report::factory()->actioned()->count(2)->create();
 
@@ -57,7 +57,7 @@ class ReportManagementTest extends TestCase
 
     public function test_invalid_status_falls_back_to_pending(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         Report::factory()->create();
 
         $this->actingAs($admin)
@@ -71,9 +71,9 @@ class ReportManagementTest extends TestCase
 
     public function test_report_payload_exposes_both_parties(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $reporter = User::factory()->create(['pseudo' => 'signaleuse']);
-        $reported = User::factory()->create(['pseudo' => 'signalee']);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $reporter = User::factory()->communityMember()->create(['pseudo' => 'signaleuse']);
+        $reported = User::factory()->communityMember()->create(['pseudo' => 'signalee']);
         Report::factory()->create([
             'reporter_id' => $reporter->id,
             'reported_user_id' => $reported->id,
@@ -90,7 +90,7 @@ class ReportManagementTest extends TestCase
 
     public function test_admin_can_dismiss_a_report(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $report = Report::factory()->create();
 
         $this->actingAs($admin)
@@ -108,7 +108,7 @@ class ReportManagementTest extends TestCase
 
     public function test_admin_can_action_a_report_and_ban_the_reported_user(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $report = Report::factory()->create(['reason' => 'harassment']);
 
         $this->actingAs($admin)
@@ -128,7 +128,7 @@ class ReportManagementTest extends TestCase
 
     public function test_updating_a_report_records_a_moderation_action(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $report = Report::factory()->create();
 
         $this->actingAs($admin)
@@ -151,7 +151,7 @@ class ReportManagementTest extends TestCase
 
     public function test_non_admin_cannot_update_a_report(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
         $report = Report::factory()->create();
 
         $this->actingAs($user)
@@ -163,7 +163,7 @@ class ReportManagementTest extends TestCase
 
     public function test_status_must_be_a_known_value(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $report = Report::factory()->create();
 
         $this->actingAs($admin)

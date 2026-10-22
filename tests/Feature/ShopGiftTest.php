@@ -13,14 +13,13 @@ class ShopGiftTest extends TestCase
 
     protected function createMember(bool $naughtyMode = false, int $gems = 1000): User
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_verified' => true,
             'is_banned' => false,
             'gems' => $gems,
         ]);
 
-        Profile::create([
-            'user_id' => $user->id,
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(30),
             'is_naughty_mode' => $naughtyMode,
         ]);

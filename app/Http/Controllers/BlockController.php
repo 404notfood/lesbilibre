@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\BlockedUser;
-use App\Models\Conversation;
 use App\Models\Like;
 use App\Models\User;
 use App\Models\UserMatch;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,28 +21,27 @@ class BlockController extends Controller
     {
         $user = $request->user();
 
-        $blockedUsers = BlockedUser::with(['blocked.profile', 'blocked.photos'])
+        $blockedUsers = BlockedUser::with('blocked')
+            ->whereHas('blocked')
             ->where('blocker_id', $user->id)
             ->latest()
             ->get()
             ->map(function ($block) {
-                $primaryPhoto = $block->blocked->photos->where('is_primary', true)->first();
-
                 return [
                     'id' => $block->id,
                     'blocked_at' => $block->created_at->toISOString(),
                     'reason' => $block->reason,
                     'user' => [
                         'id' => $block->blocked->id,
-                        'name' => $block->blocked->name,
-                        'age' => $block->blocked->profile->age ?? null,
-                        'city' => $block->blocked->profile->city ?? null,
-                        'photo' => $primaryPhoto ? asset('storage/'.$primaryPhoto->path) : null,
+                        'pseudo' => $block->blocked->pseudo,
+                        'age' => null,
+                        'city' => null,
+                        'photo' => null,
                     ],
                 ];
             });
 
-        return Inertia::render('Settings/BlockedUsers', [
+        return Inertia::render('settings/BlockedUsers', [
             'blockedUsers' => $blockedUsers,
         ]);
     }
@@ -53,6 +52,7 @@ class BlockController extends Controller
     public function store(Request $request, int $userId): RedirectResponse
     {
         $currentUser = $request->user();
+        $request->validate(['reason' => ['nullable', 'string', 'max:255']]);
 
         // Vérifier que l'utilisateur ne se bloque pas lui-même
         if ($currentUser->id === $userId) {
@@ -60,36 +60,35 @@ class BlockController extends Controller
         }
 
         // Vérifier que l'utilisateur à bloquer existe
-        $userToBlock = User::findOrFail($userId);
+        User::findOrFail($userId);
 
         // Créer le blocage (ou ne rien faire si déjà bloqué grâce à unique constraint)
         try {
-            BlockedUser::create([
-                'blocker_id' => $currentUser->id,
-                'blocked_id' => $userId,
-                'reason' => $request->input('reason'),
-            ]);
+            DB::transaction(function () use ($currentUser, $userId, $request) {
+                BlockedUser::firstOrCreate([
+                    'blocker_id' => $currentUser->id,
+                    'blocked_id' => $userId,
+                ], [
+                    'reason' => $request->input('reason'),
+                ]);
 
-            // Supprimer les likes mutuels
-            Like::where(function ($query) use ($currentUser, $userId) {
-                $query->where('user_id', $currentUser->id)->where('liked_user_id', $userId);
-            })->orWhere(function ($query) use ($currentUser, $userId) {
-                $query->where('user_id', $userId)->where('liked_user_id', $currentUser->id);
-            })->delete();
+                // Supprimer les likes mutuels
+                Like::where(function ($query) use ($currentUser, $userId) {
+                    $query->where('user_id', $currentUser->id)->where('liked_user_id', $userId);
+                })->orWhere(function ($query) use ($currentUser, $userId) {
+                    $query->where('user_id', $userId)->where('liked_user_id', $currentUser->id);
+                })->delete();
 
-            // Supprimer le match si il existe
-            UserMatch::where(function ($query) use ($currentUser, $userId) {
-                $query->where('user1_id', $currentUser->id)->where('user2_id', $userId);
-            })->orWhere(function ($query) use ($currentUser, $userId) {
-                $query->where('user1_id', $userId)->where('user2_id', $currentUser->id);
-            })->delete();
+                // Supprimer le match si il existe
+                UserMatch::where(function ($query) use ($currentUser, $userId) {
+                    $query->where('user1_id', $currentUser->id)->where('user2_id', $userId);
+                })->orWhere(function ($query) use ($currentUser, $userId) {
+                    $query->where('user1_id', $userId)->where('user2_id', $currentUser->id);
+                })->delete();
 
-            // Supprimer la conversation
-            Conversation::where(function ($query) use ($currentUser, $userId) {
-                $query->where('user1_id', $currentUser->id)->where('user2_id', $userId);
-            })->orWhere(function ($query) use ($currentUser, $userId) {
-                $query->where('user1_id', $userId)->where('user2_id', $currentUser->id);
-            })->delete();
+                // The interaction checks hide the conversation in both directions.
+                // Keep its rows/files so reporting evidence and retention survive.
+            });
 
             return back()->with('success', 'Utilisateur bloqué avec succès.');
         } catch (\Exception $e) {

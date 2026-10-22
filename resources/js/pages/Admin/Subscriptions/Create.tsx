@@ -1,3 +1,4 @@
+import { Input } from '@/components/ui/input';
 import AdminLayout, {
     AdminBadge,
     AdminButton,
@@ -7,14 +8,12 @@ import AdminLayout, {
     AdminSelect,
 } from '@/layouts/admin-layout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Input } from '@/components/ui/input';
 import { Search, UserCheck } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
 interface User {
     id: number;
     name: string;
-    email: string;
     is_premium?: boolean;
 }
 
@@ -101,7 +100,9 @@ export default function Create({
                 { label: 'Création' },
             ]}
             hideSearch
-            actions={<AdminButton href="/admin/subscriptions">Retour</AdminButton>}
+            actions={
+                <AdminButton href="/admin/subscriptions">Retour</AdminButton>
+            }
         >
             <Head title="Créer un abonnement · Admin" />
 
@@ -116,9 +117,11 @@ export default function Create({
                         <div className="p-5">
                             <div className="flex flex-wrap gap-2">
                                 <Input
-                                    placeholder="Nom, pseudo ou e-mail…"
+                                    placeholder="Pseudo…"
                                     value={search}
-                                    onChange={(event) => setSearch(event.target.value)}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
                                     onKeyDown={(event) =>
                                         event.key === 'Enter' && runSearch()
                                     }
@@ -154,13 +157,8 @@ export default function Create({
                                                             </AdminBadge>
                                                         )}
                                                     </div>
-                                                    <div className="truncate text-xs text-[color:var(--ink-soft)]">
-                                                        {candidate.email}
-                                                        {candidate.pseudo &&
-                                                            ` · @${candidate.pseudo}`}
-                                                    </div>
                                                 </div>
-                                                <span className="font-mono shrink-0 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--wine-deep)]">
+                                                <span className="shrink-0 font-mono text-[11px] font-semibold tracking-wider text-[color:var(--wine-deep)] uppercase">
                                                     Choisir →
                                                 </span>
                                             </Link>
@@ -171,7 +169,8 @@ export default function Create({
 
                             {initialSearch && candidates.length === 0 && (
                                 <p className="mt-4 text-sm text-[color:var(--ink-mute)]">
-                                    Aucun compte ne correspond à « {initialSearch} ».
+                                    Aucun compte ne correspond à «{' '}
+                                    {initialSearch} ».
                                 </p>
                             )}
                         </div>
@@ -185,7 +184,7 @@ export default function Create({
                                 </span>
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-1.5">
-                                        <p className="font-display truncate text-lg font-medium text-[color:var(--ink)]">
+                                        <p className="truncate font-display text-lg font-medium text-[color:var(--ink)]">
                                             {user.name}
                                         </p>
                                         {user.is_premium && (
@@ -194,20 +193,21 @@ export default function Create({
                                             </AdminBadge>
                                         )}
                                     </div>
-                                    <p className="truncate text-sm text-[color:var(--ink-mute)]">
-                                        {user.email}
-                                    </p>
                                 </div>
                             </div>
-                            <AdminButton href="/admin/subscriptions/create" size="sm">
+                            <AdminButton
+                                href="/admin/subscriptions/create"
+                                size="sm"
+                            >
                                 Changer
                             </AdminButton>
                         </div>
 
                         {user.is_premium && (
                             <p className="mt-3 rounded-lg bg-[oklch(80%_0.13_75_/_0.15)] px-3 py-2 text-xs text-[oklch(42%_0.13_75)]">
-                                Ce compte a déjà un abonnement actif. En créer un nouveau
-                                annulera automatiquement le précédent.
+                                Ce compte a déjà un abonnement actif. En créer
+                                un nouveau annulera automatiquement le
+                                précédent.
                             </p>
                         )}
                     </AdminCard>
@@ -242,7 +242,9 @@ export default function Create({
                                         onChange={(event) =>
                                             setData(
                                                 'amount',
-                                                parseFloat(event.target.value) || 0,
+                                                parseFloat(
+                                                    event.target.value,
+                                                ) || 0,
                                             )
                                         }
                                     />
@@ -256,7 +258,10 @@ export default function Create({
                                         type="date"
                                         value={data.starts_at}
                                         onChange={(event) =>
-                                            setData('starts_at', event.target.value)
+                                            setData(
+                                                'starts_at',
+                                                event.target.value,
+                                            )
                                         }
                                     />
                                 </AdminField>
@@ -286,10 +291,13 @@ export default function Create({
                             </div>
 
                             <div className="rounded-lg bg-[color:var(--bg-soft)] px-3 py-2.5 text-xs text-[color:var(--ink-mute)]">
-                                Cet abonnement est créé manuellement : aucun prélèvement
-                                ne sera effectué et il ne se renouvellera pas
-                                automatiquement. À l&apos;échéance, la tâche{' '}
-                                <code className="font-mono">subscriptions:expire</code>{' '}
+                                Cet abonnement est créé manuellement : aucun
+                                prélèvement ne sera effectué et il ne se
+                                renouvellera pas automatiquement. À
+                                l&apos;échéance, la tâche{' '}
+                                <code className="font-mono">
+                                    subscriptions:expire
+                                </code>{' '}
                                 retirera le statut Premium.
                             </div>
 
@@ -299,9 +307,14 @@ export default function Create({
                                     variant="wine"
                                     disabled={processing}
                                 >
-                                    {processing ? 'Création…' : "Créer l'abonnement"}
+                                    {processing
+                                        ? 'Création…'
+                                        : "Créer l'abonnement"}
                                 </AdminButton>
-                                <AdminButton href="/admin/subscriptions" variant="ghost">
+                                <AdminButton
+                                    href="/admin/subscriptions"
+                                    variant="ghost"
+                                >
                                     Annuler
                                 </AdminButton>
                             </div>

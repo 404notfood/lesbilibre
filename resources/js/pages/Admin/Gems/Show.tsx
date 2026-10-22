@@ -1,3 +1,12 @@
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import AdminLayout, {
     AdminBadge,
     AdminButton,
@@ -12,15 +21,6 @@ import AdminLayout, {
     AdminThead,
     AdminTr,
 } from '@/layouts/admin-layout';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Head, useForm } from '@inertiajs/react';
 import { Coins, Minus, Plus, Sparkles, UserCog } from 'lucide-react';
 import { FormEvent, useState } from 'react';
@@ -28,7 +28,6 @@ import { FormEvent, useState } from 'react';
 interface User {
     id: number;
     name: string;
-    email: string;
     gems: number;
 }
 
@@ -89,7 +88,7 @@ export default function Show({
     return (
         <AdminLayout
             title="Gestion des gemmes"
-            subtitle={`${user.name} · ${user.email}`}
+            subtitle={user.name}
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
                 { label: 'Économie gemmes', href: '/admin/gems' },
@@ -98,7 +97,10 @@ export default function Show({
             hideSearch
             actions={
                 <>
-                    <AdminButton icon={UserCog} href={`/admin/users/${user.id}`}>
+                    <AdminButton
+                        icon={UserCog}
+                        href={`/admin/users/${user.id}`}
+                    >
                         Fiche du compte
                     </AdminButton>
                     <AdminButton
@@ -136,8 +138,8 @@ export default function Show({
                                 {user.gems.toLocaleString('fr-FR')}
                             </div>
                             <p className="mt-1 text-xs text-[color:var(--ink-mute)]">
-                                Chaque ajustement est enregistré dans l&apos;historique
-                                ci-dessous avec son motif.
+                                Chaque ajustement est enregistré dans
+                                l&apos;historique ci-dessous avec son motif.
                             </p>
                         </div>
                     </div>
@@ -176,8 +178,9 @@ export default function Show({
                                                         : 'neutral'
                                                 }
                                             >
-                                                {TYPE_LABELS[transaction.type] ??
-                                                    transaction.type}
+                                                {TYPE_LABELS[
+                                                    transaction.type
+                                                ] ?? transaction.type}
                                             </AdminBadge>
                                         </AdminTd>
                                         <AdminTd>
@@ -193,7 +196,9 @@ export default function Show({
                                                         : 'text-[color:var(--destructive)]'
                                                 }`}
                                             >
-                                                {transaction.amount > 0 ? '+' : ''}
+                                                {transaction.amount > 0
+                                                    ? '+'
+                                                    : ''}
                                                 {transaction.amount.toLocaleString(
                                                     'fr-FR',
                                                 )}
@@ -207,7 +212,9 @@ export default function Show({
                                             </span>
                                         </AdminTd>
                                         <AdminTd>
-                                            <AdminMeta>{transaction.created_at}</AdminMeta>
+                                            <AdminMeta>
+                                                {transaction.created_at}
+                                            </AdminMeta>
                                         </AdminTd>
                                     </AdminTr>
                                 ))}
@@ -226,12 +233,16 @@ export default function Show({
                                 Créditer des gemmes
                             </DialogTitle>
                             <DialogDescription>
-                                Le motif est conservé dans l&apos;historique du compte.
+                                Le motif est conservé dans l&apos;historique du
+                                compte.
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="space-y-3 py-2">
-                            <AdminField label="Quantité" error={addForm.errors.amount}>
+                            <AdminField
+                                label="Quantité"
+                                error={addForm.errors.amount}
+                            >
                                 <Input
                                     type="number"
                                     min={1}
@@ -256,7 +267,10 @@ export default function Show({
                                     maxLength={255}
                                     value={addForm.data.description}
                                     onChange={(event) =>
-                                        addForm.setData('description', event.target.value)
+                                        addForm.setData(
+                                            'description',
+                                            event.target.value,
+                                        )
                                     }
                                     placeholder="Motif de l'ajout"
                                 />
@@ -292,14 +306,18 @@ export default function Show({
                                 Débiter des gemmes
                             </DialogTitle>
                             <DialogDescription>
-                                Solde actuel : {user.gems.toLocaleString('fr-FR')} gemmes.
-                                Un montant supérieur au solde le ramènera simplement à
-                                zéro.
+                                Solde actuel :{' '}
+                                {user.gems.toLocaleString('fr-FR')} gemmes. Un
+                                montant supérieur au solde le ramènera
+                                simplement à zéro.
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="space-y-3 py-2">
-                            <AdminField label="Quantité" error={removeForm.errors.amount}>
+                            <AdminField
+                                label="Quantité"
+                                error={removeForm.errors.amount}
+                            >
                                 <Input
                                     type="number"
                                     min={1}

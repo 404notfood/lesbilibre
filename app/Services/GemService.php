@@ -49,11 +49,12 @@ class GemService
         ?string $description = null,
         ?array $metadata = null
     ): ?GemTransaction {
-        if (! $this->hasEnoughGems($user, $amount)) {
-            return null;
-        }
-
         return DB::transaction(function () use ($user, $amount, $type, $reason, $description, $metadata) {
+            $balance = User::query()->lockForUpdate()->findOrFail($user->id);
+            if (! $this->hasEnoughGems($balance, $amount)) {
+                return null;
+            }
+
             // Update user's gem balance
             $user->decrement('gems', $amount);
             $user->refresh();

@@ -20,13 +20,11 @@ class GemController extends Controller
     {
         $type = $request->query('type');
 
-        $transactions = GemTransaction::with('user:id,name,pseudo')
+        $transactions = GemTransaction::with('user:id,pseudo')
             ->when($type, fn ($query) => $query->where('type', $type))
             ->when($request->query('search'), function ($query, $search) {
                 $query->whereHas('user', function ($inner) use ($search) {
-                    $inner->where('pseudo', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                    $inner->where('pseudo', 'like', "%{$search}%");
                 });
             })
             ->latest()
@@ -37,8 +35,8 @@ class GemController extends Controller
                 'type' => $transaction->type,
                 'amount' => $transaction->amount,
                 'balance_after' => $transaction->balance_after,
-                'description' => $transaction->description,
-                'user' => $transaction->user,
+                'description' => $transaction->displayDescription(),
+                'user' => $transaction->user ? ['id' => $transaction->user->id, 'pseudo' => $transaction->user->pseudo ?: 'Membre'] : null,
                 'created_at' => $transaction->created_at->toISOString(),
             ]);
 
@@ -103,15 +101,14 @@ class GemController extends Controller
                 'type' => $transaction->type,
                 'amount' => $transaction->amount,
                 'balance_after' => $transaction->balance_after,
-                'description' => $transaction->description,
+                'description' => $transaction->displayDescription(),
                 'created_at' => $transaction->created_at->diffForHumans(),
             ]);
 
         return Inertia::render('Admin/Gems/Show', [
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+                'name' => $user->pseudo ?: 'Membre',
                 'gems' => $user->gems,
             ],
             'transactions' => $transactions,

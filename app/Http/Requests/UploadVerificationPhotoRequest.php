@@ -27,6 +27,7 @@ class UploadVerificationPhotoRequest extends FormRequest
                 'image',
                 'mimes:jpeg,png,jpg',
                 'max:5120', // 5MB max
+                new \App\Rules\SafeImageDimensions,
             ],
         ];
     }

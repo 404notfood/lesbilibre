@@ -51,9 +51,9 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        Auth::logout();
+        app(\App\Services\AccountErasureService::class)->requestDeletion($user);
 
-        $user->delete();
+        Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

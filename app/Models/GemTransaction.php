@@ -34,4 +34,14 @@ class GemTransaction extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /** Legacy gift metadata may contain an unreviewed message or civil identity. */
+    public function displayDescription(): ?string
+    {
+        return match ($this->reason ?: $this->type) {
+            'gift_sent' => 'Cadeau envoyé',
+            'gift_received' => 'Cadeau reçu',
+            default => $this->description ? Message::maskEmails($this->description) : null,
+        };
+    }
 }

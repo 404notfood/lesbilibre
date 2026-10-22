@@ -1,20 +1,12 @@
-import DatingLayout from '@/layouts/dating-layout';
-import { Head, router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import {
-    Sparkles,
-    Coins,
-    Gift,
-    Star,
-    Crown,
-    Zap,
-    CheckCircle2,
-    Package,
-} from 'lucide-react';
-import { useState } from 'react';
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -22,6 +14,20 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DatingLayout from '@/layouts/dating-layout';
+import { Head, router } from '@inertiajs/react';
+import {
+    CheckCircle2,
+    Coins,
+    Crown,
+    Gift,
+    Package,
+    Sparkles,
+    Star,
+    Zap,
+} from 'lucide-react';
+import { useState } from 'react';
 
 interface GiftItem {
     id: number;
@@ -70,7 +76,6 @@ export default function Index({
 }: Props) {
     const [selectedGift, setSelectedGift] = useState<GiftItem | null>(null);
     const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
-    const [giftMessage, setGiftMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
 
     // Mapper les cadeaux du backend au format attendu par le frontend
@@ -93,7 +98,6 @@ export default function Index({
 
     const handleSendGift = (gift: GiftItem) => {
         setSelectedGift(gift);
-        setGiftMessage('');
         setIsGiftModalOpen(true);
     };
 
@@ -108,14 +112,13 @@ export default function Index({
             {
                 gift_id: selectedGift.id,
                 recipient_id: giftRecipient.id,
-                message: giftMessage,
             },
             {
                 onFinish: () => {
                     setIsSending(false);
                     setIsGiftModalOpen(false);
                 },
-            }
+            },
         );
     };
 
@@ -159,44 +162,52 @@ export default function Index({
         <DatingLayout title="Boutique" showOnlineUsers={false} gems={userGems}>
             <Head title="Boutique" />
 
-            <div className="p-6 space-y-8">
+            <div className="space-y-8 p-6">
                 {/* Header */}
-                <div className="text-center space-y-2">
-                    <h2 className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                <div className="space-y-2 text-center">
+                    <h2 className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-4xl font-bold text-transparent">
                         ✨ Boutique de Cadeaux ✨
                     </h2>
-                    <p className="text-muted-foreground text-lg">
-                        Envoie des cadeaux virtuels pour te démarquer et charmer !
+                    <p className="text-lg text-muted-foreground">
+                        Envoie des cadeaux virtuels pour te démarquer et charmer
+                        !
                     </p>
                     {giftRecipient && (
-                        <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-1 text-base">
-                            <Gift className="h-4 w-4 mr-2" />
-                            Cadeau pour {giftRecipient.pseudo || giftRecipient.name}
+                        <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-1 text-base text-white">
+                            <Gift className="mr-2 h-4 w-4" />
+                            Cadeau pour{' '}
+                            {giftRecipient.pseudo || giftRecipient.name}
                         </Badge>
                     )}
                 </div>
 
                 <Tabs defaultValue="gifts" className="w-full">
-                    <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-                        <TabsTrigger value="gifts" className="flex items-center gap-2">
+                    <TabsList className="mx-auto grid w-full max-w-md grid-cols-2">
+                        <TabsTrigger
+                            value="gifts"
+                            className="flex items-center gap-2"
+                        >
                             <Gift className="h-4 w-4" />
                             Cadeaux Virtuels
                         </TabsTrigger>
-                        <TabsTrigger value="gems" className="flex items-center gap-2">
+                        <TabsTrigger
+                            value="gems"
+                            className="flex items-center gap-2"
+                        >
                             <Sparkles className="h-4 w-4" />
                             Acheter des Gemmes
                         </TabsTrigger>
                     </TabsList>
 
                     {/* Gifts Tab */}
-                    <TabsContent value="gifts" className="space-y-6 mt-8">
+                    <TabsContent value="gifts" className="mt-8 space-y-6">
                         {/* Current Gems Balance */}
-                        <div className="max-w-2xl mx-auto">
+                        <div className="mx-auto max-w-2xl">
                             <Card className="border-2 border-amber-500/20 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
                                 <CardContent className="p-6">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500">
                                                 <Sparkles className="h-6 w-6 text-white" />
                                             </div>
                                             <div>
@@ -212,12 +223,14 @@ export default function Index({
                                             variant="outline"
                                             className="border-amber-500/50 hover:bg-amber-500/10"
                                             onClick={() =>
-                                                (document.querySelector(
-                                                    '[value="gems"]'
-                                                ) as HTMLElement)?.click()
+                                                (
+                                                    document.querySelector(
+                                                        '[value="gems"]',
+                                                    ) as HTMLElement
+                                                )?.click()
                                             }
                                         >
-                                            <Coins className="h-4 w-4 mr-2" />
+                                            <Coins className="mr-2 h-4 w-4" />
                                             Recharger
                                         </Button>
                                     </div>
@@ -226,11 +239,13 @@ export default function Index({
                         </div>
 
                         {/* Gift Categories */}
-                        {(['romantic', 'luxury', 'fun', 'naughty'] as const).map((category) => (
+                        {(
+                            ['romantic', 'luxury', 'fun', 'naughty'] as const
+                        ).map((category) => (
                             <div key={category} className="space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Badge
-                                        className={`bg-gradient-to-r ${getCategoryColor(category)} text-white px-4 py-1 text-base`}
+                                        className={`bg-gradient-to-r ${getCategoryColor(category)} px-4 py-1 text-base text-white`}
                                     >
                                         {getCategoryLabel(category)}
                                     </Badge>
@@ -238,7 +253,10 @@ export default function Index({
 
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                     {gifts
-                                        .filter((gift) => gift.category === category)
+                                        .filter(
+                                            (gift) =>
+                                                gift.category === category,
+                                        )
                                         .map((gift) => (
                                             <Card
                                                 key={gift.id}
@@ -249,14 +267,14 @@ export default function Index({
                                                 }`}
                                             >
                                                 {gift.popular && (
-                                                    <Badge className="absolute top-2 right-2 bg-amber-500 text-white z-10">
-                                                        <Star className="h-3 w-3 mr-1 fill-white" />
+                                                    <Badge className="absolute top-2 right-2 z-10 bg-amber-500 text-white">
+                                                        <Star className="mr-1 h-3 w-3 fill-white" />
                                                         Populaire
                                                     </Badge>
                                                 )}
 
                                                 <CardHeader className="pb-3">
-                                                    <div className="text-6xl mb-2 text-center">
+                                                    <div className="mb-2 text-center text-6xl">
                                                         {gift.emoji}
                                                     </div>
                                                     <CardTitle className="text-center text-lg">
@@ -265,19 +283,24 @@ export default function Index({
                                                 </CardHeader>
 
                                                 <CardContent className="space-y-3">
-                                                    <div className="flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xl">
+                                                    <div className="flex items-center justify-center gap-2 text-xl font-bold text-amber-600 dark:text-amber-400">
                                                         <Sparkles className="h-5 w-5" />
                                                         <span>{gift.cost}</span>
                                                     </div>
 
                                                     <Button
                                                         className={`w-full bg-gradient-to-r ${getCategoryColor(gift.category)} hover:opacity-90`}
-                                                        disabled={userGems < gift.cost}
-                                                        onClick={() => handleSendGift(gift)}
+                                                        disabled={
+                                                            userGems < gift.cost
+                                                        }
+                                                        onClick={() =>
+                                                            handleSendGift(gift)
+                                                        }
                                                     >
-                                                        {userGems >= gift.cost ? (
+                                                        {userGems >=
+                                                        gift.cost ? (
                                                             <>
-                                                                <Gift className="h-4 w-4 mr-2" />
+                                                                <Gift className="mr-2 h-4 w-4" />
                                                                 Envoyer
                                                             </>
                                                         ) : (
@@ -293,8 +316,8 @@ export default function Index({
                     </TabsContent>
 
                     {/* Gems Tab */}
-                    <TabsContent value="gems" className="space-y-6 mt-8">
-                        <div className="max-w-4xl mx-auto space-y-6">
+                    <TabsContent value="gems" className="mt-8 space-y-6">
+                        <div className="mx-auto max-w-4xl space-y-6">
                             {/* Premium Features */}
                             <Card className="border-2 border-purple-500/20 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
                                 <CardHeader>
@@ -316,11 +339,15 @@ export default function Index({
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <CheckCircle2 className="h-5 w-5 text-green-600" />
-                                            <span className="text-sm">Booste ta visibilité</span>
+                                            <span className="text-sm">
+                                                Booste ta visibilité
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <CheckCircle2 className="h-5 w-5 text-green-600" />
-                                            <span className="text-sm">Accès prioritaire</span>
+                                            <span className="text-sm">
+                                                Accès prioritaire
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -339,29 +366,35 @@ export default function Index({
                                         key={pkg.id}
                                         className={`relative overflow-hidden transition-all hover:scale-105 hover:shadow-xl ${
                                             pkg.popular
-                                                ? 'border-4 border-gradient-to-r from-amber-500 to-orange-500'
+                                                ? 'border-gradient-to-r border-4 from-amber-500 to-orange-500'
                                                 : ''
                                         }`}
                                     >
                                         {pkg.popular && (
-                                            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-center py-2 font-bold text-sm">
+                                            <div className="absolute top-0 right-0 left-0 bg-gradient-to-r from-amber-500 to-orange-500 py-2 text-center text-sm font-bold text-white">
                                                 🔥 MEILLEURE OFFRE 🔥
                                             </div>
                                         )}
 
-                                        <CardHeader className={pkg.popular ? 'pt-12' : ''}>
-                                            <div className="text-center space-y-2">
-                                                <div className="text-5xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+                                        <CardHeader
+                                            className={
+                                                pkg.popular ? 'pt-12' : ''
+                                            }
+                                        >
+                                            <div className="space-y-2 text-center">
+                                                <div className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-5xl font-bold text-transparent">
                                                     {pkg.amount}
                                                 </div>
                                                 <div className="flex items-center justify-center gap-1 text-muted-foreground">
                                                     <Sparkles className="h-4 w-4" />
-                                                    <span className="text-sm">gemmes</span>
+                                                    <span className="text-sm">
+                                                        gemmes
+                                                    </span>
                                                 </div>
                                                 {pkg.bonus && pkg.bonus > 0 && (
                                                     <Badge className="bg-green-500 text-white">
-                                                        <Zap className="h-3 w-3 mr-1" />+{pkg.bonus}{' '}
-                                                        BONUS
+                                                        <Zap className="mr-1 h-3 w-3" />
+                                                        +{pkg.bonus} BONUS
                                                     </Badge>
                                                 )}
                                             </div>
@@ -373,8 +406,10 @@ export default function Index({
                                                     {pkg.price.toFixed(2)}€
                                                 </div>
                                                 {pkg.bonus && pkg.bonus > 0 && (
-                                                    <p className="text-xs text-muted-foreground mt-1">
-                                                        Soit {pkg.amount + pkg.bonus} gemmes au total
+                                                    <p className="mt-1 text-xs text-muted-foreground">
+                                                        Soit{' '}
+                                                        {pkg.amount + pkg.bonus}{' '}
+                                                        gemmes au total
                                                     </p>
                                                 )}
                                             </div>
@@ -385,9 +420,11 @@ export default function Index({
                                                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
                                                         : 'bg-gradient-to-r from-pink-500 to-purple-600'
                                                 } text-white`}
-                                                onClick={() => handlePurchaseGems(pkg.id)}
+                                                onClick={() =>
+                                                    handlePurchaseGems(pkg.id)
+                                                }
                                             >
-                                                <Package className="h-4 w-4 mr-2" />
+                                                <Package className="mr-2 h-4 w-4" />
                                                 Acheter maintenant
                                             </Button>
                                         </CardContent>
@@ -398,12 +435,14 @@ export default function Index({
                             {/* Payment Info */}
                             <Card className="border-muted">
                                 <CardContent className="pt-6">
-                                    <div className="text-center space-y-2">
+                                    <div className="space-y-2 text-center">
                                         <p className="text-sm text-muted-foreground">
-                                            🔒 Paiement 100% sécurisé • Satisfaction garantie
+                                            🔒 Paiement 100% sécurisé •
+                                            Satisfaction garantie
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                            Stripe, PayPal, Carte Bancaire acceptés
+                                            Stripe, PayPal, Carte Bancaire
+                                            acceptés
                                         </p>
                                     </div>
                                 </CardContent>
@@ -417,56 +456,57 @@ export default function Index({
             <Dialog open={isGiftModalOpen} onOpenChange={setIsGiftModalOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Envoyer un cadeau {selectedGift?.emoji}</DialogTitle>
+                        <DialogTitle>
+                            Envoyer un cadeau {selectedGift?.emoji}
+                        </DialogTitle>
                         <DialogDescription>
                             {giftRecipient
                                 ? `Pour ${giftRecipient.pseudo || giftRecipient.name}`
-                                : "Pour envoyer un cadeau, rendez-vous sur le profil de la personne et cliquez sur « Cadeau »."}
+                                : 'Pour envoyer un cadeau, rendez-vous sur le profil de la personne et cliquez sur « Cadeau ».'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                         <Card className="border-amber-500/20">
                             <CardContent className="p-4">
-                                <div className="text-center space-y-2">
-                                    <div className="text-4xl">{selectedGift?.emoji}</div>
-                                    <p className="font-semibold">{selectedGift?.name}</p>
+                                <div className="space-y-2 text-center">
+                                    <div className="text-4xl">
+                                        {selectedGift?.emoji}
+                                    </div>
+                                    <p className="font-semibold">
+                                        {selectedGift?.name}
+                                    </p>
                                     <div className="flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
                                         <Sparkles className="h-4 w-4" />
-                                        <span className="font-bold">{selectedGift?.cost} gemmes</span>
+                                        <span className="font-bold">
+                                            {selectedGift?.cost} gemmes
+                                        </span>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
                         {giftRecipient ? (
                             <>
-                                <div className="space-y-2">
-                                    <label
-                                        htmlFor="gift_message"
-                                        className="text-sm font-medium"
-                                    >
-                                        Message (optionnel)
-                                    </label>
-                                    <textarea
-                                        id="gift_message"
-                                        rows={3}
-                                        maxLength={500}
-                                        value={giftMessage}
-                                        onChange={(e) => setGiftMessage(e.target.value)}
-                                        placeholder="Un mot pour l'accompagner..."
-                                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                    />
-                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    Pour accompagner votre cadeau d’un mot,
+                                    utilisez la messagerie. Chaque message sera
+                                    examiné par l’administration avant
+                                    transmission.
+                                </p>
 
-                                {selectedGift && userGems < selectedGift.cost && (
-                                    <p className="text-sm text-destructive text-center">
-                                        Solde insuffisant : il vous manque{' '}
-                                        {selectedGift.cost - userGems} gemmes.
-                                    </p>
-                                )}
+                                {selectedGift &&
+                                    userGems < selectedGift.cost && (
+                                        <p className="text-center text-sm text-destructive">
+                                            Solde insuffisant : il vous manque{' '}
+                                            {selectedGift.cost - userGems}{' '}
+                                            gemmes.
+                                        </p>
+                                    )}
 
                                 <div className="flex gap-2">
                                     <Button
-                                        onClick={() => setIsGiftModalOpen(false)}
+                                        onClick={() =>
+                                            setIsGiftModalOpen(false)
+                                        }
                                         variant="outline"
                                         className="flex-1"
                                     >
@@ -481,19 +521,27 @@ export default function Index({
                                         }
                                         className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600"
                                     >
-                                        <Gift className="h-4 w-4 mr-2" />
+                                        <Gift className="mr-2 h-4 w-4" />
                                         {isSending ? 'Envoi...' : 'Offrir'}
                                     </Button>
                                 </div>
                             </>
                         ) : (
                             <>
-                                <div className="text-sm text-muted-foreground text-center">
+                                <div className="text-center text-sm text-muted-foreground">
                                     <p>Pour envoyer ce cadeau :</p>
-                                    <ol className="list-decimal list-inside mt-2 space-y-1">
-                                        <li>Rendez-vous sur le profil d'un membre</li>
-                                        <li>Cliquez sur le bouton « Cadeau »</li>
-                                        <li>Sélectionnez le cadeau de votre choix</li>
+                                    <ol className="mt-2 list-inside list-decimal space-y-1">
+                                        <li>
+                                            Rendez-vous sur le profil d'un
+                                            membre
+                                        </li>
+                                        <li>
+                                            Cliquez sur le bouton « Cadeau »
+                                        </li>
+                                        <li>
+                                            Sélectionnez le cadeau de votre
+                                            choix
+                                        </li>
                                     </ol>
                                 </div>
                                 <Button

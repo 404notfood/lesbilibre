@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Message;
 use App\Models\ModerationAction;
 use App\Models\Photo;
 use App\Models\Report;
@@ -20,18 +21,17 @@ class ModerationController extends Controller
     {
         // Pending photos
         $pendingPhotos = Photo::with('user')
-            ->where('is_approved', false)
-            ->whereNull('rejection_reason')
+            ->whereHas('user')
+            ->whereIn('moderation_status', ['pending', 'quarantined'])
             ->latest()
             ->limit(10)
             ->get()
             ->map(fn ($photo) => [
                 'id' => $photo->id,
-                'path' => asset('storage/'.$photo->path),
+                'path' => route('admin.users.photos.file', [$photo->user_id, $photo->id]),
                 'user' => [
                     'id' => $photo->user->id,
-                    'name' => $photo->user->name,
-                    'email' => $photo->user->email,
+                    'name' => $photo->user->pseudo,
                 ],
                 'created_at' => $photo->created_at->diffForHumans(),
                 'is_naughty' => $photo->is_naughty,
@@ -39,6 +39,7 @@ class ModerationController extends Controller
 
         // Pending verifications
         $pendingVerifications = VerificationPhoto::with('user')
+            ->whereHas('user')
             ->where('status', 'pending')
             ->latest()
             ->limit(10)
@@ -48,8 +49,7 @@ class ModerationController extends Controller
                 'path' => route('admin.verifications.image', $verification),
                 'user' => [
                     'id' => $verification->user->id,
-                    'name' => $verification->user->name,
-                    'email' => $verification->user->email,
+                    'name' => $verification->user->pseudo,
                 ],
                 'created_at' => $verification->created_at->diffForHumans(),
             ]);
@@ -64,21 +64,21 @@ class ModerationController extends Controller
                 'id' => $report->id,
                 'reporter' => [
                     'id' => $report->reporter->id,
-                    'name' => $report->reporter->name,
+                    'name' => $report->reporter->pseudo,
                 ],
                 'reported' => [
                     'id' => $report->reportedUser->id,
-                    'name' => $report->reportedUser->name,
+                    'name' => $report->reportedUser->pseudo,
                 ],
-                'reason' => $report->reason,
-                'description' => $report->description,
+                'reason' => Message::maskEmails($report->reason),
+                'description' => $report->description ? Message::maskEmails($report->description) : null,
                 'created_at' => $report->created_at->diffForHumans(),
             ]);
 
         // Statistics
         $stats = [
-            'pending_photos' => Photo::where('is_approved', false)->whereNull('rejection_reason')->count(),
-            'pending_verifications' => VerificationPhoto::where('status', 'pending')->count(),
+            'pending_photos' => Photo::whereHas('user')->whereIn('moderation_status', ['pending', 'quarantined'])->count(),
+            'pending_verifications' => VerificationPhoto::whereHas('user')->where('status', 'pending')->count(),
             'open_reports' => Report::where('status', 'pending')->count(),
             'resolved_reports_today' => Report::where('status', '!=', 'pending')->whereDate('updated_at', today())->count(),
         ];
@@ -88,22 +88,23 @@ class ModerationController extends Controller
             'pendingVerifications' => $pendingVerifications,
             'openReports' => $openReports,
             'stats' => $stats,
+            'operations' => app(\App\Services\OperationalHealthService::class)->snapshot(),
         ]);
     }
 
     /** Display the immutable moderation decision history. */
     public function audit(Request $request): Response
     {
-        $actions = ModerationAction::with(['moderator:id,name,pseudo', 'subjectUser:id,name,pseudo'])
+        $actions = ModerationAction::with(['moderator:id,pseudo', 'subjectUser:id,pseudo'])
             ->latest()
             ->paginate(50)
             ->through(fn (ModerationAction $action) => [
                 'id' => $action->id,
                 'action' => $action->action,
-                'reason' => $action->reason,
-                'notes' => $action->notes,
-                'moderator' => $action->moderator,
-                'subject_user' => $action->subjectUser,
+                'reason' => $action->reason ? Message::maskEmails($action->reason) : null,
+                'notes' => $action->notes ? Message::maskEmails($action->notes) : null,
+                'moderator' => $action->moderator ? ['id' => $action->moderator->id, 'pseudo' => $action->moderator->pseudo, 'name' => $action->moderator->pseudo] : null,
+                'subject_user' => $action->subjectUser ? ['id' => $action->subjectUser->id, 'pseudo' => $action->subjectUser->pseudo, 'name' => $action->subjectUser->pseudo] : null,
                 'created_at' => $action->created_at->toISOString(),
             ]);
 

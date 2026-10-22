@@ -15,8 +15,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_admin_sheet_lists_the_member_gallery(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
 
         $avatar = Photo::factory()->primary()->create(['user_id' => $member->id]);
         Photo::factory()->count(2)->create(['user_id' => $member->id]);
@@ -39,8 +39,8 @@ class UserGalleryModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $video = Photo::factory()->create([
             'user_id' => $member->id,
             'media_type' => 'video',
@@ -74,8 +74,8 @@ class UserGalleryModerationTest extends TestCase
     {
         Storage::fake('local');
 
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         Photo::factory()->create([
             'user_id' => $member->id,
             'media_type' => 'video',
@@ -97,8 +97,8 @@ class UserGalleryModerationTest extends TestCase
     {
         Storage::fake('public');
 
-        $member = User::factory()->create(['is_admin' => false]);
-        $owner = User::factory()->create();
+        $member = User::factory()->communityMember()->create(['is_admin' => false]);
+        $owner = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create(['user_id' => $owner->id]);
         Storage::disk('public')->put($photo->path, 'image-content');
 
@@ -109,8 +109,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_admin_can_flag_a_photo_as_sensitive(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $photo = Photo::factory()->primary()->create([
             'user_id' => $member->id,
             'is_naughty' => false,
@@ -129,8 +129,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_admin_can_clear_the_sensitive_flag(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create([
             'user_id' => $member->id,
             'is_naughty' => true,
@@ -145,8 +145,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_flagging_a_photo_is_written_to_the_audit_log(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create(['user_id' => $member->id]);
 
         $this->actingAs($admin)
@@ -162,8 +162,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_admin_can_clear_the_member_avatar(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $photo = Photo::factory()->primary()->create(['user_id' => $member->id]);
 
         $this->actingAs($admin)
@@ -177,8 +177,8 @@ class UserGalleryModerationTest extends TestCase
     {
         Storage::fake('public');
 
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create(['user_id' => $member->id]);
 
         $this->actingAs($admin)
@@ -196,8 +196,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_deleting_a_photo_requires_a_reason(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create(['user_id' => $member->id]);
 
         $this->actingAs($admin)
@@ -209,8 +209,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_admin_cannot_act_on_a_photo_belonging_to_someone_else(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
         $foreign = Photo::factory()->create();
 
         $this->actingAs($admin)
@@ -222,8 +222,8 @@ class UserGalleryModerationTest extends TestCase
 
     public function test_non_admin_cannot_moderate_a_gallery(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
-        $member = User::factory()->create();
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
+        $member = User::factory()->communityMember()->create();
         $photo = Photo::factory()->create(['user_id' => $member->id]);
 
         $this->actingAs($user)

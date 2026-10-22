@@ -1,12 +1,6 @@
-import AdminLayout, {
-    AdminBadge,
-    AdminButton,
-    AdminCard,
-    AdminCardHeader,
-    AdminEmpty,
-    AdminKpi,
-    AdminMeta,
-} from '@/layouts/admin-layout';
+import AdminOperationsHealth, {
+    type OperationsHealth,
+} from '@/components/admin-operations-health';
 import {
     Dialog,
     DialogContent,
@@ -16,6 +10,15 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import AdminLayout, {
+    AdminBadge,
+    AdminButton,
+    AdminCard,
+    AdminCardHeader,
+    AdminEmpty,
+    AdminKpi,
+    AdminMeta,
+} from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     BadgeCheck,
@@ -71,13 +74,15 @@ const REJECT_COPY = {
         title: 'Rejeter cette photo',
         description:
             'Le motif est transmis à la membre et conservé au journal de modération.',
-        placeholder: 'Ex : visage non visible, contenu interdit, photo de groupe…',
+        placeholder:
+            'Ex : visage non visible, contenu interdit, photo de groupe…',
     },
     verification: {
         title: 'Rejeter cette vérification',
         description:
             'Le motif est transmis à la membre pour qu’elle puisse réessayer correctement.',
-        placeholder: 'Ex : geste demandé non reproduit, photo floue, visage masqué…',
+        placeholder:
+            'Ex : geste demandé non reproduit, photo floue, visage masqué…',
     },
 } as const;
 
@@ -86,11 +91,13 @@ export default function Index({
     pendingVerifications,
     openReports,
     stats,
+    operations,
 }: {
     pendingPhotos: Photo[];
     pendingVerifications: Verification[];
     openReports: ReportRow[];
     stats: Stats;
+    operations: OperationsHealth;
 }) {
     const [rejecting, setRejecting] = useState<RejectTarget | null>(null);
     const [reason, setReason] = useState('');
@@ -100,7 +107,11 @@ export default function Index({
         stats.pending_photos + stats.pending_verifications + stats.open_reports;
 
     const approve = (kind: 'photos' | 'verifications', id: number) =>
-        router.post(`/admin/${kind}/${id}/approve`, {}, { preserveScroll: true });
+        router.post(
+            `/admin/${kind}/${id}/approve`,
+            {},
+            { preserveScroll: true },
+        );
 
     const confirmReject = () => {
         if (!rejecting || !reason.trim()) {
@@ -148,6 +159,7 @@ export default function Index({
             <Head title="Modération · Admin" />
 
             <div className="space-y-6">
+                <AdminOperationsHealth health={operations} />
                 {/* Indicateurs */}
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <AdminKpi
@@ -216,7 +228,7 @@ export default function Index({
                                             className="h-full w-full object-cover"
                                         />
                                         {photo.is_naughty && (
-                                            <span className="absolute left-2 top-2">
+                                            <span className="absolute top-2 left-2">
                                                 <AdminBadge tone="danger">
                                                     Coquine
                                                 </AdminBadge>
@@ -231,7 +243,9 @@ export default function Index({
                                             >
                                                 {photo.user.name}
                                             </Link>
-                                            <AdminMeta>{photo.created_at}</AdminMeta>
+                                            <AdminMeta>
+                                                {photo.created_at}
+                                            </AdminMeta>
                                         </div>
                                         <div className="flex gap-1.5">
                                             <AdminButton
@@ -333,7 +347,8 @@ export default function Index({
                                                     setRejecting({
                                                         kind: 'verification',
                                                         id: verification.id,
-                                                        name: verification.user.name,
+                                                        name: verification.user
+                                                            .name,
                                                     })
                                                 }
                                             >
@@ -395,7 +410,9 @@ export default function Index({
                                                     {report.description}
                                                 </p>
                                             )}
-                                            <AdminMeta>{report.created_at}</AdminMeta>
+                                            <AdminMeta>
+                                                {report.created_at}
+                                            </AdminMeta>
                                         </div>
                                         <AdminButton
                                             size="sm"
@@ -429,7 +446,8 @@ export default function Index({
                         <DialogDescription>
                             {rejecting && (
                                 <>
-                                    Compte concerné : <strong>{rejecting.name}</strong>.{' '}
+                                    Compte concerné :{' '}
+                                    <strong>{rejecting.name}</strong>.{' '}
                                     {REJECT_COPY[rejecting.kind].description}
                                 </>
                             )}
@@ -439,7 +457,9 @@ export default function Index({
                         value={reason}
                         onChange={(event) => setReason(event.target.value)}
                         placeholder={
-                            rejecting ? REJECT_COPY[rejecting.kind].placeholder : ''
+                            rejecting
+                                ? REJECT_COPY[rejecting.kind].placeholder
+                                : ''
                         }
                         rows={3}
                         autoFocus

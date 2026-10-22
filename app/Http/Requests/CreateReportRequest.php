@@ -23,7 +23,7 @@ class CreateReportRequest extends FormRequest
     {
         return [
             'reported_user_id' => ['required', 'exists:users,id'],
-            'reason' => ['required', 'in:spam,harassment,fake_profile,inappropriate_content,other'],
+            'reason' => ['required', 'in:spam,harassment,fake_profile,inappropriate_content,other,suspected_minor,impersonation,hidden_shared_account,unwanted_sexual_contact'],
             'description' => ['required', 'string', 'min:10', 'max:1000'],
         ];
     }

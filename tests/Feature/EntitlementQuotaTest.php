@@ -49,7 +49,7 @@ class EntitlementQuotaTest extends TestCase
 
     public function test_a_free_account_falls_back_to_the_free_tier(): void
     {
-        $user = User::factory()->create(['is_premium' => false]);
+        $user = User::factory()->communityMember()->create(['is_premium' => false]);
 
         $entitlements = app(EntitlementService::class)->for($user);
 
@@ -59,7 +59,7 @@ class EntitlementQuotaTest extends TestCase
 
     public function test_a_plan_overrides_only_what_it_grants(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $this->subscribe($user, ['see_who_liked' => true]);
 
         $entitlements = app(EntitlementService::class)->for($user);
@@ -74,7 +74,7 @@ class EntitlementQuotaTest extends TestCase
 
     public function test_an_expired_subscription_returns_to_free_limits(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $this->subscribe($user, ['unlimited_likes' => true]);
 
         $user->premium_expires_at = now()->subDay();
@@ -89,10 +89,10 @@ class EntitlementQuotaTest extends TestCase
     {
         config(['entitlements.free.likes_per_day' => 2]);
 
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         Like::factory()->count(2)->create(['user_id' => $user->id]);
 
-        $target = User::factory()->create();
+        $target = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('likes.store', $target->id))
@@ -109,13 +109,13 @@ class EntitlementQuotaTest extends TestCase
     {
         config(['entitlements.free.likes_per_day' => 2]);
 
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         Like::factory()->count(5)->create([
             'user_id' => $user->id,
             'created_at' => now()->subDays(2),
         ]);
 
-        $target = User::factory()->create();
+        $target = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('likes.store', $target->id))
@@ -131,11 +131,11 @@ class EntitlementQuotaTest extends TestCase
     {
         config(['entitlements.free.likes_per_day' => 1]);
 
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $this->subscribe($user, ['unlimited_likes' => true]);
         Like::factory()->count(30)->create(['user_id' => $user->id]);
 
-        $target = User::factory()->create();
+        $target = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('likes.store', $target->id))
@@ -151,7 +151,7 @@ class EntitlementQuotaTest extends TestCase
     {
         config(['entitlements.free.likes_per_day' => 2]);
 
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $this->subscribe($user, ['likes_per_day' => 5]);
         Like::factory()->count(3)->create(['user_id' => $user->id]);
 
@@ -162,8 +162,8 @@ class EntitlementQuotaTest extends TestCase
     {
         config(['entitlements.free.likes_per_day' => 1]);
 
-        $user = User::factory()->create();
-        $target = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $target = User::factory()->communityMember()->create();
         Like::factory()->create(['user_id' => $user->id, 'liked_user_id' => $target->id]);
 
         // Le quota est épuisé, mais re-liker doit répondre « déjà aimé »,
@@ -180,9 +180,9 @@ class EntitlementQuotaTest extends TestCase
     {
         config(['entitlements.free.first_messages_per_day' => 1]);
 
-        $user = User::factory()->create();
-        $first = User::factory()->create();
-        $second = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $first = User::factory()->communityMember()->create();
+        $second = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post(route('messages.store', $this->conversationBetween($user, $first)), [
@@ -205,8 +205,8 @@ class EntitlementQuotaTest extends TestCase
     {
         config(['entitlements.free.first_messages_per_day' => 1]);
 
-        $user = User::factory()->create();
-        $other = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $other = User::factory()->communityMember()->create();
         $conversation = $this->conversationBetween($user, $other);
 
         // L'autre personne écrit en premier.
@@ -214,10 +214,11 @@ class EntitlementQuotaTest extends TestCase
             'conversation_id' => $conversation->id,
             'sender_id' => $other->id,
             'content' => 'Coucou, ton profil me plaît beaucoup.',
+            'moderation_status' => 'approved',
         ]);
 
         // Le quota est déjà consommé ailleurs.
-        $third = User::factory()->create();
+        $third = User::factory()->communityMember()->create();
         $this->actingAs($user)->post(
             route('messages.store', $this->conversationBetween($user, $third)),
             ['content' => 'Bonjour, enchantée de faire ta connaissance.']
@@ -239,7 +240,7 @@ class EntitlementQuotaTest extends TestCase
 
     public function test_zero_means_unlimited_first_messages(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $this->subscribe($user, ['first_messages_per_day' => 0]);
 
         $this->assertNull(app(EntitlementService::class)->firstMessagesRemaining($user->fresh()));

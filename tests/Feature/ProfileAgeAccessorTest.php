@@ -24,9 +24,8 @@ class ProfileAgeAccessorTest extends TestCase
 
     public function test_age_does_not_fail_when_the_birth_date_is_not_loaded(): void
     {
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(28),
             'age' => 28,
         ]);
@@ -42,9 +41,8 @@ class ProfileAgeAccessorTest extends TestCase
 
     public function test_age_is_null_when_no_source_is_available(): void
     {
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(25),
         ]);
 
@@ -59,15 +57,13 @@ class ProfileAgeAccessorTest extends TestCase
 
     public function test_dashboard_renders_when_the_last_liker_profile_is_partially_loaded(): void
     {
-        $me = User::factory()->create();
-        Profile::create([
-            'user_id' => $me->id,
+        $me = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $me->id], [
             'date_of_birth' => now()->subYears(30),
         ]);
 
-        $liker = User::factory()->create(['is_verified' => true, 'is_banned' => false]);
-        Profile::create([
-            'user_id' => $liker->id,
+        $liker = User::factory()->communityMember()->create(['is_verified' => true, 'is_banned' => false]);
+        Profile::updateOrCreate(['user_id' => $liker->id], [
             'date_of_birth' => now()->subYears(26),
             'age' => 26,
         ]);

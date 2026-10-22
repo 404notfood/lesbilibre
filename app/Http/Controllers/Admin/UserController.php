@@ -25,9 +25,7 @@ class UserController extends Controller
         // Search filter
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('pseudo', 'like', "%{$search}%");
+                $q->where('pseudo', 'like', "%{$search}%");
             });
         }
 
@@ -43,7 +41,7 @@ class UserController extends Controller
         }
 
         // Sort (whitelist to prevent SQL injection)
-        $allowedSortColumns = ['created_at', 'name', 'email', 'pseudo', 'last_activity_at'];
+        $allowedSortColumns = ['created_at', 'pseudo', 'last_activity_at'];
         $sortBy = in_array($request->input('sort_by'), $allowedSortColumns) ? $request->input('sort_by') : 'created_at';
         $sortDirection = $request->input('sort_direction') === 'asc' ? 'asc' : 'desc';
         $query->orderBy($sortBy, $sortDirection);
@@ -53,8 +51,7 @@ class UserController extends Controller
         // Transform users data
         $users->getCollection()->transform(fn ($user) => [
             'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
+            'name' => $user->pseudo ?: 'Membre',
             'pseudo' => $user->pseudo,
             'is_premium' => $user->is_premium,
             'is_verified' => $user->is_verified,
@@ -106,8 +103,7 @@ class UserController extends Controller
         return Inertia::render('Admin/Users/Show', [
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+                'name' => $user->pseudo ?: 'Membre',
                 'pseudo' => $user->pseudo,
                 'is_premium' => $user->is_premium,
                 'premium_expires_at' => $user->premium_expires_at,
@@ -220,7 +216,7 @@ class UserController extends Controller
      */
     public function clearAvatar(Request $request, User $user): RedirectResponse
     {
-        $user->photos()->update(['is_primary' => false]);
+        $user->photos()->where('is_primary', true)->get()->each(fn ($photo) => $photo->update(['is_primary' => false]));
 
         app(ModerationAuditService::class)->record(
             $request->user(), $user, 'avatar_cleared', $user
@@ -240,10 +236,7 @@ class UserController extends Controller
             'reason' => ['required', 'string', 'max:500'],
         ]);
 
-        Storage::disk('public')->delete($photo->path);
-        if ($photo->thumbnail_path) {
-            Storage::disk('public')->delete($photo->thumbnail_path);
-        }
+        app(\App\Services\MediaDeletionService::class)->deletePhoto($photo);
 
         app(ModerationAuditService::class)->record(
             $request->user(),
@@ -326,16 +319,8 @@ class UserController extends Controller
      */
     public function destroy(Request $request, User $user): RedirectResponse
     {
-        // Delete user's photos from storage
-        foreach ($user->photos as $photo) {
-            \Storage::disk('public')->delete($photo->path);
-            if ($photo->thumbnail_path) {
-                \Storage::disk('public')->delete($photo->thumbnail_path);
-            }
-        }
-
-        // Delete user account
-        $user->delete();
+        abort_if($request->user()->id === $user->id, 422, 'Utilisez les paramètres de votre compte pour le supprimer.');
+        app(\App\Services\AccountErasureService::class)->erase($user, $request->user());
 
         return redirect()->route('admin.users.index')->with('success', "L'utilisateur a été supprimé.");
     }

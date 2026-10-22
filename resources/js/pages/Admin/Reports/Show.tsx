@@ -1,10 +1,3 @@
-import AdminLayout, {
-    AdminBadge,
-    AdminButton,
-    AdminCard,
-    AdminCardHeader,
-    AdminMeta,
-} from '@/layouts/admin-layout';
 import {
     Dialog,
     DialogContent,
@@ -13,8 +6,22 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import AdminLayout, {
+    AdminBadge,
+    AdminButton,
+    AdminCard,
+    AdminCardHeader,
+    AdminMeta,
+} from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { Ban, BadgeCheck, Flag, History, ShieldAlert, User } from 'lucide-react';
+import {
+    BadgeCheck,
+    Ban,
+    Flag,
+    History,
+    ShieldAlert,
+    User,
+} from 'lucide-react';
 import { useState } from 'react';
 
 type ReportStatus = 'pending' | 'reviewed' | 'actioned' | 'dismissed';
@@ -26,9 +33,7 @@ interface Profile {
 
 interface ReportUser {
     id: number;
-    name: string;
     pseudo: string;
-    email?: string;
     is_banned?: boolean;
     is_verified?: boolean;
     profile?: Profile | null;
@@ -51,6 +56,8 @@ interface Report {
     created_at: string;
     reporter: ReportUser | null;
     reported_user: ReportUser | null;
+    ephemeral_media_id: number | null;
+    ephemeral_media_url: string | null;
 }
 
 interface Props {
@@ -78,6 +85,10 @@ const STATUS_TONES: Record<
 const REASON_LABELS: Record<string, string> = {
     spam: 'Spam',
     harassment: 'Harcèlement',
+    suspected_minor: 'Personne potentiellement mineure',
+    impersonation: 'Usurpation d’identité',
+    hidden_shared_account: 'Compte partagé dissimulé',
+    unwanted_sexual_contact: 'Sollicitation sexuelle non souhaitée',
     fake_profile: 'Faux profil',
     inappropriate_content: 'Contenu inapproprié',
     other: 'Autre',
@@ -103,8 +114,7 @@ export default function Show({ report, relatedReports }: Props) {
         );
     };
 
-    const reportedName =
-        report.reported_user?.pseudo ?? report.reported_user?.name ?? 'ce compte';
+    const reportedName = report.reported_user?.pseudo ?? 'ce compte';
 
     return (
         <AdminLayout
@@ -124,31 +134,94 @@ export default function Show({ report, relatedReports }: Props) {
         >
             <Head title={`Signalement #${report.id} · Admin`} />
 
+            <div className="mb-4 rounded border p-4 text-sm">
+                <p>
+                    Mesure conservatoire après examen des faits. Une note
+                    motivée d’au moins 10 caractères est obligatoire. La membre
+                    conserve l’accès à l’aide et au recours.
+                </p>
+                <div className="mt-3 flex gap-3">
+                    <button
+                        disabled={processing || notes.trim().length < 10}
+                        onClick={() =>
+                            router.put(
+                                '/admin/reports/' + report.id,
+                                {
+                                    status: 'reviewed',
+                                    admin_notes: notes,
+                                    safety_action: 'restrict',
+                                },
+                                { preserveScroll: true },
+                            )
+                        }
+                    >
+                        Suspendre les rencontres
+                    </button>
+                    <button
+                        disabled={processing || notes.trim().length < 10}
+                        onClick={() =>
+                            router.put(
+                                '/admin/reports/' + report.id,
+                                {
+                                    status: 'reviewed',
+                                    admin_notes: notes,
+                                    safety_action: 'restore',
+                                },
+                                { preserveScroll: true },
+                            )
+                        }
+                    >
+                        Lever la restriction après réexamen
+                    </button>
+                </div>
+            </div>
             <div className="grid gap-4 lg:grid-cols-3">
                 <div className="space-y-4 lg:col-span-2">
                     {/* Le signalement */}
                     <AdminCard padded={false}>
                         <AdminCardHeader
-                            title={REASON_LABELS[report.reason] ?? report.reason}
+                            title={
+                                REASON_LABELS[report.reason] ?? report.reason
+                            }
                             icon={Flag}
                             action={
                                 <AdminMeta>
-                                    {new Date(report.created_at).toLocaleString('fr-FR', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })}
+                                    {new Date(report.created_at).toLocaleString(
+                                        'fr-FR',
+                                        {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        },
+                                    )}
                                 </AdminMeta>
                             }
                         />
                         <div className="p-5">
+                            {report.ephemeral_media_id && (
+                                <p className="mb-4 text-sm">
+                                    Média signalé #{report.ephemeral_media_id} :{' '}
+                                    {report.ephemeral_media_url ? (
+                                        <a
+                                            href={report.ephemeral_media_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="font-semibold text-primary underline"
+                                        >
+                                            Examiner la preuve privée
+                                        </a>
+                                    ) : (
+                                        'preuve clôturée ou supprimée'
+                                    )}
+                                </p>
+                            )}
                             <p className="text-sm leading-relaxed text-[color:var(--ink-soft)]">
                                 {report.description ?? (
-                                    <span className="italic text-[color:var(--ink-mute)]">
-                                        Aucune description fournie par la personne qui
-                                        signale.
+                                    <span className="text-[color:var(--ink-mute)] italic">
+                                        Aucune description fournie par la
+                                        personne qui signale.
                                     </span>
                                 )}
                             </p>
@@ -166,16 +239,19 @@ export default function Show({ report, relatedReports }: Props) {
                                 className="editorial-caption mb-1.5 block text-[color:var(--ink-mute)]"
                                 htmlFor="admin-notes"
                             >
-                                Notes internes
+                                Notes internes (motif requis pour clôturer ou
+                                sanctionner)
                             </label>
                             <textarea
                                 id="admin-notes"
                                 value={notes}
-                                onChange={(event) => setNotes(event.target.value)}
+                                onChange={(event) =>
+                                    setNotes(event.target.value)
+                                }
                                 rows={4}
                                 maxLength={1000}
                                 placeholder="Contexte de la décision (visible uniquement par l'équipe)"
-                                className="w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--bg-soft)] p-3 text-sm text-[color:var(--ink)] outline-none transition-colors focus:border-[color:var(--desire)]"
+                                className="w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--bg-soft)] p-3 text-sm text-[color:var(--ink)] transition-colors outline-none focus:border-[color:var(--desire)]"
                             />
 
                             <div className="mt-4 flex flex-wrap gap-2">
@@ -188,7 +264,9 @@ export default function Show({ report, relatedReports }: Props) {
                                 </AdminButton>
                                 <AdminButton
                                     size="sm"
-                                    disabled={processing}
+                                    disabled={
+                                        processing || notes.trim().length < 3
+                                    }
                                     onClick={() => submit('dismissed')}
                                 >
                                     Classer sans suite
@@ -196,7 +274,9 @@ export default function Show({ report, relatedReports }: Props) {
                                 <AdminButton
                                     size="sm"
                                     variant="wine"
-                                    disabled={processing}
+                                    disabled={
+                                        processing || notes.trim().length < 3
+                                    }
                                     onClick={() => submit('actioned')}
                                 >
                                     Sanctionner
@@ -205,15 +285,17 @@ export default function Show({ report, relatedReports }: Props) {
                                     size="sm"
                                     variant="danger"
                                     icon={Ban}
-                                    disabled={processing || !report.reported_user}
+                                    disabled={
+                                        processing || !report.reported_user
+                                    }
                                     onClick={() => setConfirmBan(true)}
                                 >
                                     Sanctionner et bannir
                                 </AdminButton>
                             </div>
                             <p className="mt-3 text-[11px] text-[color:var(--ink-mute)]">
-                                Chaque décision est enregistrée au journal de modération
-                                avec ton nom.
+                                Chaque décision est enregistrée au journal de
+                                modération avec ton nom.
                             </p>
                         </div>
                     </AdminCard>
@@ -226,8 +308,8 @@ export default function Show({ report, relatedReports }: Props) {
                         />
                         {relatedReports.length === 0 ? (
                             <p className="px-5 py-6 text-sm text-[color:var(--ink-mute)]">
-                                Aucun autre signalement contre ce compte. C&apos;est une
-                                première plainte.
+                                Aucun autre signalement contre ce compte.
+                                C&apos;est une première plainte.
                             </p>
                         ) : (
                             <ul>
@@ -242,13 +324,22 @@ export default function Show({ report, relatedReports }: Props) {
                                         >
                                             <span className="flex flex-wrap items-center gap-2">
                                                 <AdminBadge
-                                                    tone={STATUS_TONES[related.status]}
+                                                    tone={
+                                                        STATUS_TONES[
+                                                            related.status
+                                                        ]
+                                                    }
                                                 >
-                                                    {STATUS_LABELS[related.status]}
+                                                    {
+                                                        STATUS_LABELS[
+                                                            related.status
+                                                        ]
+                                                    }
                                                 </AdminBadge>
                                                 <span className="text-[color:var(--ink)]">
-                                                    {REASON_LABELS[related.reason] ??
-                                                        related.reason}
+                                                    {REASON_LABELS[
+                                                        related.reason
+                                                    ] ?? related.reason}
                                                 </span>
                                                 <span className="text-[color:var(--ink-mute)]">
                                                     par{' '}
@@ -287,14 +378,15 @@ export default function Show({ report, relatedReports }: Props) {
             <Dialog open={confirmBan} onOpenChange={setConfirmBan}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle className="font-display text-2xl font-medium italic text-[color:var(--destructive)]">
+                        <DialogTitle className="font-display text-2xl font-medium text-[color:var(--destructive)] italic">
                             Bannir {reportedName}
                         </DialogTitle>
                         <DialogDescription>
-                            Le signalement passera en « sanctionné » et le compte sera
-                            banni immédiatement, avec « {REASON_LABELS[report.reason] ??
-                            report.reason} » comme motif. La membre perdra l&apos;accès à
-                            la plateforme.
+                            Le signalement passera en « sanctionné » et le
+                            compte sera banni immédiatement, avec «{' '}
+                            {REASON_LABELS[report.reason] ?? report.reason} »
+                            comme motif. La membre perdra l&apos;accès à la
+                            plateforme.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -304,7 +396,7 @@ export default function Show({ report, relatedReports }: Props) {
                         <AdminButton
                             variant="danger"
                             icon={Ban}
-                            disabled={processing}
+                            disabled={processing || notes.trim().length < 3}
                             onClick={() => submit('actioned', true)}
                         >
                             {processing ? 'Bannissement…' : 'Confirmer le ban'}
@@ -332,7 +424,7 @@ function PartyCard({
                 <div className="editorial-caption mb-2 text-[color:var(--ink-mute)]">
                     {title}
                 </div>
-                <p className="text-sm italic text-[color:var(--ink-mute)]">
+                <p className="text-sm text-[color:var(--ink-mute)] italic">
                     Compte supprimé depuis le signalement.
                 </p>
             </AdminCard>
@@ -355,14 +447,9 @@ function PartyCard({
                     <User className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <div className="font-display truncate text-base font-semibold text-[color:var(--ink)]">
-                        {user.pseudo || user.name}
+                    <div className="truncate font-display text-base font-semibold text-[color:var(--ink)]">
+                        {user.pseudo}
                     </div>
-                    {user.email && (
-                        <div className="truncate text-xs text-[color:var(--ink-soft)]">
-                            {user.email}
-                        </div>
-                    )}
                     <div className="mt-1.5 flex flex-wrap gap-1">
                         {user.is_verified && (
                             <AdminBadge tone="success">

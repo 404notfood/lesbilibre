@@ -1,7 +1,8 @@
-import DatingLayout from '@/layouts/dating-layout';
-import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import DatingLayout from '@/layouts/dating-layout';
+import { cn } from '@/lib/utils';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Bell,
     BellOff,
@@ -12,10 +13,9 @@ import {
     Lock,
     MessageCircle,
     Shield,
-    Trash2,
     Sparkles,
+    Trash2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface Notification {
     id: number;
@@ -53,7 +53,11 @@ const TYPE_ICONS: Record<string, typeof Bell> = {
 
 export default function Index({ notifications, unreadCount }: Props) {
     const markAllAsRead = () => {
-        router.post('/notifications/mark-all-read', {}, { preserveScroll: true });
+        router.post(
+            '/notifications/mark-all-read',
+            {},
+            { preserveScroll: true },
+        );
     };
 
     const markAsRead = (id: number) => {
@@ -74,16 +78,23 @@ export default function Index({ notifications, unreadCount }: Props) {
                         <p className="editorial-eyebrow text-muted-foreground">
                             {notifications.total} au total
                         </p>
-                        <h1 className="mt-1 text-3xl font-semibold">Notifications</h1>
+                        <h1 className="mt-1 text-3xl font-semibold">
+                            Notifications
+                        </h1>
                         {unreadCount > 0 && (
-                            <p className="text-muted-foreground mt-1 text-sm">
-                                {unreadCount} non lue{unreadCount > 1 ? 's' : ''}
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {unreadCount} non lue
+                                {unreadCount > 1 ? 's' : ''}
                             </p>
                         )}
                     </div>
 
                     {unreadCount > 0 && (
-                        <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={markAllAsRead}
+                        >
                             <CheckCheck className="mr-2 h-4 w-4" />
                             Tout marquer comme lu
                         </Button>
@@ -93,17 +104,19 @@ export default function Index({ notifications, unreadCount }: Props) {
                 {notifications.data.length === 0 ? (
                     <Card>
                         <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-                            <div className="bg-muted text-muted-foreground grid h-14 w-14 place-items-center rounded-full">
+                            <div className="grid h-14 w-14 place-items-center rounded-full bg-muted text-muted-foreground">
                                 <BellOff className="h-6 w-6" />
                             </div>
                             <h2 className="text-xl font-semibold">
                                 Aucune notification
                             </h2>
-                            <p className="text-muted-foreground max-w-sm text-sm">
+                            <p className="max-w-sm text-sm text-muted-foreground">
                                 Vos likes, matchs et messages apparaîtront ici.
                             </p>
                             <Button asChild className="mt-2">
-                                <Link href="/dashboard">Découvrir des profils</Link>
+                                <Link href="/dashboard">
+                                    Découvrir des profils
+                                </Link>
                             </Button>
                         </CardContent>
                     </Card>
@@ -117,7 +130,8 @@ export default function Index({ notifications, unreadCount }: Props) {
                                     key={notification.id}
                                     className={cn(
                                         'transition-colors',
-                                        !notification.is_read && 'border-primary/40',
+                                        !notification.is_read &&
+                                            'border-primary/40',
                                     )}
                                 >
                                     <CardContent className="flex items-start gap-3 p-4">
@@ -139,15 +153,24 @@ export default function Index({ notifications, unreadCount }: Props) {
                                                 </h2>
                                                 {!notification.is_read && (
                                                     <span
-                                                        className="bg-primary h-1.5 w-1.5 shrink-0 rounded-full"
+                                                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
                                                         aria-label="Non lue"
                                                     />
                                                 )}
                                             </div>
-                                            <p className="text-muted-foreground mt-0.5 text-sm">
+                                            <p className="mt-0.5 text-sm text-muted-foreground">
                                                 {notification.message}
                                             </p>
-                                            <p className="text-muted-foreground mt-2 text-xs">
+                                            {notification.type ===
+                                                'account_deletion' && (
+                                                <Link
+                                                    href="/admin/account-deletions"
+                                                    className="mt-2 inline-block text-sm font-medium underline"
+                                                >
+                                                    Examiner la demande
+                                                </Link>
+                                            )}
+                                            <p className="mt-2 text-xs text-muted-foreground">
                                                 {new Date(
                                                     notification.created_at,
                                                 ).toLocaleString('fr-FR')}
@@ -160,7 +183,9 @@ export default function Index({ notifications, unreadCount }: Props) {
                                                     variant="ghost"
                                                     size="icon"
                                                     onClick={() =>
-                                                        markAsRead(notification.id)
+                                                        markAsRead(
+                                                            notification.id,
+                                                        )
                                                     }
                                                     aria-label="Marquer comme lue"
                                                 >
@@ -170,7 +195,9 @@ export default function Index({ notifications, unreadCount }: Props) {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => destroy(notification.id)}
+                                                onClick={() =>
+                                                    destroy(notification.id)
+                                                }
                                                 aria-label="Supprimer"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -192,7 +219,10 @@ export default function Index({ notifications, unreadCount }: Props) {
                                 size="sm"
                                 disabled={!link.url}
                                 onClick={() =>
-                                    link.url && router.visit(link.url, { preserveScroll: true })
+                                    link.url &&
+                                    router.visit(link.url, {
+                                        preserveScroll: true,
+                                    })
                                 }
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />

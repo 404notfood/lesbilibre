@@ -12,6 +12,11 @@ class Conversation extends Model
     /** @use HasFactory<\Database\Factories\ConversationFactory> */
     use HasFactory;
 
+    public function acceptsIntimateMedia(int $userId): bool
+    {
+        return \Illuminate\Support\Facades\DB::table('intimate_media_consents')->where('conversation_id', $this->id)->where('user_id', $userId)->where('accepted', true)->exists();
+    }
+
     protected $fillable = [
         'user1_id',
         'user2_id',
@@ -63,7 +68,7 @@ class Conversation extends Model
      */
     public function isAwaitingFirstReply(): bool
     {
-        $senderIds = $this->messages()->distinct()->pluck('sender_id');
+        $senderIds = $this->messages()->where('moderation_status', 'approved')->distinct()->pluck('sender_id');
 
         return $senderIds->count() === 1;
     }
@@ -80,7 +85,7 @@ class Conversation extends Model
             return true;
         }
 
-        $senderIds = $this->messages()->distinct()->pluck('sender_id');
+        $senderIds = $this->messages()->where(fn ($query) => $query->where('moderation_status', 'approved')->orWhere('sender_id', $user->id))->distinct()->pluck('sender_id');
 
         if ($senderIds->isEmpty()) {
             return true;

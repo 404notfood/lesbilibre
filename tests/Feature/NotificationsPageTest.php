@@ -14,7 +14,7 @@ class NotificationsPageTest extends TestCase
 
     public function test_user_sees_their_notifications_with_the_unread_count(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
 
         Notification::createNotification($user->id, 'like', 'Nouveau like', 'Quelqu\'un vous a likée.');
         Notification::createNotification($user->id, 'match', 'Nouveau match', 'C\'est réciproque !');
@@ -34,8 +34,8 @@ class NotificationsPageTest extends TestCase
 
     public function test_notifications_of_other_users_are_not_listed(): void
     {
-        $user = User::factory()->create();
-        $someoneElse = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $someoneElse = User::factory()->communityMember()->create();
 
         Notification::createNotification($someoneElse->id, 'like', 'Nouveau like', 'Message.');
 
@@ -50,8 +50,8 @@ class NotificationsPageTest extends TestCase
 
     public function test_unread_endpoint_exposes_the_sender_expected_by_the_bell(): void
     {
-        $user = User::factory()->create();
-        $sender = User::factory()->create(['name' => 'Camille']);
+        $user = User::factory()->communityMember()->create();
+        $sender = User::factory()->communityMember()->create(['name' => 'Camille']);
 
         Notification::createNotification(
             $user->id,
@@ -70,15 +70,15 @@ class NotificationsPageTest extends TestCase
         $notification = $response->json('notifications.0');
 
         $this->assertSame($sender->id, $notification['user']['id']);
-        $this->assertSame('Camille', $notification['user']['name']);
+        $this->assertSame($sender->pseudo, $notification['user']['name']);
         $this->assertArrayHasKey('photo', $notification['user']);
         $this->assertSame('like', $notification['type']);
     }
 
     public function test_unread_endpoint_skips_notifications_without_a_resolvable_sender(): void
     {
-        $user = User::factory()->create();
-        $sender = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
+        $sender = User::factory()->communityMember()->create();
 
         // Ancienne payload, sans `sender_id` : c'est elle qui faisait lire
         // `user.id` sur `undefined` et cassait tout le layout.
@@ -92,7 +92,7 @@ class NotificationsPageTest extends TestCase
             ['sender_id' => $sender->id]
         );
 
-        $deletedSenderId = User::factory()->create()->id;
+        $deletedSenderId = User::factory()->communityMember()->create()->id;
         Notification::createNotification(
             $user->id,
             'match',
@@ -112,7 +112,7 @@ class NotificationsPageTest extends TestCase
 
     public function test_user_can_mark_a_notification_as_read(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $notification = Notification::createNotification($user->id, 'like', 'Nouveau like', 'Message.');
 
         $this->actingAs($user)
@@ -126,9 +126,9 @@ class NotificationsPageTest extends TestCase
 
     public function test_user_cannot_mark_someone_elses_notification_as_read(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $notification = Notification::createNotification(
-            User::factory()->create()->id,
+            User::factory()->communityMember()->create()->id,
             'like',
             'Nouveau like',
             'Message.'
@@ -143,7 +143,7 @@ class NotificationsPageTest extends TestCase
 
     public function test_user_can_mark_every_notification_as_read(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         Notification::createNotification($user->id, 'like', 'A', 'Message.');
         Notification::createNotification($user->id, 'match', 'B', 'Message.');
 
@@ -156,7 +156,7 @@ class NotificationsPageTest extends TestCase
 
     public function test_user_can_delete_their_own_notification(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $notification = Notification::createNotification($user->id, 'like', 'A', 'Message.');
 
         $this->actingAs($user)
@@ -168,9 +168,9 @@ class NotificationsPageTest extends TestCase
 
     public function test_user_cannot_delete_someone_elses_notification(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         $notification = Notification::createNotification(
-            User::factory()->create()->id,
+            User::factory()->communityMember()->create()->id,
             'like',
             'A',
             'Message.'

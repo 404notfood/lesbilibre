@@ -6,15 +6,10 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Check, Coins, Lock, ShieldCheck, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 
-interface Photo {
-    path: string;
-}
-
 interface Requester {
     id: number;
-    name: string;
-    pseudo?: string;
-    photos: Photo[];
+    pseudo: string;
+    avatar_url: string | null;
 }
 
 interface GalleryAccessRequest {
@@ -104,24 +99,20 @@ export default function Index({ requests, accessGranted }: IndexProps) {
                                         <div className="relative flex-shrink-0">
                                             <Avatar className="h-16 w-16 border-2 border-primary/20">
                                                 {request.requester
-                                                    .photos?.[0] ? (
+                                                    .avatar_url ? (
                                                     <AvatarImage
-                                                        src={`/storage/${request.requester.photos[0].path}`}
+                                                        src={
+                                                            request.requester
+                                                                .avatar_url
+                                                        }
                                                         alt={
                                                             request.requester
-                                                                .pseudo ||
-                                                            request.requester
-                                                                .name
+                                                                .pseudo
                                                         }
                                                     />
                                                 ) : (
                                                     <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-400 text-xl text-white">
-                                                        {(
-                                                            request.requester
-                                                                .pseudo ||
-                                                            request.requester
-                                                                .name
-                                                        )
+                                                        {request.requester.pseudo
                                                             .slice(0, 2)
                                                             .toUpperCase()}
                                                     </AvatarFallback>
@@ -135,8 +126,7 @@ export default function Index({ requests, accessGranted }: IndexProps) {
                                         {/* Content */}
                                         <div className="flex-1 overflow-hidden">
                                             <h3 className="text-lg font-semibold text-foreground">
-                                                {request.requester.pseudo ||
-                                                    request.requester.name}
+                                                {request.requester.pseudo}
                                             </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 Souhaite accéder à ta galerie
@@ -220,9 +210,7 @@ export default function Index({ requests, accessGranted }: IndexProps) {
                     {accessGranted.length > 0 ? (
                         <div className="grid gap-4 md:grid-cols-2">
                             {accessGranted.map((access) => {
-                                const displayName =
-                                    access.requester.pseudo ||
-                                    access.requester.name;
+                                const displayName = access.requester.pseudo;
 
                                 return (
                                     <Card
@@ -238,9 +226,13 @@ export default function Index({ requests, accessGranted }: IndexProps) {
                                                 >
                                                     <Avatar className="h-14 w-14 border-2 border-emerald-500/30">
                                                         {access.requester
-                                                            .photos?.[0] ? (
+                                                            .avatar_url ? (
                                                             <AvatarImage
-                                                                src={`/storage/${access.requester.photos[0].path}`}
+                                                                src={
+                                                                    access
+                                                                        .requester
+                                                                        .avatar_url
+                                                                }
                                                                 alt={
                                                                     displayName
                                                                 }

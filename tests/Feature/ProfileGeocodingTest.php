@@ -31,9 +31,8 @@ class ProfileGeocodingTest extends TestCase
 
     public function test_updating_profile_stores_coordinates_sent_by_the_front(): void
     {
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(30),
             'city' => 'Paris',
         ]);
@@ -41,6 +40,7 @@ class ProfileGeocodingTest extends TestCase
         $this->actingAs($user)
             ->put(route('profile.update'), [
                 'city' => 'Le Genest-Saint-Isle',
+                'data_processing_consent' => true,
                 'postal_code' => '53940',
                 'latitude' => 48.1029,
                 'longitude' => -0.8966,
@@ -68,15 +68,15 @@ class ProfileGeocodingTest extends TestCase
             ],
         ]);
 
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(30),
         ]);
 
         $this->actingAs($user)
             ->put(route('profile.update'), [
                 'city' => 'Laval',
+                'data_processing_consent' => true,
                 'sexual_orientation' => 'lesbian',
             ])
             ->assertRedirect();
@@ -95,15 +95,15 @@ class ProfileGeocodingTest extends TestCase
             'geo.api.gouv.fr/*' => Http::response([], 500),
         ]);
 
-        $user = User::factory()->create();
-        Profile::create([
-            'user_id' => $user->id,
+        $user = User::factory()->communityMember()->create();
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(30),
         ]);
 
         $this->actingAs($user)
             ->put(route('profile.update'), [
                 'city' => 'Ville Inconnue',
+                'data_processing_consent' => true,
                 'sexual_orientation' => 'lesbian',
             ])
             ->assertRedirect();

@@ -1,19 +1,19 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Bell, Heart, Users, Check } from 'lucide-react';
-import { Link, router } from '@inertiajs/react';
-import { getEcho } from '@/echo';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger,
     DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { getEcho } from '@/echo';
+import { Link, router } from '@inertiajs/react';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { Bell, Check, Heart, Users } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface NotificationUser {
     id: number;
@@ -23,7 +23,8 @@ interface NotificationUser {
 
 interface Notification {
     id: number;
-    type: 'like' | 'match';
+    type: 'like' | 'match' | 'account_deletion';
+    url?: string;
     message: string;
     user: NotificationUser;
     created_at: string;
@@ -56,6 +57,18 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     }, []);
 
     useEffect(() => {
+        const refresh = () => {
+            if (!document.hidden) void fetchNotifications();
+        };
+        window.addEventListener('focus', refresh);
+        const timer = window.setInterval(refresh, 30000);
+        return () => {
+            window.removeEventListener('focus', refresh);
+            window.clearInterval(timer);
+        };
+    }, [fetchNotifications]);
+
+    useEffect(() => {
         // Chargement initial depuis l'API, puis abonnement aux évènements temps réel.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchNotifications();
@@ -71,7 +84,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
         const channel = echo.private(`App.Models.User.${userId}`);
 
         const pushNotification = (data: Notification): void => {
-            if (! isRenderable(data)) {
+            if (!isRenderable(data)) {
                 return;
             }
 
@@ -90,13 +103,17 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
     }, [userId, fetchNotifications]);
 
     const markAllAsRead = () => {
-        router.post('/notifications/mark-all-read', {}, {
-            preserveScroll: true,
-            onSuccess: () => {
-                setUnreadCount(0);
-                fetchNotifications();
+        router.post(
+            '/notifications/mark-all-read',
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setUnreadCount(0);
+                    fetchNotifications();
+                },
             },
-        });
+        );
     };
 
     const getNotificationIcon = (type: string) => {
@@ -118,7 +135,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                     {unreadCount > 0 && (
                         <Badge
                             variant="destructive"
-                            className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                            className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
                         >
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </Badge>
@@ -135,7 +152,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                             onClick={markAllAsRead}
                             className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
                         >
-                            <Check className="h-3 w-3 mr-1" />
+                            <Check className="mr-1 h-3 w-3" />
                             Tout marquer comme lu
                         </Button>
                     )}
@@ -143,7 +160,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                 <DropdownMenuSeparator />
                 {notifications.length === 0 ? (
                     <div className="px-4 py-8 text-center text-muted-foreground">
-                        <Bell className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                        <Bell className="mx-auto mb-2 h-12 w-12 opacity-20" />
                         <p className="text-sm">Aucune notification</p>
                     </div>
                 ) : (
@@ -156,15 +173,20 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                             >
                                 <Link
                                     href={
-                                        notification.type === 'like'
-                                            ? '/likes/received'
-                                            : `/profile/${notification.user.id}`
+                                        notification.type === 'account_deletion'
+                                            ? '/admin/account-deletions'
+                                            : notification.type === 'like'
+                                              ? '/likes/received'
+                                              : `/profile/${notification.user.id}`
                                     }
                                     className="flex items-start gap-3 px-4 py-3"
                                 >
                                     <Avatar className="h-10 w-10 flex-shrink-0">
                                         <AvatarImage
-                                            src={notification.user.photo || undefined}
+                                            src={
+                                                notification.user.photo ||
+                                                undefined
+                                            }
                                             alt={notification.user.name}
                                         />
                                         <AvatarFallback>
@@ -175,20 +197,24 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                                                 .toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1 space-y-1 min-w-0">
+                                    <div className="min-w-0 flex-1 space-y-1">
                                         <div className="flex items-center gap-2">
-                                            {getNotificationIcon(notification.type)}
-                                            <p className="text-sm font-medium truncate">
+                                            {getNotificationIcon(
+                                                notification.type,
+                                            )}
+                                            <p className="truncate text-sm font-medium">
                                                 {notification.user.name}
                                             </p>
                                         </div>
-                                        <p className="text-xs text-muted-foreground line-clamp-2">
+                                        <p className="line-clamp-2 text-xs text-muted-foreground">
                                             {notification.message}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
                                             {formatDistanceToNow(
-                                                new Date(notification.created_at),
-                                                { addSuffix: true, locale: fr }
+                                                new Date(
+                                                    notification.created_at,
+                                                ),
+                                                { addSuffix: true, locale: fr },
                                             )}
                                         </p>
                                     </div>
@@ -199,7 +225,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
                         <DropdownMenuItem asChild>
                             <Link
                                 href="/notifications"
-                                className="w-full text-center py-2 text-sm font-medium text-primary"
+                                className="w-full py-2 text-center text-sm font-medium text-primary"
                             >
                                 Voir toutes les notifications
                             </Link>

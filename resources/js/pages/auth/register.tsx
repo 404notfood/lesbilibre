@@ -1,13 +1,17 @@
+import {
+    CommunityCharter,
+    IntentionCheckboxes,
+} from '@/components/community-fields';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/react';
 
+import { CityAutocomplete } from '@/components/city-autocomplete';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CityAutocomplete } from '@/components/city-autocomplete';
 import {
     Select,
     SelectContent,
@@ -24,7 +28,9 @@ interface RegisterProps {
     referralCode?: string;
 }
 
-export default function Register({ referralCode = '' }: RegisterProps): JSX.Element {
+export default function Register({
+    referralCode = '',
+}: RegisterProps): JSX.Element {
     return (
         <AuthLayout
             title="Créez votre compte"
@@ -32,16 +38,16 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
         >
             <Head title="Inscription" />
 
-            <div className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
                 <div className="flex items-start gap-3">
-                    <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <Sparkles className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
                     <div className="text-sm">
-                        <p className="font-medium text-primary mb-1">
+                        <p className="mb-1 font-medium text-primary">
                             Bienvenue sur LesbiLibre !
                         </p>
                         <p className="text-muted-foreground">
-                            Créez votre profil en quelques étapes et commencez à rencontrer des
-                            femmes incroyables près de chez vous.
+                            Créez votre profil en quelques étapes et commencez à
+                            rencontrer des femmes incroyables près de chez vous.
                         </p>
                     </div>
                 </div>
@@ -61,11 +67,16 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                     Invitation activée
                                 </p>
                                 <p className="mt-1 text-muted-foreground">
-                                    Après la vérification de votre profil, votre marraine et vous recevrez vos gemmes bonus.
+                                    Après la vérification de votre profil, votre
+                                    marraine et vous recevrez vos gemmes bonus.
                                 </p>
                             </div>
                         ) : null}
-                        <input type="hidden" name="referral_code" value={referralCode} />
+                        <input
+                            type="hidden"
+                            name="referral_code"
+                            value={referralCode}
+                        />
                         <InputError message={errors.referral_code} />
 
                         {/* Informations de base */}
@@ -75,14 +86,21 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                     Informations personnelles
                                 </h3>
                                 <p className="text-xs text-muted-foreground">
-                                    Ces informations seront visibles sur votre profil
+                                    Votre date de naissance reste privée ; seul
+                                    votre âge peut être affiché
                                 </p>
                             </div>
 
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="pseudo" className="text-sm font-medium">
-                                        Pseudo <span className="text-destructive">*</span>
+                                    <Label
+                                        htmlFor="pseudo"
+                                        className="text-sm font-medium"
+                                    >
+                                        Pseudo{' '}
+                                        <span className="text-destructive">
+                                            *
+                                        </span>
                                     </Label>
                                     <Input
                                         id="pseudo"
@@ -96,15 +114,22 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                         className="h-11"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Votre pseudo sera visible sur votre profil et utilisé pour la connexion
+                                        Votre pseudo sera visible sur votre
+                                        profil et utilisé pour la connexion
                                     </p>
                                     <InputError message={errors.pseudo} />
                                 </div>
 
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor="name" className="text-sm font-medium">
-                                            Prénom <span className="text-destructive">*</span>
+                                        <Label
+                                            htmlFor="name"
+                                            className="text-sm font-medium"
+                                        >
+                                            Prénom{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
                                         </Label>
                                         <Input
                                             id="name"
@@ -120,21 +145,27 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="age" className="text-sm font-medium">
-                                            Âge <span className="text-destructive">*</span>
+                                        <Label
+                                            htmlFor="date_of_birth"
+                                            className="text-sm font-medium"
+                                        >
+                                            Date de naissance{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
                                         </Label>
                                         <Input
-                                            id="age"
-                                            type="number"
+                                            id="date_of_birth"
+                                            type="date"
                                             required
                                             tabIndex={3}
-                                            name="age"
-                                            placeholder="25"
-                                            min="18"
-                                            max="99"
+                                            name="date_of_birth"
+                                            autoComplete="bday"
                                             className="h-11"
                                         />
-                                        <InputError message={errors.age} />
+                                        <InputError
+                                            message={errors.date_of_birth}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -148,18 +179,25 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                     error={errors.city}
                                     className="h-11"
                                 />
-                                <p className="text-xs text-muted-foreground mt-1.5">
-                                    Nous utilisons votre ville pour calculer les distances avec les autres membres
+                                <p className="mt-1.5 text-xs text-muted-foreground">
+                                    Nous utilisons votre ville pour calculer les
+                                    distances avec les autres membres
                                 </p>
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="sexual_orientation" className="text-sm font-medium">
-                                        Mon orientation <span className="text-destructive">*</span>
+                                    <Label
+                                        htmlFor="sexual_orientation"
+                                        className="text-sm font-medium"
+                                    >
+                                        Mon orientation (facultatif)
                                     </Label>
-                                    <Select name="sexual_orientation" required>
-                                        <SelectTrigger className="h-11" tabIndex={5}>
+                                    <Select name="sexual_orientation">
+                                        <SelectTrigger
+                                            className="h-11"
+                                            tabIndex={5}
+                                        >
                                             <SelectValue placeholder="Votre orientation" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -169,23 +207,40 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                             <SelectItem value="bisexual">
                                                 Bisexuelle
                                             </SelectItem>
+                                            <SelectItem value="pansexual">
+                                                Pansexuelle
+                                            </SelectItem>
+                                            <SelectItem value="queer">
+                                                Queer
+                                            </SelectItem>
                                             <SelectItem value="questioning">
                                                 En questionnement
                                             </SelectItem>
                                             <SelectItem value="other">
-                                                Autre
+                                                Sans étiquette / non précisée
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <InputError message={errors.sexual_orientation} />
+                                    <InputError
+                                        message={errors.sexual_orientation}
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="interested_in" className="text-sm font-medium">
-                                        Intéressée par <span className="text-destructive">*</span>
+                                    <Label
+                                        htmlFor="interested_in"
+                                        className="text-sm font-medium"
+                                    >
+                                        Intéressée par{' '}
+                                        <span className="text-destructive">
+                                            *
+                                        </span>
                                     </Label>
                                     <Select name="interested_in" required>
-                                        <SelectTrigger className="h-11" tabIndex={6}>
+                                        <SelectTrigger
+                                            className="h-11"
+                                            tabIndex={6}
+                                        >
                                             <SelectValue placeholder="Qui recherchez-vous ?" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -206,38 +261,19 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <InputError message={errors.interested_in} />
+                                    <InputError
+                                        message={errors.interested_in}
+                                    />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="looking_for" className="text-sm font-medium">
-                                    Type de relation recherchée <span className="text-destructive">*</span>
-                                </Label>
-                                <Select name="looking_for" required>
-                                    <SelectTrigger className="h-11" tabIndex={7}>
-                                        <SelectValue placeholder="Sélectionnez ce que vous recherchez" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="friendship">
-                                            De l'amitié
-                                        </SelectItem>
-                                        <SelectItem value="dating">
-                                            Des rencontres amoureuses
-                                        </SelectItem>
-                                        <SelectItem value="relationship">
-                                            Une relation sérieuse
-                                        </SelectItem>
-                                        <SelectItem value="casual">
-                                            Des rencontres sans prise de tête
-                                        </SelectItem>
-                                        <SelectItem value="open">
-                                            Je suis ouverte à tout
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <InputError message={errors.looking_for} />
-                            </div>
+                            <IntentionCheckboxes />
+                            <InputError message={errors.meeting_intentions} />
+                            <CommunityCharter />
+                            <InputError message={errors.community_charter} />
+                            <InputError
+                                message={errors.data_processing_consent}
+                            />
                         </div>
 
                         <Separator />
@@ -254,8 +290,12 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="email" className="text-sm font-medium">
-                                    Adresse email <span className="text-destructive">*</span>
+                                <Label
+                                    htmlFor="email"
+                                    className="text-sm font-medium"
+                                >
+                                    Adresse email{' '}
+                                    <span className="text-destructive">*</span>
                                 </Label>
                                 <Input
                                     id="email"
@@ -272,8 +312,14 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="password" className="text-sm font-medium">
-                                        Mot de passe <span className="text-destructive">*</span>
+                                    <Label
+                                        htmlFor="password"
+                                        className="text-sm font-medium"
+                                    >
+                                        Mot de passe{' '}
+                                        <span className="text-destructive">
+                                            *
+                                        </span>
                                     </Label>
                                     <Input
                                         id="password"
@@ -296,7 +342,10 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                         htmlFor="password_confirmation"
                                         className="text-sm font-medium"
                                     >
-                                        Confirmation <span className="text-destructive">*</span>
+                                        Confirmation{' '}
+                                        <span className="text-destructive">
+                                            *
+                                        </span>
                                     </Label>
                                     <Input
                                         id="password_confirmation"
@@ -308,7 +357,9 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                         placeholder="••••••••"
                                         className="h-11"
                                     />
-                                    <InputError message={errors.password_confirmation} />
+                                    <InputError
+                                        message={errors.password_confirmation}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -318,7 +369,7 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                         {/* Conditions et bouton */}
                         <div className="space-y-4">
                             <div className="rounded-lg bg-muted/50 p-4">
-                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                <p className="text-xs leading-relaxed text-muted-foreground">
                                     En créant un compte, vous confirmez avoir{' '}
                                     <span className="font-medium text-foreground">
                                         au moins 18 ans
@@ -326,14 +377,14 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
                                     et vous acceptez nos{' '}
                                     <TextLink
                                         href="/terms"
-                                        className="font-medium text-primary hover:text-primary/80 underline"
+                                        className="font-medium text-primary underline hover:text-primary/80"
                                     >
                                         Conditions d'utilisation
                                     </TextLink>{' '}
                                     et notre{' '}
                                     <TextLink
                                         href="/privacy"
-                                        className="font-medium text-primary hover:text-primary/80 underline"
+                                        className="font-medium text-primary underline hover:text-primary/80"
                                     >
                                         Politique de confidentialité
                                     </TextLink>
@@ -343,7 +394,7 @@ export default function Register({ referralCode = '' }: RegisterProps): JSX.Elem
 
                             <Button
                                 type="submit"
-                                className="w-full h-12 btn-gradient text-white font-medium text-base"
+                                className="btn-gradient h-12 w-full text-base font-medium text-white"
                                 tabIndex={11}
                                 disabled={processing}
                             >

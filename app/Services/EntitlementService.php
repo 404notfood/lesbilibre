@@ -43,12 +43,19 @@ class EntitlementService
             return null;
         }
 
-        $slug = $user->subscriptions()
+        $subscription = $user->subscriptions()
             ->where('status', 'active')
+            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->latest('starts_at')
-            ->value('plan');
+            ->first();
 
-        return $slug ? PremiumPlan::where('slug', $slug)->first() : null;
+        if (! $subscription) {
+            return null;
+        }
+
+        // Reconcile historical rows that used the Stripe price ID as `plan`.
+        return PremiumPlan::where('slug', $subscription->plan)->first()
+            ?? PremiumPlan::where('stripe_price_id', $subscription->stripe_price_id ?? $subscription->plan)->first();
     }
 
     /**

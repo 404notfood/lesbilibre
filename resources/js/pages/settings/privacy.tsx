@@ -33,11 +33,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Privacy({
-    consent,
-}: {
-    consent: ConsentData;
-}) {
+export default function Privacy({ consent }: { consent: ConsentData }) {
     const [exporting, setExporting] = useState(false);
 
     const consentForm = useForm({
@@ -114,10 +110,7 @@ export default function Privacy({
                         description="Gérez vos préférences de consentement au traitement de vos données"
                     />
 
-                    <form
-                        onSubmit={handleConsentSubmit}
-                        className="space-y-6"
-                    >
+                    <form onSubmit={handleConsentSubmit} className="space-y-6">
                         <div className="space-y-4">
                             <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
                                 <div className="space-y-0.5">
@@ -144,8 +137,7 @@ export default function Privacy({
                                 <Switch
                                     id="data_processing_consent"
                                     checked={
-                                        consentForm.data
-                                            .data_processing_consent
+                                        consentForm.data.data_processing_consent
                                     }
                                     onCheckedChange={(checked) =>
                                         consentForm.setData(
@@ -172,9 +164,7 @@ export default function Privacy({
                                 </div>
                                 <Switch
                                     id="marketing_consent"
-                                    checked={
-                                        consentForm.data.marketing_consent
-                                    }
+                                    checked={consentForm.data.marketing_consent}
                                     onCheckedChange={(checked) =>
                                         consentForm.setData(
                                             'marketing_consent',
@@ -208,17 +198,16 @@ export default function Privacy({
                 <div className="space-y-6">
                     <HeadingSmall
                         title="Supprimer mon compte"
-                        description="Supprimez définitivement votre compte et toutes vos données (RGPD Article 17)"
+                        description="Fermez votre compte et demandez son effacement à l’administration"
                     />
                     <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                         <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
                             <p className="font-medium">Zone de danger</p>
                             <p className="text-sm">
-                                Cette action est irréversible. Toutes vos
-                                données seront supprimées ou anonymisées de
-                                manière permanente. Vos photos seront
-                                supprimées, vos messages seront anonymisés et
-                                votre profil sera effacé.
+                                Votre profil sera masqué et vos échanges
+                                suspendus immédiatement. L’administration
+                                recevra une notification. Seul un administrateur
+                                pourra ensuite effectuer l’effacement définitif.
                             </p>
                         </div>
 
@@ -234,10 +223,9 @@ export default function Privacy({
                                     compte ?
                                 </DialogTitle>
                                 <DialogDescription>
-                                    Cette action est définitive. Toutes vos
-                                    données personnelles, photos, messages et
-                                    relations seront supprimées ou anonymisées.
-                                    Tapez{' '}
+                                    Votre compte sera fermé. Les données seront
+                                    conservées jusqu’à l’effacement effectué par
+                                    l’administrateur. Tapez{' '}
                                     <strong className="text-foreground">
                                         SUPPRIMER
                                     </strong>{' '}
@@ -260,9 +248,7 @@ export default function Privacy({
                                             id="confirmation"
                                             type="text"
                                             name="confirmation"
-                                            value={
-                                                deleteForm.data.confirmation
-                                            }
+                                            value={deleteForm.data.confirmation}
                                             onChange={(e) =>
                                                 deleteForm.setData(
                                                     'confirmation',
@@ -297,8 +283,7 @@ export default function Privacy({
                                             variant="destructive"
                                             disabled={
                                                 deleteForm.processing ||
-                                                deleteForm.data
-                                                    .confirmation !==
+                                                deleteForm.data.confirmation !==
                                                     'SUPPRIMER'
                                             }
                                             type="submit"

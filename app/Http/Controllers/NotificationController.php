@@ -18,7 +18,21 @@ class NotificationController extends Controller
 
         $notifications = $user->appNotifications()
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->through(function ($notification) {
+                $data = $notification->data ?? [];
+                $sender = User::find($data['sender_id'] ?? $data['liker_id'] ?? $data['viewer_id'] ?? $data['requester_id'] ?? $data['owner_id'] ?? null);
+                $notification->message = match ($notification->type) {
+                    'like' => ($sender?->pseudo ?? 'Une membre').' a aimé votre profil.',
+                    'match' => 'Vous avez un nouveau match.',
+                    'gift' => ($sender?->pseudo ?? 'Une membre').' vous a envoyé un cadeau.',
+                    'account_deletion' => 'Un compte a été fermé. Effacement à examiner.',
+                    default => $this->safeText($notification->message),
+                };
+                $notification->data = \Illuminate\Support\Arr::only($data, ['sender_id', 'liker_id', 'viewer_id', 'requester_id', 'owner_id', 'match_id', 'conversation_id', 'gift_id', 'gift_name', 'gems_bonus', 'amount', 'status', 'subject_id', 'account_erasure_id']);
+
+                return $notification;
+            });
 
         $unreadCount = $user->appNotifications()
             ->where('is_read', false)
@@ -74,6 +88,9 @@ class NotificationController extends Controller
 
         return $notifications
             ->map(function (Notification $notification) use ($senders): ?array {
+                if ($notification->type === 'account_deletion') {
+                    return ['id' => $notification->id, 'type' => $notification->type, 'message' => 'Un compte a été fermé. Effacement à examiner.', 'url' => '/admin/account-deletions', 'user' => ['id' => $notification->data['subject_id'], 'name' => $notification->data['pseudo'] ?? 'Compte fermé', 'photo' => null], 'created_at' => $notification->created_at->toISOString()];
+                }
                 $sender = $senders->get($notification->data['sender_id'] ?? null);
 
                 // Une notification dont l'émettrice a supprimé son compte n'a
@@ -86,11 +103,15 @@ class NotificationController extends Controller
                 return [
                     'id' => $notification->id,
                     'type' => $notification->type,
-                    'message' => $notification->message,
+                    'message' => match ($notification->type) {
+                        'like' => $sender->pseudo.' a aimé votre profil.',
+                        'match' => 'Vous avez un nouveau match avec '.$sender->pseudo.'.',
+                        default => $this->safeText($notification->message),
+                    },
                     'user' => [
                         'id' => $sender->id,
-                        'name' => $sender->name,
-                        'photo' => $sender->photos->first()?->viewUrl(thumbnail: true),
+                        'name' => $sender->pseudo,
+                        'photo' => $sender->avatarPhoto?->viewUrl(thumbnail: true),
                     ],
                     'created_at' => $notification->created_at->toISOString(),
                 ];
@@ -98,6 +119,11 @@ class NotificationController extends Controller
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function safeText(string $text): string
+    {
+        return preg_replace('/[A-Z0-9.!#$%&\x27*+\/=?^_`{|}~-]+@[A-Z0-9.-]+\.[A-Z]{2,}/iu', '[adresse masquée]', $text) ?? '';
     }
 
     public function markAsRead(Request $request, Notification $notification): RedirectResponse

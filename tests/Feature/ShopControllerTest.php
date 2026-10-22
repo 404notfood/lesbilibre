@@ -15,7 +15,7 @@ class ShopControllerTest extends TestCase
 
     public function test_shop_index_displays_gems_and_gifts(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         GemPackage::factory()->count(5)->create();
 
         $response = $this->actingAs($user)->get(route('shop.index'));
@@ -35,7 +35,7 @@ class ShopControllerTest extends TestCase
 
     public function test_user_can_purchase_gems(): void
     {
-        $user = User::factory()->create(['gems' => 0]);
+        $user = User::factory()->communityMember()->create(['gems' => 0]);
         $package = GemPackage::factory()->create([
             'amount' => 500,
             'bonus' => 75,
@@ -65,13 +65,12 @@ class ShopControllerTest extends TestCase
 
     public function test_user_can_send_gift(): void
     {
-        $sender = User::factory()->create(['gems' => 100]);
-        $recipient = User::factory()->create(['gems' => 0]);
+        $sender = User::factory()->communityMember()->create(['gems' => 100]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 0]);
 
         $response = $this->actingAs($sender)->post(route('shop.gifts.send'), [
             'gift_id' => 1, // Rose Rouge - 10 gems
             'recipient_id' => $recipient->id,
-            'message' => 'Pour toi!',
         ]);
 
         $response->assertRedirect();
@@ -88,10 +87,21 @@ class ShopControllerTest extends TestCase
         ]);
     }
 
+    public function test_gift_text_cannot_bypass_message_moderation_or_charge_gems(): void
+    {
+        $sender = User::factory()->communityMember()->create(['gems' => 100]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 0]);
+        $this->actingAs($sender)->post(route('shop.gifts.send'), ['gift_id' => 1, 'recipient_id' => $recipient->id, 'message' => 'Texte sans validation'])
+            ->assertSessionHasErrors('message');
+        $this->assertSame(100, $sender->fresh()->gems);
+        $this->assertSame(0, $recipient->fresh()->gems);
+        $this->assertDatabaseCount('notifications', 0);
+    }
+
     public function test_cannot_send_gift_with_insufficient_gems(): void
     {
-        $sender = User::factory()->create(['gems' => 5]);
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create(['gems' => 5]);
+        $recipient = User::factory()->communityMember()->create();
 
         $response = $this->actingAs($sender)->post(route('shop.gifts.send'), [
             'gift_id' => 1, // Rose Rouge - 10 gems

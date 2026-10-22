@@ -6,7 +6,6 @@ use App\Models\BlockedUser;
 use App\Models\User;
 use App\Models\UserMatch;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class MatchingService
 {
@@ -31,7 +30,7 @@ class MatchingService
                 return $match->user1_id === $user->id ? $match->user2 : $match->user1;
             });
 
-        return $matches;
+        return $matches->filter(fn ($other) => $other && $user->canInteractWith($other))->values();
     }
 
     /**
@@ -52,7 +51,8 @@ class MatchingService
             $query->where('is_approved', true)->where('is_primary', true);
         }])
             ->whereNotIn('id', $excludeIds)
-            ->where('is_verified', true)
+            ->communityEligible()
+            ->withoutOpenConflictWith($user)
             ->where('is_banned', false)
             ->whereHas('profile', function ($query) use ($profile) {
                 $query->whereNotNull('bio')->whereNotNull('looking_for')->where('is_discoverable', true);
@@ -60,7 +60,8 @@ class MatchingService
                 $minBirthYear = now()->year - $profile->max_age_preference;
                 $maxBirthYear = now()->year - $profile->min_age_preference;
 
-                $query->whereBetween(DB::raw('YEAR(date_of_birth)'), [$minBirthYear, $maxBirthYear]);
+                $query->whereDate('date_of_birth', '<=', now()->subYears(max(18, $profile->min_age_preference ?? 18))->toDateString())
+                    ->whereDate('date_of_birth', '>', now()->subYears(($profile->max_age_preference ?? 99) + 1)->toDateString());
 
                 // Location radius if coordinates available
                 if ($profile->latitude && $profile->longitude) {
@@ -70,7 +71,7 @@ class MatchingService
             ->whereHas('photos', fn ($query) => $query->where('is_approved', true));
 
         // Get users and calculate compatibility score
-        $users = $query->get();
+        $users = $query->get()->filter(fn ($candidate) => $profile->acceptsIntentionsOf($candidate->profile) && $candidate->profile->acceptsIntentionsOf($profile));
 
         // Calculate compatibility score for each user
         $scoredUsers = $users->map(function ($candidateUser) use ($profile) {

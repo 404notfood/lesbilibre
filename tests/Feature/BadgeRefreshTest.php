@@ -13,7 +13,7 @@ class BadgeRefreshTest extends TestCase
 
     public function test_refresh_returns_newly_awarded_badges(): void
     {
-        $user = User::factory()->create(['is_verified' => true]);
+        $user = User::factory()->communityMember()->create(['is_verified' => true]);
         Badge::create([
             'slug' => 'verified',
             'name' => 'Profil vérifié',
@@ -37,14 +37,14 @@ class BadgeRefreshTest extends TestCase
 
     public function test_refresh_returns_empty_list_when_nothing_is_earned(): void
     {
-        $user = User::factory()->create(['is_verified' => false]);
+        $user = User::factory()->communityMember()->create();
         Badge::create([
-            'slug' => 'verified',
-            'name' => 'Profil vérifié',
-            'description' => 'Compte vérifié par l\'équipe.',
+            'slug' => 'hundred-likes',
+            'name' => 'Cent likes',
+            'description' => 'Recevoir cent likes.',
             'icon' => 'check',
             'color' => '#fff',
-            'criteria' => ['type' => 'verified_profile'],
+            'criteria' => ['type' => 'likes_received', 'target' => 100],
             'points' => 10,
             'rarity' => 'common',
             'is_active' => true,

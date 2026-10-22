@@ -32,6 +32,7 @@ class SeoController extends Controller
             ['loc' => route('safety'), 'priority' => '0.9'],
             ['loc' => route('features'), 'priority' => '0.8'],
             ['loc' => route('pricing'), 'priority' => '0.8'],
+            ['loc' => route('install'), 'priority' => '0.4'],
             ['loc' => route('guides.index'), 'priority' => '0.8'],
             ['loc' => route('about'), 'priority' => '0.6'],
             ['loc' => route('faq'), 'priority' => '0.7'],

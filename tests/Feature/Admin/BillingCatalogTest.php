@@ -16,7 +16,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_non_admin_cannot_reach_the_catalogue(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
 
         $this->actingAs($user)
             ->get(route('admin.billing.index'))
@@ -25,7 +25,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_admin_sees_plans_and_packages(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         PremiumPlan::factory()->create(['name' => 'Trimestre']);
         GemPackage::factory()->create(['name' => 'Coffre']);
 
@@ -43,7 +43,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_catalogue_flags_a_plan_without_a_stripe_price(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         PremiumPlan::factory()->withoutStripePrice()->create();
 
         $this->actingAs($admin)
@@ -56,7 +56,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_admin_can_create_a_plan_with_perks_and_gems(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($admin)
             ->post(route('admin.billing.plans.store'), [
@@ -86,7 +86,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_plan_slug_must_be_unique(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         PremiumPlan::factory()->create(['slug' => '3-months']);
 
         $this->actingAs($admin)
@@ -104,7 +104,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_plan_slug_stays_valid_when_editing_the_same_plan(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $plan = PremiumPlan::factory()->create(['slug' => '3-months']);
 
         $this->actingAs($admin)
@@ -126,11 +126,11 @@ class BillingCatalogTest extends TestCase
 
     public function test_a_plan_with_active_subscribers_cannot_be_deleted(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $plan = PremiumPlan::factory()->create(['slug' => '3-months']);
 
         Subscription::create([
-            'user_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->communityMember()->create()->id,
             'plan' => '3-months',
             'amount' => 44.99,
             'status' => 'active',
@@ -147,7 +147,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_an_unused_plan_can_be_deleted(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
         $plan = PremiumPlan::factory()->create();
 
         $this->actingAs($admin)
@@ -159,7 +159,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_admin_can_create_a_gem_package(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($admin)
             ->post(route('admin.billing.packages.store'), [
@@ -181,7 +181,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_package_price_must_clear_the_stripe_minimum(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($admin)
             ->post(route('admin.billing.packages.store'), [
@@ -196,7 +196,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_catalogue_exposes_the_entitlement_definitions(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($admin)
             ->get(route('admin.billing.index'))
@@ -210,7 +210,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_admin_can_grant_entitlements_on_a_plan(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($admin)
             ->post(route('admin.billing.plans.store'), [
@@ -238,7 +238,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_unknown_entitlement_keys_are_discarded(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($admin)
             ->post(route('admin.billing.plans.store'), [
@@ -264,7 +264,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_a_quota_entitlement_rejects_a_non_numeric_value(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
 
         $this->actingAs($admin)
             ->post(route('admin.billing.plans.store'), [
@@ -282,7 +282,7 @@ class BillingCatalogTest extends TestCase
 
     public function test_non_admin_cannot_create_a_plan(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
 
         $this->actingAs($user)
             ->post(route('admin.billing.plans.store'), [

@@ -50,13 +50,11 @@ class MatchCreated implements ShouldBroadcast
         return [
             'id' => $this->userMatch->id,
             'type' => 'match',
-            'message' => 'Vous avez un nouveau match avec '.$otherUser->name,
+            'message' => 'Vous avez un nouveau match avec '.$otherUser->pseudo,
             'user' => [
                 'id' => $otherUser->id,
-                'name' => $otherUser->name,
-                'photo' => $otherUser->photos->where('is_primary', true)->first()?->path
-                    ? asset('storage/'.$otherUser->photos->where('is_primary', true)->first()->path)
-                    : null,
+                'name' => $otherUser->pseudo,
+                'photo' => $otherUser->avatarPhoto?->viewUrl(thumbnail: true),
             ],
             'created_at' => $this->userMatch->created_at->toISOString(),
         ];

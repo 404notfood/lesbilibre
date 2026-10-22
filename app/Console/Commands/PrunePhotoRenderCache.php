@@ -33,7 +33,9 @@ class PrunePhotoRenderCache extends Command
 
         foreach ($disk->files($directory) as $file) {
             if ($disk->lastModified($file) <= $expiresBefore) {
-                $disk->delete($file);
+                if (! $disk->delete($file)) {
+                    throw new \RuntimeException('La suppression d’un rendu photo a été refusée par le stockage.');
+                }
                 $removed++;
             }
         }

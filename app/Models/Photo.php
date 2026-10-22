@@ -11,6 +11,27 @@ class Photo extends Model
     /** @use HasFactory<\Database\Factories\PhotoFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        $invalidate = function (Photo $photo): void {
+            $photo->user?->forceFill(['is_verified' => false])->save();
+            $photo->user?->verificationPhotos()->where('status', 'pending')->update([
+                'status' => 'rejected',
+                'rejection_reason' => 'La photo principale a changé. Envoyez un nouveau selfie pour la comparer à votre photo actuelle.',
+            ]);
+        };
+        static::updated(function (Photo $photo) use ($invalidate) {
+            if ($photo->wasChanged('is_primary') || ($photo->is_primary && $photo->wasChanged(['path', 'moderation_status']))) {
+                $invalidate($photo);
+            }
+        });
+        static::deleted(function (Photo $photo) use ($invalidate) {
+            if ($photo->is_primary) {
+                $invalidate($photo);
+            }
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'media_type',
@@ -58,7 +79,7 @@ class Photo extends Model
     public function isVisibleTo(bool $viewerAcceptsNaughty): bool
     {
         return $this->is_approved
-            && $this->moderation_status !== 'rejected'
+            && $this->moderation_status === 'approved'
             && ($viewerAcceptsNaughty || ! $this->is_naughty);
     }
 

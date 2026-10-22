@@ -11,6 +11,7 @@
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
         "types": "tsc --noEmit",
+        "test:pwa": "node --test tests/JavaScript/*.test.mjs",
         "prepare": "husky install"
     },
     "lint-staged": {

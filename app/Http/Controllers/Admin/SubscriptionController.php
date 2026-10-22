@@ -22,8 +22,7 @@ class SubscriptionController extends Controller
         // Search filter
         if ($search = $request->input('search')) {
             $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where('pseudo', 'like', "%{$search}%");
             });
         }
 
@@ -49,11 +48,10 @@ class SubscriptionController extends Controller
         $subscriptions->getCollection()->transform(fn ($subscription) => [
             'id' => $subscription->id,
             'user' => [
-                'id' => $subscription->user->id,
-                'name' => $subscription->user->name,
-                'email' => $subscription->user->email,
-                'is_premium' => $subscription->user->is_premium,
-                'is_banned' => $subscription->user->is_banned,
+                'id' => $subscription->user_id,
+                'name' => $subscription->user?->pseudo ?: 'Compte indisponible',
+                'is_premium' => $subscription->user?->is_premium ?? false,
+                'is_banned' => $subscription->user?->is_banned ?? false,
             ],
             'plan' => $subscription->plan,
             'amount' => $subscription->amount,
@@ -113,23 +111,19 @@ class SubscriptionController extends Controller
         $userId = $request->input('user_id');
         $user = $userId ? User::find($userId) : null;
 
-        // Recherche par nom, pseudo ou e-mail : retrouver un compte sans
-        // connaître son identifiant numérique.
+        // Seul le pseudo sert à retrouver un autre compte.
         $candidates = collect();
 
         if (! $user && ($search = trim((string) $request->input('search'))) !== '') {
             $candidates = User::query()
                 ->where(function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('pseudo', 'like', "%{$search}%");
+                    $query->where('pseudo', 'like', "%{$search}%");
                 })
                 ->limit(10)
-                ->get(['id', 'name', 'email', 'pseudo', 'is_premium'])
+                ->get(['id', 'pseudo', 'is_premium'])
                 ->map(fn (User $candidate) => [
                     'id' => $candidate->id,
-                    'name' => $candidate->name,
-                    'email' => $candidate->email,
+                    'name' => $candidate->pseudo ?: 'Membre',
                     'pseudo' => $candidate->pseudo,
                     'is_premium' => $candidate->is_premium,
                 ]);
@@ -138,8 +132,7 @@ class SubscriptionController extends Controller
         return Inertia::render('Admin/Subscriptions/Create', [
             'user' => $user ? [
                 'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+                'name' => $user->pseudo ?: 'Membre',
                 'is_premium' => $user->is_premium,
             ] : null,
             'candidates' => $candidates,
@@ -205,9 +198,8 @@ class SubscriptionController extends Controller
             'subscription' => [
                 'id' => $subscription->id,
                 'user' => [
-                    'id' => $subscription->user->id,
-                    'name' => $subscription->user->name,
-                    'email' => $subscription->user->email,
+                    'id' => $subscription->user_id,
+                    'name' => $subscription->user?->pseudo ?: 'Compte indisponible',
                 ],
                 'plan' => $subscription->plan,
                 'amount' => $subscription->amount,
@@ -237,9 +229,8 @@ class SubscriptionController extends Controller
             'subscription' => [
                 'id' => $subscription->id,
                 'user' => [
-                    'id' => $subscription->user->id,
-                    'name' => $subscription->user->name,
-                    'email' => $subscription->user->email,
+                    'id' => $subscription->user_id,
+                    'name' => $subscription->user?->pseudo ?: 'Compte indisponible',
                 ],
                 'plan' => $subscription->plan,
                 'amount' => $subscription->amount,

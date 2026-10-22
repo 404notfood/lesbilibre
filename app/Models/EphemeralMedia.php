@@ -35,6 +35,10 @@ class EphemeralMedia extends Model
         'purge_after',
         'purged_at',
         'is_flagged',
+        'moderation_status',
+        'moderated_at',
+        'moderator_id',
+        'moderation_reason',
     ];
 
     /**
@@ -50,6 +54,7 @@ class EphemeralMedia extends Model
             'replayed_at' => 'datetime',
             'purge_after' => 'datetime',
             'purged_at' => 'datetime',
+            'moderated_at' => 'datetime',
         ];
     }
 
@@ -60,12 +65,12 @@ class EphemeralMedia extends Model
 
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'sender_id')->withTrashed();
     }
 
     public function recipient(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'recipient_id');
+        return $this->belongsTo(User::class, 'recipient_id')->withTrashed();
     }
 
     /**
@@ -100,7 +105,7 @@ class EphemeralMedia extends Model
             return false;
         }
 
-        if ($this->purged_at !== null || $this->processing_status !== 'ready') {
+        if ($this->purged_at !== null || $this->processing_status !== 'ready' || $this->moderation_status !== 'approved') {
             return false;
         }
 

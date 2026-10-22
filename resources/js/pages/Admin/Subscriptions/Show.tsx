@@ -1,10 +1,3 @@
-import AdminLayout, {
-    AdminBadge,
-    AdminButton,
-    AdminCard,
-    AdminCardHeader,
-    AdminMeta,
-} from '@/layouts/admin-layout';
 import {
     Dialog,
     DialogContent,
@@ -14,6 +7,13 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import AdminLayout, {
+    AdminBadge,
+    AdminButton,
+    AdminCard,
+    AdminCardHeader,
+    AdminMeta,
+} from '@/layouts/admin-layout';
 import { Head, router } from '@inertiajs/react';
 import {
     AlertTriangle,
@@ -32,7 +32,6 @@ interface Subscription {
     user: {
         id: number;
         name: string;
-        email: string;
     };
     plan: string;
     amount: number;
@@ -49,12 +48,13 @@ interface Subscription {
     updated_at: string;
 }
 
-const STATUS_TONES: Record<string, 'success' | 'neutral' | 'danger' | 'wine'> = {
-    active: 'success',
-    canceled: 'neutral',
-    expired: 'danger',
-    trialing: 'wine',
-};
+const STATUS_TONES: Record<string, 'success' | 'neutral' | 'danger' | 'wine'> =
+    {
+        active: 'success',
+        canceled: 'neutral',
+        expired: 'danger',
+        trialing: 'wine',
+    };
 
 const STATUS_LABELS: Record<string, string> = {
     active: 'Actif',
@@ -109,7 +109,10 @@ export default function Show({ subscription }: { subscription: Subscription }) {
 
     const isStripe = Boolean(subscription.stripe_subscription_id);
     const daysLeft = subscription.expires_at
-        ? Math.ceil((new Date(subscription.expires_at).getTime() - currentTime) / 86400000)
+        ? Math.ceil(
+              (new Date(subscription.expires_at).getTime() - currentTime) /
+                  86400000,
+          )
         : null;
     const isStale =
         subscription.status === 'active' && daysLeft !== null && daysLeft < 0;
@@ -184,10 +187,11 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                     <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[color:var(--destructive)]/30 bg-[oklch(62%_0.19_10_/_0.08)] px-5 py-4">
                         <AlertTriangle className="h-5 w-5 shrink-0 text-[color:var(--destructive)]" />
                         <p className="min-w-0 flex-1 text-sm text-[color:var(--ink)]">
-                            Cet abonnement est encore marqué actif alors que son échéance
-                            est dépassée de {Math.abs(daysLeft as number)} jour
-                            {Math.abs(daysLeft as number) > 1 ? 's' : ''}. La membre garde
-                            son Premium indûment.
+                            Cet abonnement est encore marqué actif alors que son
+                            échéance est dépassée de{' '}
+                            {Math.abs(daysLeft as number)} jour
+                            {Math.abs(daysLeft as number) > 1 ? 's' : ''}. La
+                            membre garde son Premium indûment.
                         </p>
                     </div>
                 )}
@@ -201,7 +205,8 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                 action={
                                     <AdminBadge
                                         tone={
-                                            STATUS_TONES[subscription.status] ?? 'neutral'
+                                            STATUS_TONES[subscription.status] ??
+                                            'neutral'
                                         }
                                     >
                                         {STATUS_LABELS[subscription.status] ??
@@ -230,14 +235,18 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                     value={
                                         subscription.expires_at ? (
                                             <>
-                                                {formatDate(subscription.expires_at)}
-                                                {subscription.status === 'active' &&
+                                                {formatDate(
+                                                    subscription.expires_at,
+                                                )}
+                                                {subscription.status ===
+                                                    'active' &&
                                                     daysLeft !== null && (
                                                         <span
                                                             className={`ml-2 text-xs ${
                                                                 daysLeft < 0
                                                                     ? 'font-semibold text-[color:var(--destructive)]'
-                                                                    : daysLeft <= 7
+                                                                    : daysLeft <=
+                                                                        7
                                                                       ? 'font-semibold text-[color:var(--desire)]'
                                                                       : 'text-[color:var(--ink-mute)]'
                                                             }`}
@@ -258,7 +267,8 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                     value={
                                         subscription.payment_method === 'admin'
                                             ? 'Créé manuellement (aucun prélèvement)'
-                                            : (subscription.payment_method ?? '—')
+                                            : (subscription.payment_method ??
+                                              '—')
                                     }
                                 />
                                 <Row
@@ -276,7 +286,9 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                         label="Abonnement"
                                         value={
                                             <code className="font-mono text-xs">
-                                                {subscription.stripe_subscription_id}
+                                                {
+                                                    subscription.stripe_subscription_id
+                                                }
                                             </code>
                                         }
                                     />
@@ -284,7 +296,8 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                         label="Client"
                                         value={
                                             <code className="font-mono text-xs">
-                                                {subscription.stripe_customer_id ?? '—'}
+                                                {subscription.stripe_customer_id ??
+                                                    '—'}
                                             </code>
                                         }
                                     />
@@ -292,7 +305,8 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                         label="Tarif"
                                         value={
                                             <code className="font-mono text-xs">
-                                                {subscription.stripe_price_id ?? '—'}
+                                                {subscription.stripe_price_id ??
+                                                    '—'}
                                             </code>
                                         }
                                     />
@@ -302,8 +316,9 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                     />
                                 </dl>
                                 <p className="border-t border-[color:var(--line-soft)] px-5 py-3 text-xs text-[color:var(--ink-mute)]">
-                                    Annuler ici ne résilie pas le prélèvement côté Stripe.
-                                    Fais-le également depuis le tableau de bord Stripe.
+                                    Annuler ici ne résilie pas le prélèvement
+                                    côté Stripe. Fais-le également depuis le
+                                    tableau de bord Stripe.
                                 </p>
                             </AdminCard>
                         )}
@@ -318,11 +333,8 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                 <UserIcon className="h-4 w-4" />
                             </span>
                             <div className="min-w-0 flex-1">
-                                <div className="font-display truncate text-base font-semibold text-[color:var(--ink)]">
+                                <div className="truncate font-display text-base font-semibold text-[color:var(--ink)]">
                                     {subscription.user.name}
-                                </div>
-                                <div className="truncate text-xs text-[color:var(--ink-soft)]">
-                                    {subscription.user.email}
                                 </div>
                             </div>
                         </div>
@@ -352,8 +364,9 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                                 Prolonger l&apos;abonnement
                             </DialogTitle>
                             <DialogDescription>
-                                La nouvelle échéance sera calculée à partir de la date de
-                                fin actuelle ({formatDate(subscription.expires_at)}).
+                                La nouvelle échéance sera calculée à partir de
+                                la date de fin actuelle (
+                                {formatDate(subscription.expires_at)}).
                             </DialogDescription>
                         </DialogHeader>
                         <div className="py-2">
@@ -395,14 +408,15 @@ export default function Show({ subscription }: { subscription: Subscription }) {
                             Annuler cet abonnement
                         </DialogTitle>
                         <DialogDescription>
-                            L&apos;abonnement passera en « annulé » et le statut Premium
-                            de {subscription.user.name} sera retiré immédiatement, sauf si
-                            un autre abonnement actif existe.
+                            L&apos;abonnement passera en « annulé » et le statut
+                            Premium de {subscription.user.name} sera retiré
+                            immédiatement, sauf si un autre abonnement actif
+                            existe.
                             {isStripe && (
                                 <span className="mt-2 block text-[color:var(--destructive)]">
-                                    Cet abonnement est lié à Stripe : pense à résilier
-                                    aussi le prélèvement depuis le tableau de bord
-                                    Stripe.
+                                    Cet abonnement est lié à Stripe : pense à
+                                    résilier aussi le prélèvement depuis le
+                                    tableau de bord Stripe.
                                 </span>
                             )}
                         </DialogDescription>
@@ -441,13 +455,15 @@ export default function Show({ subscription }: { subscription: Subscription }) {
             <Dialog open={showDelete} onOpenChange={setShowDelete}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle className="font-display text-2xl font-medium italic text-[color:var(--destructive)]">
+                        <DialogTitle className="font-display text-2xl font-medium text-[color:var(--destructive)] italic">
                             Supprimer cet abonnement
                         </DialogTitle>
                         <DialogDescription>
-                            <strong>Action irréversible.</strong> L&apos;enregistrement
-                            disparaîtra de l&apos;historique de facturation. Préfère
-                            l&apos;annulation si tu veux garder une trace comptable.
+                            <strong>Action irréversible.</strong>{' '}
+                            L&apos;enregistrement disparaîtra de
+                            l&apos;historique de facturation. Préfère
+                            l&apos;annulation si tu veux garder une trace
+                            comptable.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

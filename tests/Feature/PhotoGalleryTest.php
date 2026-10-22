@@ -16,6 +16,13 @@ class PhotoGalleryTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local');
+        Storage::fake('public');
+    }
+
     public function test_gallery_lists_the_users_own_photos_only(): void
     {
         $user = User::factory()->create();
@@ -75,10 +82,10 @@ class PhotoGalleryTest extends TestCase
             ])
             ->assertRedirect();
 
-        // Publiée d'emblée : la modération de galerie se fait a posteriori.
+        // No publication before an administrator has approved this upload.
         $this->assertDatabaseHas('photos', [
             'user_id' => $user->id,
-            'is_approved' => true,
+            'is_approved' => false,
             'is_naughty' => false,
             'moderation_status' => 'pending',
         ]);

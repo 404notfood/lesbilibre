@@ -21,12 +21,15 @@ class UploadPhotoRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isVideo = str_starts_with((string) $this->file('photo')?->getMimeType(), 'video/');
+
         return [
             'photo' => [
                 'required',
                 'file',
                 'mimes:jpeg,png,jpg,mp4,mov,webm',
-                'max:102400', // 100 Mo : une vidéo courte pèse bien plus qu'une photo
+                'max:'.($isVideo ? 102400 : 10240),
+                new \App\Rules\SafeImageDimensions,
             ],
             'is_naughty' => ['boolean'],
             'is_private' => ['boolean'],
@@ -59,7 +62,7 @@ class UploadPhotoRequest extends FormRequest
             'photo.required' => 'Veuillez sélectionner une photo ou une vidéo.',
             'photo.file' => 'Le fichier envoyé est invalide.',
             'photo.mimes' => 'Formats acceptés : JPEG, PNG, JPG, MP4, MOV ou WEBM.',
-            'photo.max' => 'Le fichier ne peut pas dépasser 100 Mo.',
+            'photo.max' => 'La photo ne peut pas dépasser 10 Mo ; une vidéo est limitée à 100 Mo.',
         ];
     }
 }

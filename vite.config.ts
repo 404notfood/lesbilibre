@@ -4,7 +4,32 @@ import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+import { buildPwaRevision } from './scripts/pwa-build.mjs';
+
+function pwaBuildRevision(): Plugin {
+    let clientManifest: string | null = null;
+    let root: string;
+    return {
+        name: 'lesbilibre-pwa-revision',
+        apply: 'build',
+        configResolved(config) {
+            root = config.root;
+            if (!config.build.ssr) {
+                clientManifest = path.resolve(
+                    root,
+                    config.build.outDir,
+                    typeof config.build.manifest === 'string'
+                        ? config.build.manifest
+                        : '.vite/manifest.json',
+                );
+            }
+        },
+        closeBundle() {
+            if (clientManifest) buildPwaRevision(root, clientManifest);
+        },
+    };
+}
 
 /**
  * HTTPS — résolution intelligente des certificats.
@@ -68,6 +93,7 @@ export default defineConfig({
         wayfinder({
             formVariants: true,
         }),
+        pwaBuildRevision(),
     ],
     resolve: {
         alias: {
@@ -76,6 +102,11 @@ export default defineConfig({
     },
     esbuild: {
         jsx: 'automatic',
+    },
+    // Open PWA windows may still request a previous hashed page/dialog chunk.
+    // Keep those public assets available until deployment retention expires.
+    build: {
+        emptyOutDir: false,
     },
     server: {
         host: '0.0.0.0',

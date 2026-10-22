@@ -101,7 +101,7 @@ return [
         'sections' => [
             [
                 'title' => 'Public, privé et éphémère ne veulent pas dire la même chose',
-                'paragraphs' => ['Une photo de profil est visible dans l’espace membre. Une galerie privée nécessite une autorisation. Un média éphémère disparaît après consultation selon les règles du service. Aucun dispositif ne peut cependant empêcher absolument une capture réalisée avec un autre appareil.'],
+                'paragraphs' => ['Chaque message, photo, vidéo et pièce jointe est lu ou examiné par un administrateur habilité avant diffusion, y compris en galerie privée et pour les médias éphémères. Les conversations ne sont pas chiffrées de bout en bout. Une photo de profil approuvée est visible dans l’espace membre. Une galerie privée nécessite aussi votre autorisation pour les autres membres. Un média éphémère suit les règles d’expiration du service ; un signalement peut nécessiter sa conservation. Aucun dispositif ne peut empêcher absolument une capture réalisée avec un autre appareil.'],
             ],
             [
                 'title' => 'Partager le minimum nécessaire',

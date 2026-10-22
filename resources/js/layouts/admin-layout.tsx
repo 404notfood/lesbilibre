@@ -1,12 +1,8 @@
+import { FlashToaster } from '@/components/flash-toaster';
+import NotificationBell from '@/components/NotificationBell';
+import { Toaster } from '@/components/ui/toaster';
+import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import {
-    PropsWithChildren,
-    ReactNode,
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
 import {
     ArrowLeft,
     BarChart3,
@@ -29,9 +25,14 @@ import {
     Users,
     X,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/toaster';
-import { FlashToaster } from '@/components/flash-toaster';
+import {
+    PropsWithChildren,
+    ReactNode,
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 
 /* ===========================================================================
  * AdminLayout — "Console Wine"
@@ -88,6 +89,8 @@ interface AdminPageProps {
         pending_verifications?: number;
         open_reports?: number;
         flagged_ephemeral?: number;
+        pending_messages?: number;
+        account_deletions?: number;
     };
     [key: string]: unknown;
 }
@@ -111,6 +114,8 @@ export default function AdminLayout({
     const pendingVerifications = adminAlerts?.pending_verifications ?? 0;
     const openReports = adminAlerts?.open_reports ?? 0;
     const flaggedEphemeral = adminAlerts?.flagged_ephemeral ?? 0;
+    const pendingMessages = adminAlerts?.pending_messages ?? 0;
+    const accountDeletions = adminAlerts?.account_deletions ?? 0;
 
     const moderationAlerts = pendingPhotos + pendingVerifications + openReports;
 
@@ -124,6 +129,13 @@ export default function AdminLayout({
                         label: "Vue d'ensemble",
                         icon: BarChart3,
                         hint: 'Indicateurs et tendances',
+                    },
+                    {
+                        href: '/admin/account-deletions',
+                        label: 'Comptes fermés',
+                        icon: UserCog,
+                        badge: accountDeletions || undefined,
+                        hint: 'Demandes d’effacement à examiner',
                     },
                     {
                         href: '/admin/users',
@@ -144,6 +156,13 @@ export default function AdminLayout({
                         badge: moderationAlerts || undefined,
                         matchPrefix: '/admin/moderation',
                         hint: 'Tout ce qui attend une décision',
+                    },
+                    {
+                        href: '/admin/messages',
+                        label: 'Messages',
+                        icon: FileText,
+                        badge: pendingMessages || undefined,
+                        hint: 'Validation avant transmission',
                     },
                     {
                         href: '/admin/photos/pending',
@@ -238,6 +257,8 @@ export default function AdminLayout({
             pendingVerifications,
             openReports,
             flaggedEphemeral,
+            pendingMessages,
+            accountDeletions,
         ],
     );
 
@@ -245,7 +266,10 @@ export default function AdminLayout({
         (item: NavItem): boolean => {
             const prefix = item.matchPrefix ?? item.href;
 
-            return currentPath === item.href || currentPath.startsWith(prefix + '/');
+            return (
+                currentPath === item.href ||
+                currentPath.startsWith(prefix + '/')
+            );
         },
         [currentPath],
     );
@@ -335,7 +359,7 @@ export default function AdminLayout({
                                 type="button"
                                 onClick={() => setMobileNavOpen(false)}
                                 aria-label="Fermer"
-                                className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                                className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white"
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -360,11 +384,13 @@ export default function AdminLayout({
 
                                 {breadcrumbs && breadcrumbs.length > 0 && (
                                     <nav
-                                        className="hidden min-w-0 flex-1 flex-wrap items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[color:var(--ink-mute)] sm:flex"
+                                        className="hidden min-w-0 flex-1 flex-wrap items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[color:var(--ink-mute)] uppercase sm:flex"
                                         aria-label="Fil d'ariane"
                                     >
                                         {breadcrumbs.map((bc, index) => {
-                                            const isLast = index === breadcrumbs.length - 1;
+                                            const isLast =
+                                                index ===
+                                                breadcrumbs.length - 1;
 
                                             return (
                                                 <span
@@ -398,6 +424,7 @@ export default function AdminLayout({
                                 )}
 
                                 <div className="ml-auto flex items-center gap-2">
+                                    <NotificationBell userId={auth.user.id} />
                                     {!hideSearch && <AdminGlobalSearch />}
                                 </div>
                             </div>
@@ -406,7 +433,7 @@ export default function AdminLayout({
                             <div className="flex flex-wrap items-end justify-between gap-4">
                                 <div className="min-w-0 flex-1">
                                     {title && (
-                                        <h1 className="font-display text-2xl font-medium leading-tight tracking-tight text-[color:var(--ink)] lg:text-3xl">
+                                        <h1 className="font-display text-2xl leading-tight font-medium tracking-tight text-[color:var(--ink)] lg:text-3xl">
                                             {title}
                                         </h1>
                                     )}
@@ -425,7 +452,9 @@ export default function AdminLayout({
                         </div>
                     </header>
 
-                    <div className="flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">{children}</div>
+                    <div className="flex-1 px-4 pt-6 pb-16 sm:px-6 lg:px-8">
+                        {children}
+                    </div>
                 </main>
             </div>
 
@@ -452,9 +481,9 @@ function AdminSidebar({
     return (
         <div className="admin-sidebar flex h-full w-full flex-col overflow-y-auto">
             {/* Marque */}
-            <div className="px-5 pb-4 pt-6">
+            <div className="px-5 pt-6 pb-4">
                 <Link href="/" className="flex items-baseline gap-1.5">
-                    <span className="font-display text-2xl font-medium italic text-white">
+                    <span className="font-display text-2xl font-medium text-white italic">
                         Lesbi
                     </span>
                     <span className="font-display text-2xl font-medium text-[color:var(--gold)]">
@@ -465,7 +494,7 @@ function AdminSidebar({
                     <span className="grid h-5 w-5 place-items-center rounded bg-[color:var(--gold)] text-[color:var(--wine-deep)]">
                         <UserCog className="h-3 w-3" />
                     </span>
-                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/60">
+                    <span className="font-mono text-[10px] tracking-[0.18em] text-white/60 uppercase">
                         Console admin
                     </span>
                 </div>
@@ -477,7 +506,7 @@ function AdminSidebar({
             <nav className="flex flex-1 flex-col gap-5 px-3">
                 {navGroups.map((group) => (
                     <div key={group.label} className="flex flex-col gap-0.5">
-                        <div className="px-3 pb-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-white/40">
+                        <div className="px-3 pb-1.5 font-mono text-[9px] tracking-[0.18em] text-white/40 uppercase">
                             {group.label}
                         </div>
                         {group.items.map((item) => (
@@ -502,14 +531,14 @@ function AdminSidebar({
                     Retour à l&apos;app
                 </Link>
                 <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.05] px-3 py-2">
-                    <div className="font-display grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color:var(--gold)] text-sm font-medium italic text-[color:var(--wine-deep)]">
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color:var(--gold)] font-display text-sm font-medium text-[color:var(--wine-deep)] italic">
                         {auth.user?.name?.slice(0, 2).toUpperCase() ?? 'AD'}
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="truncate text-xs font-semibold text-white">
                             {auth.user?.name}
                         </div>
-                        <div className="font-mono text-[10px] uppercase tracking-wider text-[color:var(--gold)]">
+                        <div className="font-mono text-[10px] tracking-wider text-[color:var(--gold)] uppercase">
                             Administratrice
                         </div>
                     </div>
@@ -555,13 +584,13 @@ function AdminNavItem({
             {active && (
                 <span
                     aria-hidden
-                    className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r bg-[color:var(--gold)]"
+                    className="absolute top-1/2 left-0 h-5 w-[2px] -translate-y-1/2 rounded-r bg-[color:var(--gold)]"
                 />
             )}
             <Icon className="h-4 w-4 shrink-0" />
             <span className="flex-1 truncate">{item.label}</span>
             {item.badge !== undefined && item.badge > 0 && (
-                <span className="font-mono grid h-5 min-w-[20px] shrink-0 place-items-center rounded-md bg-[color:var(--desire)] px-1.5 text-[10px] font-bold text-white">
+                <span className="grid h-5 min-w-[20px] shrink-0 place-items-center rounded-md bg-[color:var(--desire)] px-1.5 font-mono text-[10px] font-bold text-white">
                     {item.badge > 99 ? '99+' : item.badge}
                 </span>
             )}
@@ -587,7 +616,7 @@ function AdminGlobalSearch() {
 
     return (
         <form onSubmit={submit} className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--ink-mute)]" />
+            <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--ink-mute)]" />
             <input
                 id="admin-global-search"
                 type="search"
@@ -595,9 +624,9 @@ function AdminGlobalSearch() {
                 onChange={(event) => setValue(event.target.value)}
                 placeholder="Chercher une utilisatrice…"
                 aria-label="Chercher une utilisatrice"
-                className="h-9 w-40 rounded-lg border border-[color:var(--line)] bg-[color:var(--bg-soft)] pl-9 pr-9 text-sm text-[color:var(--ink)] outline-none transition-all placeholder:text-[color:var(--ink-mute)] focus:w-56 focus:border-[color:var(--desire)] focus:bg-[color:var(--paper)] sm:w-52 sm:focus:w-72"
+                className="h-9 w-40 rounded-lg border border-[color:var(--line)] bg-[color:var(--bg-soft)] pr-9 pl-9 text-sm text-[color:var(--ink)] transition-all outline-none placeholder:text-[color:var(--ink-mute)] focus:w-56 focus:border-[color:var(--desire)] focus:bg-[color:var(--paper)] sm:w-52 sm:focus:w-72"
             />
-            <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-[color:var(--line)] bg-[color:var(--paper)] px-1.5 font-mono text-[10px] text-[color:var(--ink-mute)] sm:block">
+            <kbd className="pointer-events-none absolute top-1/2 right-2.5 hidden -translate-y-1/2 rounded border border-[color:var(--line)] bg-[color:var(--paper)] px-1.5 font-mono text-[10px] text-[color:var(--ink-mute)] sm:block">
                 /
             </kbd>
         </form>
@@ -647,7 +676,7 @@ export function AdminCardHeader({
                 {Icon && (
                     <Icon className="h-4 w-4 shrink-0 text-[color:var(--wine-deep)]" />
                 )}
-                <h3 className="font-display truncate text-base font-semibold text-[color:var(--ink)]">
+                <h3 className="truncate font-display text-base font-semibold text-[color:var(--ink)]">
                     {title}
                 </h3>
             </div>
@@ -674,7 +703,7 @@ export function AdminSectionTitle({
                         {eyebrow}
                     </div>
                 )}
-                <h2 className="font-display text-xl font-medium leading-tight text-[color:var(--ink)]">
+                <h2 className="font-display text-xl leading-tight font-medium text-[color:var(--ink)]">
                     {title}
                 </h2>
             </div>
@@ -683,7 +712,13 @@ export function AdminSectionTitle({
     );
 }
 
-export type AdminTone = 'neutral' | 'success' | 'warning' | 'danger' | 'gold' | 'wine';
+export type AdminTone =
+    | 'neutral'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'gold'
+    | 'wine';
 
 /** KPI card éditorial (gros chiffre + label + tendance + sparkline optionnelle) */
 export function AdminKpi({
@@ -734,7 +769,12 @@ export function AdminKpi({
                             : value}
                     </div>
                     {delta && (
-                        <div className={cn('mt-1.5 text-xs font-medium', deltaClass)}>
+                        <div
+                            className={cn(
+                                'mt-1.5 text-xs font-medium',
+                                deltaClass,
+                            )}
+                        >
                             {delta}
                         </div>
                     )}
@@ -793,7 +833,7 @@ export function AdminBadge({
     return (
         <span
             className={cn(
-                'font-mono inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                'inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase',
                 tones[tone],
             )}
         >
@@ -820,7 +860,14 @@ export function AdminButton({
     onClick?: () => void;
     href?: string;
     method?: 'get' | 'post' | 'put' | 'delete';
-    variant?: 'default' | 'primary' | 'wine' | 'gold' | 'ghost' | 'danger' | 'success';
+    variant?:
+        | 'default'
+        | 'primary'
+        | 'wine'
+        | 'gold'
+        | 'ghost'
+        | 'danger'
+        | 'success';
     size?: 'sm' | 'md';
     icon?: typeof Users;
     disabled?: boolean;
@@ -841,7 +888,8 @@ export function AdminButton({
             'bg-[color:var(--success)] text-[color:var(--success-foreground)] hover:brightness-105',
     } as const;
 
-    const sizing = size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3.5 py-2 text-sm';
+    const sizing =
+        size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3.5 py-2 text-sm';
     const classes = cn(
         'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg font-semibold transition-all disabled:pointer-events-none disabled:opacity-50',
         variants[variant],
@@ -851,7 +899,9 @@ export function AdminButton({
 
     const inner = (
         <>
-            {Icon && <Icon className={size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'} />}
+            {Icon && (
+                <Icon className={size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+            )}
             {children}
         </>
     );
@@ -893,8 +943,12 @@ export function AdminToolbar({
 }) {
     return (
         <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-[color:var(--line)] bg-[color:var(--paper)] p-4">
-            <div className="flex flex-1 flex-wrap items-end gap-3">{children}</div>
-            {right && <div className="flex flex-wrap items-center gap-2">{right}</div>}
+            <div className="flex flex-1 flex-wrap items-end gap-3">
+                {children}
+            </div>
+            {right && (
+                <div className="flex flex-wrap items-center gap-2">{right}</div>
+            )}
         </div>
     );
 }
@@ -920,7 +974,9 @@ export function AdminField({
             </label>
             {children}
             {hint && !error && (
-                <p className="mt-1 text-[11px] text-[color:var(--ink-mute)]">{hint}</p>
+                <p className="mt-1 text-[11px] text-[color:var(--ink-mute)]">
+                    {hint}
+                </p>
             )}
             {error && (
                 <p className="mt-1 text-[11px] font-medium text-[color:var(--destructive)]">
@@ -948,7 +1004,7 @@ export function AdminSelect({
             value={value}
             onChange={(event) => onChange(event.target.value)}
             className={cn(
-                'h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] px-3 text-sm text-[color:var(--ink)] outline-none transition-colors focus:border-[color:var(--desire)]',
+                'h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] px-3 text-sm text-[color:var(--ink)] transition-colors outline-none focus:border-[color:var(--desire)]',
                 className,
             )}
         >
@@ -961,7 +1017,9 @@ export function AdminSelect({
 export function AdminTable({ children }: { children: ReactNode }) {
     return (
         <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse">{children}</table>
+            <table className="w-full min-w-[640px] border-collapse">
+                {children}
+            </table>
         </div>
     );
 }
@@ -993,7 +1051,7 @@ export function AdminTh({
         return (
             <th
                 className={cn(
-                    'editorial-caption whitespace-nowrap px-4 py-2.5 font-normal text-[color:var(--ink-mute)]',
+                    'editorial-caption px-4 py-2.5 font-normal whitespace-nowrap text-[color:var(--ink-mute)]',
                     alignment,
                     className,
                 )}
@@ -1009,7 +1067,7 @@ export function AdminTh({
                 type="button"
                 onClick={onSort}
                 className={cn(
-                    'editorial-caption inline-flex w-full items-center gap-1 whitespace-nowrap px-4 py-2.5 transition-colors hover:text-[color:var(--ink)]',
+                    'editorial-caption inline-flex w-full items-center gap-1 px-4 py-2.5 whitespace-nowrap transition-colors hover:text-[color:var(--ink)]',
                     align === 'right' && 'justify-end',
                     align === 'center' && 'justify-center',
                     active
@@ -1078,7 +1136,10 @@ export function AdminTd({
               : 'text-left';
 
     return (
-        <td className={cn('px-4 py-3 align-middle', alignment, className)} colSpan={colSpan}>
+        <td
+            className={cn('px-4 py-3 align-middle', alignment, className)}
+            colSpan={colSpan}
+        >
             {children}
         </td>
     );
@@ -1087,7 +1148,7 @@ export function AdminTd({
 /** Valeur monospace discrète (dates, identifiants, compteurs) */
 export function AdminMeta({ children }: { children: ReactNode }) {
     return (
-        <span className="font-mono text-[11px] uppercase tracking-wider text-[color:var(--ink-mute)]">
+        <span className="font-mono text-[11px] tracking-wider text-[color:var(--ink-mute)] uppercase">
             {children}
         </span>
     );
@@ -1159,7 +1220,7 @@ export function AdminPagination({
                             router.visit(link.url, { preserveScroll: true })
                         }
                         className={cn(
-                            'font-mono min-w-[30px] rounded-md px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors disabled:opacity-40',
+                            'min-w-[30px] rounded-md px-2 py-1.5 font-mono text-[11px] font-semibold tracking-wider uppercase transition-colors disabled:opacity-40',
                             link.active
                                 ? 'bg-[color:var(--ink)] text-[color:var(--bg)]'
                                 : 'border border-[color:var(--line)] text-[color:var(--ink-soft)] hover:bg-[color:var(--paper)]',
@@ -1184,7 +1245,8 @@ export function AdminMeter({
     label?: string;
     tone?: 'wine' | 'gold' | 'success' | 'danger';
 }) {
-    const pct = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
+    const pct =
+        total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
     const colors = {
         wine: 'var(--wine)',
         gold: 'var(--gold)',
@@ -1324,7 +1386,9 @@ export function AdminAreaChart({
                 style={{ height }}
             >
                 {[...ticks].reverse().map((tick) => (
-                    <span key={tick}>{formatValue(Math.round(max * tick))}</span>
+                    <span key={tick}>
+                        {formatValue(Math.round(max * tick))}
+                    </span>
                 ))}
             </div>
 
@@ -1409,7 +1473,11 @@ export function AdminAreaChart({
                         {labels.map((label, index) => (
                             <rect
                                 key={`${label}-${index}`}
-                                x={index === 0 ? 0 : toX(index) - width / (count - 1) / 2}
+                                x={
+                                    index === 0
+                                        ? 0
+                                        : toX(index) - width / (count - 1) / 2
+                                }
                                 y={0}
                                 width={width / (count - 1)}
                                 height={chartHeight}
@@ -1454,7 +1522,9 @@ export function AdminAreaChart({
                 {/* Axe X : premier, milieu, dernier pour éviter la surcharge */}
                 <div className="mt-2 flex justify-between font-mono text-[10px] text-[color:var(--ink-mute)]">
                     <span>{labels[0]}</span>
-                    {count > 2 && <span>{labels[Math.floor((count - 1) / 2)]}</span>}
+                    {count > 2 && (
+                        <span>{labels[Math.floor((count - 1) / 2)]}</span>
+                    )}
                     <span>{labels[count - 1]}</span>
                 </div>
             </div>
@@ -1505,14 +1575,16 @@ export function AdminBarList({
                             <span className="truncate text-xs font-medium text-[color:var(--ink-soft)]">
                                 {item.label}
                             </span>
-                            <span className="font-mono shrink-0 text-xs font-semibold text-[color:var(--ink)]">
+                            <span className="shrink-0 font-mono text-xs font-semibold text-[color:var(--ink)]">
                                 {formatValue(item.value)}
                             </span>
                         </div>
                         <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--bg-soft)]">
                             <div
                                 className="h-full rounded-full bg-[color:var(--wine)]"
-                                style={{ width: `${(item.value / max) * 100}%` }}
+                                style={{
+                                    width: `${(item.value / max) * 100}%`,
+                                }}
                             />
                         </div>
                     </>

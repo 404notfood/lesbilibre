@@ -37,7 +37,7 @@ class DashboardController extends Controller
         // ou privé : c'est une carte visible sans consentement ni accès.
         $query = User::with(['profile', 'photos' => function ($q) {
             $q->where('is_approved', true)
-                ->where('moderation_status', '!=', 'rejected')
+                ->where('moderation_status', 'approved')
                 ->where('is_naughty', false)
                 ->where('is_private', false)
                 ->where('media_type', 'photo')
@@ -45,7 +45,8 @@ class DashboardController extends Controller
                 ->orderBy('order');
         }])
             ->where('users.id', '!=', $user->id)
-            ->where('users.is_verified', true)
+            ->communityEligible()
+            ->withoutOpenConflictWith($user)
             ->where('users.is_banned', false)
             ->whereHas('profile', fn ($profile) => $profile->where('is_discoverable', true))
             // Exclure les utilisateurs bloqués
@@ -97,7 +98,7 @@ class DashboardController extends Controller
                     if (in_array($filters['quick_filter'], self::LOOKING_FOR_FILTERS, true)) {
                         $query->whereHas(
                             'profile',
-                            fn ($q) => $q->where('looking_for', $filters['quick_filter'])
+                            fn ($q) => $q->where(fn ($i) => $i->whereJsonContains('meeting_intentions', $filters['quick_filter'])->orWhere(fn ($old) => $old->whereNull('meeting_intentions')->where('looking_for', $filters['quick_filter'])))
                         );
                     }
                     break;
@@ -149,7 +150,7 @@ class DashboardController extends Controller
         }
 
         // Get profiles first (increase to 100 for more results)
-        $candidates = $query->limit(100)->get();
+        $candidates = $query->limit(100)->get()->filter(fn ($candidate) => $userProfile && $candidate->profile && $userProfile->acceptsIntentionsOf($candidate->profile) && $candidate->profile->acceptsIntentionsOf($userProfile));
 
         // Calculate compatibility scores for all candidates
         $candidatesWithScore = $candidates->map(function ($candidate) use ($userProfile) {
@@ -202,7 +203,7 @@ class DashboardController extends Controller
                 $recommendationReasons->push('Même type de rencontre recherché');
             }
 
-            if (isset($profile->distance) && $profile->distance <= 10) {
+            if ($profile->profile?->show_location && isset($profile->distance) && $profile->distance <= 10) {
                 $recommendationReasons->push('À moins de 10 km');
             }
 
@@ -212,12 +213,12 @@ class DashboardController extends Controller
 
             return [
                 'id' => $profile->id,
-                'name' => $profile->name,
+                'name' => $profile->pseudo,
                 'pseudo' => $profile->pseudo,
-                'age' => $profile->profile->age ?? null,
-                'city' => $profile->profile->city ?? null,
-                'distance' => isset($profile->distance) ? round($profile->distance, 1) : null,
-                'bio' => $profile->profile->bio ?? null,
+                'age' => $profile->profile?->show_age ? $profile->profile->age : null,
+                'city' => $profile->profile?->publicData()['city'] ?? null,
+                'distance' => $profile->profile?->show_location && isset($profile->distance) ? round($profile->distance, 1) : null,
+                'bio' => $profile->profile?->publicData()['bio'] ?? null,
                 'sexual_orientation' => $profile->profile->sexual_orientation ?? null,
                 'primary_photo' => $profile->photos->first()?->viewUrl(thumbnail: true),
                 'is_online' => $profile->is_online,
@@ -255,7 +256,7 @@ class DashboardController extends Controller
     {
         $onlineCount = User::query()
             ->where('id', '!=', $user->id)
-            ->where('is_verified', true)
+            ->communityEligible()
             ->where('is_banned', false)
             ->online()
             ->count();
@@ -263,14 +264,14 @@ class DashboardController extends Controller
         $lastLikeRow = Like::query()
             ->where('liked_user_id', $user->id)
             ->with(['user.profile' => function ($q) {
-                $q->select('user_id', 'age', 'date_of_birth');
+                $q->select('user_id', 'age', 'date_of_birth', 'show_age');
             }])
             ->latest()
             ->first();
 
         $lastLike = $lastLikeRow ? [
-            'name' => $lastLikeRow->user->name,
-            'age' => $lastLikeRow->user->profile?->age,
+            'name' => $lastLikeRow->user->pseudo,
+            'age' => $lastLikeRow->user->profile?->show_age ? $lastLikeRow->user->profile->age : null,
             'when' => $lastLikeRow->created_at?->diffForHumans(),
         ] : null;
 

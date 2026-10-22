@@ -12,10 +12,9 @@ import {
 } from '@/components/ui/sheet';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { cn } from '@/lib/utils';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     Activity,
-    ArrowRight,
     BadgeCheck,
     BellRing,
     Compass,
@@ -34,6 +33,7 @@ import {
     UserPlus,
 } from 'lucide-react';
 import { PropsWithChildren, useState } from 'react';
+import { toast } from 'sonner';
 
 interface NavEntry {
     icon: typeof Heart;
@@ -92,15 +92,14 @@ export default function DatingLayout({
     // Gemmes : on prend l'override prop si fourni, sinon le vrai solde user.
     const gemsBalance = gems ?? auth.user?.gems ?? 0;
 
-    // En PWA, la fenêtre reste ouverte après la déconnexion : sans purge du
-    // cache Inertia les pages de l'ancienne session restent affichables via
-    // le bouton retour.
-    const handleLogout = (): void => {
-        router.flushAll();
-        navigator.serviceWorker?.controller?.postMessage({ type: 'LOGOUT' });
-    };
-
-    const { permission, isSubscribed, subscribe } = usePushNotifications();
+    const {
+        permission,
+        isSubscribed,
+        isLoading,
+        isChecking,
+        isConfigured,
+        subscribe,
+    } = usePushNotifications();
 
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
@@ -125,7 +124,7 @@ export default function DatingLayout({
         },
         {
             icon: Activity,
-            label: 'Activité',
+            label: 'Intérêts et matchs',
             href: '/activity',
             badge:
                 counts.recentActivities > 0
@@ -158,6 +157,7 @@ export default function DatingLayout({
                   },
               ]),
         { icon: Shield, label: 'Badges', href: '/badges' },
+        { icon: Compass, label: 'Installer l’application', href: '/installer' },
         { icon: UserPlus, label: 'Inviter une amie', href: '/referrals' },
         { icon: ShoppingBag, label: 'Boutique', href: '/shop' },
     ];
@@ -182,7 +182,7 @@ export default function DatingLayout({
         // seul le panneau de contenu scrolle. Sans overflow-hidden ici, le
         // document glisse sous le layout et découvre une bande vide.
         // dvh suit la barre d'URL mobile qui se rétracte (repli vh en amont).
-        <div className="h-[100dvh] h-[100vh] overflow-hidden bg-background text-foreground">
+        <div className="h-dvh overflow-hidden bg-background text-foreground">
             {title && <Head title={title} />}
 
             <div className="flex h-full">
@@ -217,49 +217,10 @@ export default function DatingLayout({
                                 LesbiLibre
                             </div>
                             <div className="mt-0.5 font-mono text-[9.5px] tracking-[0.14em] text-foreground/55 uppercase">
-                                intimate loop
+                                à ton rythme
                             </div>
                         </div>
                     </Link>
-
-                    {/* Gems card */}
-                    <div
-                        className="mb-5 shrink-0 rounded-2xl border p-3.5"
-                        style={{
-                            borderColor: 'var(--line)',
-                            background:
-                                'linear-gradient(135deg, var(--blush) 0%, transparent 70%), var(--paper)',
-                        }}
-                    >
-                        <div className="mb-1.5 flex items-center justify-between">
-                            <div
-                                className="flex items-center gap-2"
-                                style={{ color: 'var(--wine-deep)' }}
-                            >
-                                <Sparkles className="h-4 w-4" />
-                                <span className="text-[13px] font-semibold">
-                                    Mes gemmes
-                                </span>
-                            </div>
-                            <span
-                                className="font-display text-2xl italic"
-                                style={{ color: 'var(--wine-deep)' }}
-                            >
-                                {gemsBalance.toLocaleString('fr-FR')}
-                            </span>
-                        </div>
-                        <Link
-                            href="/shop"
-                            className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold"
-                            style={{
-                                background: 'var(--ink)',
-                                color: 'var(--bg)',
-                            }}
-                        >
-                            <Sparkles className="h-3 w-3" />
-                            En obtenir plus
-                        </Link>
-                    </div>
 
                     {/* Primary nav */}
                     <nav className="flex flex-col gap-0.5">
@@ -290,50 +251,24 @@ export default function DatingLayout({
                         ))}
                     </nav>
 
-                    {/* Premium block — masqué pour les abonnées */}
-                    {!isPremium && (
+                    <div className="mt-4 flex flex-wrap gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
                         <Link
-                            href="/premium"
-                            className="relative mt-4 block shrink-0 overflow-hidden rounded-2xl px-3.5 pt-3.5 pb-3.5"
-                            style={{
-                                background:
-                                    'linear-gradient(140deg, var(--wine) 0%, var(--wine-deep) 100%)',
-                                color: 'oklch(96% 0.02 50)',
-                            }}
+                            href="/shop"
+                            className="inline-flex min-h-11 items-center gap-1"
                         >
-                            <div
-                                aria-hidden
-                                className="absolute -top-5 -right-5 h-[90px] w-[90px] rounded-full opacity-55"
-                                style={{
-                                    background:
-                                        'radial-gradient(circle, var(--desire) 0%, transparent 70%)',
-                                }}
-                            />
-                            <div className="relative mb-2 flex items-center gap-2">
-                                <Crown
-                                    className="h-4 w-4 fill-current"
-                                    style={{ color: 'var(--gold)' }}
-                                />
-                                <span className="font-display text-[17px] font-medium italic">
-                                    Passe en Premium
-                                </span>
-                            </div>
-                            <p className="relative mb-2.5 text-[11.5px] leading-[1.4] opacity-80">
-                                Vois qui t&apos;a likée. Filtres avancés. Mode
-                                incognito.
-                            </p>
-                            <div
-                                className="relative flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold"
-                                style={{
-                                    background: 'var(--gold)',
-                                    color: 'var(--wine-deep)',
-                                }}
-                            >
-                                Découvrir
-                                <ArrowRight className="h-3 w-3" />
-                            </div>
+                            <Sparkles className="size-3" />
+                            {gemsBalance.toLocaleString('fr-FR')} gemmes
                         </Link>
-                    )}
+                        {!isPremium && (
+                            <Link
+                                href="/premium"
+                                className="inline-flex min-h-11 items-center gap-1"
+                            >
+                                <Crown className="size-3" />
+                                Options Premium
+                            </Link>
+                        )}
+                    </div>
 
                     {auth.user?.is_admin && (
                         <>
@@ -428,7 +363,6 @@ export default function DatingLayout({
                             href="/logout"
                             method="post"
                             as="button"
-                            onClick={handleLogout}
                             className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-foreground/50 transition-colors hover:bg-foreground/[0.06] hover:text-foreground"
                             title="Se déconnecter"
                             aria-label="Se déconnecter"
@@ -461,12 +395,23 @@ export default function DatingLayout({
                         <div className="flex items-center gap-2.5 text-foreground/65">
                             {permission !== 'unsupported' &&
                                 !isSubscribed &&
-                                permission !== 'denied' && (
+                                permission !== 'denied' &&
+                                isConfigured && (
                                     <button
                                         type="button"
-                                        onClick={subscribe}
+                                        onClick={() => {
+                                            void subscribe().then((result) => {
+                                                if (result.ok)
+                                                    toast.success(
+                                                        result.message,
+                                                    );
+                                                else toast.info(result.message);
+                                            });
+                                        }}
+                                        disabled={isLoading || isChecking}
                                         title="Activer les notifications push"
-                                        className="grid h-9 w-9 place-items-center rounded-full border bg-card text-foreground/65 transition-colors hover:text-foreground"
+                                        aria-label="Activer les notifications sur cet appareil"
+                                        className="grid h-11 w-11 place-items-center rounded-full border bg-card text-foreground/65 transition-colors hover:text-foreground disabled:opacity-50"
                                         style={{ borderColor: 'var(--line)' }}
                                     >
                                         <BellRing className="h-4 w-4" />
@@ -479,7 +424,6 @@ export default function DatingLayout({
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                onClick={handleLogout}
                                 className="grid h-9 w-9 place-items-center rounded-full border bg-card text-foreground/65 transition-colors hover:text-foreground lg:hidden"
                                 style={{ borderColor: 'var(--line)' }}
                                 title="Se déconnecter"
@@ -626,7 +570,6 @@ export default function DatingLayout({
                             href="/logout"
                             method="post"
                             as="button"
-                            onClick={handleLogout}
                             className="mt-2 flex items-center gap-3 rounded-xl px-3 py-3 text-[14px] font-medium text-foreground/60 transition-colors hover:bg-foreground/[0.06]"
                         >
                             <LogOut className="h-4 w-4" />

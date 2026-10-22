@@ -15,7 +15,10 @@ class RegistrationTest extends TestCase
         $response = $this->post('/register', [
             'pseudo' => 'testuser123',
             'name' => 'Marie',
-            'age' => 25,
+            'date_of_birth' => '1998-04-12',
+            'community_charter' => true,
+            'data_processing_consent' => true,
+            'meeting_intentions' => ['relationship'],
             'city_name' => 'Paris',
             'city_latitude' => 48.8566,
             'city_longitude' => 2.3522,
@@ -39,7 +42,7 @@ class RegistrationTest extends TestCase
         $user = User::where('email', 'marie@example.com')->first();
         $this->assertNotNull($user);
         $this->assertNotNull($user->profile);
-        $this->assertEquals(25, $user->profile->age);
+        $this->assertSame('1998-04-12', $user->profile->date_of_birth->toDateString());
         $this->assertEquals('Paris', $user->profile->city);
     }
 }

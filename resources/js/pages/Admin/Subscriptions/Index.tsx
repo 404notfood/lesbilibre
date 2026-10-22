@@ -1,3 +1,11 @@
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AdminLayout, {
     AdminBadge,
     AdminButton,
@@ -15,14 +23,6 @@ import AdminLayout, {
     AdminToolbar,
     AdminTr,
 } from '@/layouts/admin-layout';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Head, Link, router } from '@inertiajs/react';
 import {
     AlertTriangle,
@@ -44,7 +44,6 @@ interface Subscription {
     user: {
         id: number;
         name: string;
-        email: string;
         is_premium: boolean;
         is_banned: boolean;
     };
@@ -89,7 +88,10 @@ interface Stats {
     mrr: number;
 }
 
-const STATUS_TONES: Record<string, 'success' | 'danger' | 'neutral' | 'warning'> = {
+const STATUS_TONES: Record<
+    string,
+    'success' | 'danger' | 'neutral' | 'warning'
+> = {
     active: 'success',
     canceled: 'danger',
     expired: 'neutral',
@@ -160,7 +162,9 @@ export default function Index({
         visit({ sort_by: field, sort_direction: direction });
     };
 
-    const hasFilters = Boolean(filters.search || filters.status || filters.plan);
+    const hasFilters = Boolean(
+        filters.search || filters.status || filters.plan,
+    );
 
     return (
         <AdminLayout
@@ -190,16 +194,21 @@ export default function Index({
                         <AlertTriangle className="h-5 w-5 shrink-0 text-[color:var(--destructive)]" />
                         <div className="min-w-0 flex-1">
                             <p className="text-sm font-semibold text-[color:var(--ink)]">
-                                {stats.stale} abonnement{stats.stale > 1 ? 's' : ''} encore
-                                marqué{stats.stale > 1 ? 's' : ''} actif
-                                {stats.stale > 1 ? 's' : ''} alors que la date de fin est
-                                passée.
+                                {stats.stale} abonnement
+                                {stats.stale > 1 ? 's' : ''} encore marqué
+                                {stats.stale > 1 ? 's' : ''} actif
+                                {stats.stale > 1 ? 's' : ''} alors que la date
+                                de fin est passée.
                             </p>
                             <p className="mt-0.5 text-xs text-[color:var(--ink-mute)]">
-                                Ces comptes gardent leur Premium indûment. La tâche
-                                planifiée <code className="font-mono">subscriptions:expire</code>{' '}
-                                les régularise chaque nuit à 2 h — si le cron n&apos;est pas
-                                actif sur le serveur, lance-la à la main.
+                                Ces comptes gardent leur Premium indûment. La
+                                tâche planifiée{' '}
+                                <code className="font-mono">
+                                    subscriptions:expire
+                                </code>{' '}
+                                les régularise chaque nuit à 2 h — si le cron
+                                n&apos;est pas actif sur le serveur, lance-la à
+                                la main.
                             </p>
                         </div>
                         <AdminButton
@@ -229,7 +238,9 @@ export default function Index({
                     <AdminKpi
                         label="Expirent sous 7 jours"
                         value={stats.expiring_soon}
-                        deltaTone={stats.expiring_soon > 0 ? 'warning' : 'neutral'}
+                        deltaTone={
+                            stats.expiring_soon > 0 ? 'warning' : 'neutral'
+                        }
                         hint="À relancer si tu veux les retenir"
                         icon={CalendarClock}
                     />
@@ -259,15 +270,20 @@ export default function Index({
                         ) : undefined
                     }
                 >
-                    <AdminField label="Recherche" className="min-w-[220px] flex-1">
+                    <AdminField
+                        label="Recherche"
+                        className="min-w-[220px] flex-1"
+                    >
                         <div className="relative">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
+                            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
                             <input
                                 type="search"
-                                placeholder="nom ou e-mail…"
+                                placeholder="pseudo…"
                                 value={search}
-                                onChange={(event) => setSearch(event.target.value)}
-                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pl-9 pr-3 text-sm text-[color:var(--ink)] outline-none transition-colors placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pr-3 pl-9 text-sm text-[color:var(--ink)] transition-colors outline-none placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
                             />
                         </div>
                     </AdminField>
@@ -278,11 +294,13 @@ export default function Index({
                             onChange={(value) => visit({ status: value })}
                         >
                             <option value="">Tous</option>
-                            {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                                <option key={value} value={value}>
-                                    {label}
-                                </option>
-                            ))}
+                            {Object.entries(STATUS_LABELS).map(
+                                ([value, label]) => (
+                                    <option key={value} value={value}>
+                                        {label}
+                                    </option>
+                                ),
+                            )}
                         </AdminSelect>
                     </AdminField>
 
@@ -292,11 +310,13 @@ export default function Index({
                             onChange={(value) => visit({ plan: value })}
                         >
                             <option value="">Toutes</option>
-                            {Object.entries(PLAN_LABELS).map(([value, label]) => (
-                                <option key={value} value={value}>
-                                    {label}
-                                </option>
-                            ))}
+                            {Object.entries(PLAN_LABELS).map(
+                                ([value, label]) => (
+                                    <option key={value} value={value}>
+                                        {label}
+                                    </option>
+                                ),
+                            )}
                         </AdminSelect>
                     </AdminField>
                 </AdminToolbar>
@@ -352,7 +372,9 @@ export default function Index({
                                     </AdminTh>
                                     <AdminTh
                                         onSort={() => sort('expires_at')}
-                                        active={filters.sort_by === 'expires_at'}
+                                        active={
+                                            filters.sort_by === 'expires_at'
+                                        }
                                         direction={filters.sort_direction}
                                     >
                                         Échéance
@@ -364,7 +386,9 @@ export default function Index({
                                         <SubscriptionRow
                                             key={subscription.id}
                                             subscription={subscription}
-                                            onCancel={() => setConfirming(subscription)}
+                                            onCancel={() =>
+                                                setConfirming(subscription)
+                                            }
                                         />
                                     ))}
                                 </tbody>
@@ -396,17 +420,19 @@ export default function Index({
                             {confirming && (
                                 <>
                                     L&apos;abonnement de{' '}
-                                    <strong>{confirming.user.name}</strong> passera en «
-                                    annulé » et le statut Premium sera retiré
-                                    immédiatement, sauf si un autre abonnement actif
-                                    existe.
+                                    <strong>{confirming.user.name}</strong>{' '}
+                                    passera en « annulé » et le statut Premium
+                                    sera retiré immédiatement, sauf si un autre
+                                    abonnement actif existe.
                                     {confirming.payment_method !== 'admin' && (
                                         <span className="mt-2 block text-[color:var(--destructive)]">
-                                            Attention : cet abonnement provient d&apos;un
-                                            paiement ({confirming.payment_method}).
+                                            Attention : cet abonnement provient
+                                            d&apos;un paiement (
+                                            {confirming.payment_method}).
                                             L&apos;annuler ici ne résilie pas le
-                                            prélèvement côté Stripe — fais-le aussi depuis
-                                            le tableau de bord Stripe.
+                                            prélèvement côté Stripe — fais-le
+                                            aussi depuis le tableau de bord
+                                            Stripe.
                                         </span>
                                     )}
                                 </>
@@ -468,7 +494,7 @@ function SubscriptionRow({
                     className="block min-w-0"
                 >
                     <div className="flex items-center gap-1.5">
-                        <span className="font-display truncate text-[15px] font-semibold text-[color:var(--ink)]">
+                        <span className="truncate font-display text-[15px] font-semibold text-[color:var(--ink)]">
                             {subscription.user.name}
                         </span>
                         {subscription.user.is_premium && (
@@ -477,9 +503,6 @@ function SubscriptionRow({
                         {subscription.user.is_banned && (
                             <AdminBadge tone="danger">Bannie</AdminBadge>
                         )}
-                    </div>
-                    <div className="mt-0.5 truncate text-xs text-[color:var(--ink-soft)]">
-                        {subscription.user.email}
                     </div>
                 </Link>
             </AdminTd>
@@ -523,7 +546,9 @@ function SubscriptionRow({
                 {subscription.expires_at ? (
                     <>
                         <div className="text-sm text-[color:var(--ink)]">
-                            {new Date(subscription.expires_at).toLocaleDateString('fr-FR')}
+                            {new Date(
+                                subscription.expires_at,
+                            ).toLocaleDateString('fr-FR')}
                         </div>
                         {status === 'active' && days !== null && (
                             <div

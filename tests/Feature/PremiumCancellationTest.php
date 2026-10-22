@@ -13,7 +13,7 @@ class PremiumCancellationTest extends TestCase
 
     public function test_a_member_can_cancel_her_own_subscription(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->addMonth(),
         ]);
@@ -38,7 +38,7 @@ class PremiumCancellationTest extends TestCase
     {
         $endsAt = now()->addMonth();
 
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => $endsAt,
         ]);
@@ -66,7 +66,7 @@ class PremiumCancellationTest extends TestCase
 
     public function test_a_stripe_subscription_must_go_through_the_billing_portal(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->addMonth(),
         ]);
@@ -88,7 +88,7 @@ class PremiumCancellationTest extends TestCase
 
     public function test_cancelling_without_a_subscription_reports_an_error(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
 
         $this->actingAs($user)
             ->post('/premium/cancel')
@@ -105,7 +105,7 @@ class PremiumCancellationTest extends TestCase
         // Premium posé à la main sur le compte (console admin, seeder, geste
         // commercial) : aucune ligne d'abonnement n'existe, mais la membre doit
         // pouvoir couper son premium elle-même.
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->addMonth(),
         ]);
@@ -127,7 +127,7 @@ class PremiumCancellationTest extends TestCase
 
     public function test_an_unlimited_premium_granted_by_hand_stops_immediately(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => null,
         ]);
@@ -144,7 +144,7 @@ class PremiumCancellationTest extends TestCase
 
     public function test_the_premium_page_exposes_the_cancellation_state(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->addMonth(),
         ]);

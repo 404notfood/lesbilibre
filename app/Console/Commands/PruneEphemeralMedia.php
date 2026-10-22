@@ -33,7 +33,9 @@ class PruneEphemeralMedia extends Command
         foreach ($due as $medium) {
             foreach (array_filter([$medium->path, $medium->thumbnail_path]) as $path) {
                 if ($disk->exists($path)) {
-                    $disk->delete($path);
+                    if (! $disk->delete($path)) {
+                        throw new \RuntimeException('La suppression d’un média éphémère a été refusée par le stockage.');
+                    }
                 }
             }
 

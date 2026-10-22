@@ -16,6 +16,7 @@ class UserIndexTest extends TestCase
         $admin = User::factory()->create(['is_admin' => true]);
         $member = User::factory()->create([
             'name' => 'Steff',
+            'pseudo' => 'Steff',
             'gems' => 1234,
         ]);
 

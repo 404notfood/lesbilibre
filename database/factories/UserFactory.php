@@ -47,6 +47,17 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function communityMember(): static
+    {
+        return $this->state(fn () => [
+            'is_verified' => true,
+            'community_charter_version' => config('community.charter_version'),
+            'community_charter_accepted_at' => now(),
+            'data_processing_consent' => true,
+            'data_processing_consented_at' => now(),
+        ])->has(ProfileFactory::new()->state(['birth_date_declared_at' => now(), 'looking_for' => 'friendship', 'meeting_intentions' => ['friendship']]), 'profile');
+    }
+
     /**
      * Indicate that the model does not have two-factor authentication configured.
      */

@@ -26,7 +26,7 @@ class GemEconomyTest extends TestCase
 
     public function test_non_admin_cannot_reach_the_gem_economy(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
 
         $this->actingAs($user)
             ->get(route('admin.gems.index'))
@@ -35,8 +35,8 @@ class GemEconomyTest extends TestCase
 
     public function test_economy_separates_issued_from_spent_gems(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'gems' => 0]);
-        $member = User::factory()->create(['gems' => 300]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true, 'gems' => 0]);
+        $member = User::factory()->communityMember()->create(['gems' => 300]);
 
         $this->transaction($member, 'purchase', 500, 19.99);
         $this->transaction($member, 'gift_sent', -200);
@@ -55,8 +55,8 @@ class GemEconomyTest extends TestCase
 
     public function test_economy_groups_movements_by_type(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
 
         $this->transaction($member, 'purchase', 100);
         $this->transaction($member, 'purchase', 250);
@@ -75,8 +75,8 @@ class GemEconomyTest extends TestCase
 
     public function test_transactions_can_be_filtered_by_type(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create();
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create();
 
         $this->transaction($member, 'purchase', 100);
         $this->transaction($member, 'gift_sent', -50);
@@ -92,9 +92,9 @@ class GemEconomyTest extends TestCase
 
     public function test_transactions_can_be_searched_by_member(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $alice = User::factory()->create(['pseudo' => 'alice']);
-        $bea = User::factory()->create(['pseudo' => 'bea']);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $alice = User::factory()->communityMember()->create(['pseudo' => 'alice']);
+        $bea = User::factory()->communityMember()->create(['pseudo' => 'bea']);
 
         $this->transaction($alice, 'purchase', 100);
         $this->transaction($bea, 'purchase', 200);
@@ -110,10 +110,10 @@ class GemEconomyTest extends TestCase
 
     public function test_top_holders_are_ranked_by_balance(): void
     {
-        $admin = User::factory()->create(['is_admin' => true, 'gems' => 0]);
-        User::factory()->create(['pseudo' => 'riche', 'gems' => 900]);
-        User::factory()->create(['pseudo' => 'moyenne', 'gems' => 400]);
-        User::factory()->create(['pseudo' => 'vide', 'gems' => 0]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true, 'gems' => 0]);
+        User::factory()->communityMember()->create(['pseudo' => 'riche', 'gems' => 900]);
+        User::factory()->communityMember()->create(['pseudo' => 'moyenne', 'gems' => 400]);
+        User::factory()->communityMember()->create(['pseudo' => 'vide', 'gems' => 0]);
 
         $this->actingAs($admin)
             ->get(route('admin.gems.index'))
@@ -127,8 +127,8 @@ class GemEconomyTest extends TestCase
 
     public function test_admin_can_open_a_member_gem_sheet(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create(['gems' => 120]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create(['gems' => 120]);
         $this->transaction($member, 'admin_add', 120);
 
         $this->actingAs($admin)
@@ -143,8 +143,8 @@ class GemEconomyTest extends TestCase
 
     public function test_admin_can_credit_gems_to_a_member(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create(['gems' => 10]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create(['gems' => 10]);
 
         $this->actingAs($admin)
             ->post(route('admin.gems.add', $member), [
@@ -164,8 +164,8 @@ class GemEconomyTest extends TestCase
 
     public function test_credit_and_debit_answer_on_the_gems_routes(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create(['gems' => 100]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create(['gems' => 100]);
 
         // La fiche postait vers /admin/users/{id}/gems/add, qui n'existe pas :
         // les boutons ne faisaient rien.
@@ -188,8 +188,8 @@ class GemEconomyTest extends TestCase
 
     public function test_crediting_requires_a_description(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create(['gems' => 0]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create(['gems' => 0]);
 
         $this->actingAs($admin)
             ->post(route('admin.gems.add', $member), ['amount' => 50])
@@ -200,8 +200,8 @@ class GemEconomyTest extends TestCase
 
     public function test_non_admin_cannot_credit_gems(): void
     {
-        $user = User::factory()->create(['is_admin' => false]);
-        $member = User::factory()->create(['gems' => 0]);
+        $user = User::factory()->communityMember()->create(['is_admin' => false]);
+        $member = User::factory()->communityMember()->create(['gems' => 0]);
 
         $this->actingAs($user)
             ->post(route('admin.gems.add', $member), [
@@ -215,8 +215,8 @@ class GemEconomyTest extends TestCase
 
     public function test_removing_more_gems_than_owned_empties_the_balance(): void
     {
-        $admin = User::factory()->create(['is_admin' => true]);
-        $member = User::factory()->create(['gems' => 30]);
+        $admin = User::factory()->communityMember()->create(['is_admin' => true]);
+        $member = User::factory()->communityMember()->create(['gems' => 30]);
 
         $this->actingAs($admin)
             ->post(route('admin.gems.remove', $member), [

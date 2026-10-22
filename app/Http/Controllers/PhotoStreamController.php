@@ -33,7 +33,7 @@ class PhotoStreamController extends Controller
         // Blocked either way, or retired by a moderator: the photo does not exist.
         abort_unless($isOwner || $viewer->canInteractWith($owner), 404);
         abort_if(! $isOwner && ! $photo->is_approved, 404);
-        abort_if(! $isOwner && $photo->moderation_status === 'rejected', 404);
+        abort_if(! $isOwner && $photo->moderation_status !== 'approved', 404);
 
         $viewerAcceptsNaughty = (bool) $viewer->profile?->is_naughty_mode;
         $blur = $photo->isObscuredFor(

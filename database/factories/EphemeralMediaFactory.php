@@ -31,6 +31,7 @@ class EphemeralMediaFactory extends Factory
             'thumbnail_path' => null,
             'is_naughty' => false,
             'processing_status' => 'ready',
+            'moderation_status' => 'pending',
             'purge_after' => now()->addDays(EphemeralMedia::RETENTION_DAYS),
         ];
     }
@@ -43,6 +44,14 @@ class EphemeralMediaFactory extends Factory
         return $this->state(fn (array $attributes): array => [
             'first_viewed_at' => now()->subHour(),
             'replay_available_until' => now()->addHours(23),
+        ]);
+    }
+
+    public function approved(): static
+    {
+        return $this->state(fn (): array => [
+            'moderation_status' => 'approved',
+            'moderated_at' => now(),
         ]);
     }
 

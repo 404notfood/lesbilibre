@@ -5,13 +5,34 @@ namespace App\Services;
 use Stripe\BillingPortal\Session as BillingPortalSession;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
+use Stripe\Exception\InvalidRequestException;
 use Stripe\Stripe;
+use Stripe\Subscription as StripeSubscription;
 
 class StripePaymentService
 {
     public function __construct()
     {
         Stripe::setApiKey(config('services.stripe.secret'));
+    }
+
+    /** Stop remote billing before an account is erased. Failures are retryable. */
+    public function cancelSubscription(string $subscriptionId): void
+    {
+        if (! preg_match('/^sub_[A-Za-z0-9_]+$/D', $subscriptionId)) {
+            throw new \InvalidArgumentException('Invalid subscription identifier.');
+        }
+        try {
+            $subscription = StripeSubscription::retrieve($subscriptionId);
+            if ($subscription->status !== 'canceled') {
+                $subscription->cancel([], ['idempotency_key' => 'account-erasure:'.hash('sha256', $subscriptionId)]);
+            }
+        } catch (InvalidRequestException $exception) {
+            // An already absent subscription has no future charges to stop.
+            if ($exception->getStripeCode() !== 'resource_missing') {
+                throw $exception;
+            }
+        }
     }
 
     /**

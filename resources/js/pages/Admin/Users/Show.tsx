@@ -1,12 +1,4 @@
-import AdminLayout, {
-    AdminBadge,
-    AdminButton,
-    AdminCard,
-    AdminCardHeader,
-    AdminEmpty,
-    AdminMeta,
-} from '@/layouts/admin-layout';
-import { Head, router } from '@inertiajs/react';
+import AdminBirthDateCorrection from '@/components/admin-birth-date-correction';
 import {
     Dialog,
     DialogContent,
@@ -18,6 +10,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import AdminLayout, {
+    AdminBadge,
+    AdminButton,
+    AdminCard,
+    AdminCardHeader,
+    AdminEmpty,
+    AdminMeta,
+} from '@/layouts/admin-layout';
+import { Head, router } from '@inertiajs/react';
 import {
     Award,
     BadgeCheck,
@@ -52,7 +53,6 @@ interface AdminPhoto {
 interface User {
     id: number;
     name: string;
-    email: string;
     pseudo: string;
     is_premium: boolean;
     premium_expires_at: string | null;
@@ -98,8 +98,8 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
     const [premiumExpiresAt, setPremiumExpiresAt] = useState('');
 
     /** Une date de fin de premium ne peut pas être antérieure à demain. */
-    const [minPremiumExpiresAt] = useState(() =>
-        new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    const [minPremiumExpiresAt] = useState(
+        () => new Date(Date.now() + 86400000).toISOString().split('T')[0],
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -123,7 +123,11 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
     };
 
     const handleUnban = () => {
-        router.post(`/admin/users/${user.id}/unban`, {}, { preserveScroll: true });
+        router.post(
+            `/admin/users/${user.id}/unban`,
+            {},
+            { preserveScroll: true },
+        );
     };
 
     const handleTogglePremium = () => {
@@ -154,7 +158,7 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
     return (
         <AdminLayout
             title={user.name}
-            subtitle={`${user.email}${user.pseudo ? ` · @${user.pseudo}` : ''}`}
+            subtitle="Compte membre"
             breadcrumbs={[
                 { label: 'Admin', href: '/admin/dashboard' },
                 { label: 'Utilisatrices', href: '/admin/users' },
@@ -201,6 +205,7 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
             }
         >
             <Head title={`${user.name} · Admin`} />
+            <AdminBirthDateCorrection userId={user.id} />
 
             <div className="space-y-6">
                 {/* Bandeau de bannissement */}
@@ -262,10 +267,11 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                             ) : (
                                 <div className="p-5">
                                     <p className="mb-4 text-xs text-[color:var(--ink-mute)]">
-                                        Images affichées telles qu&apos;envoyées, sans
-                                        floutage, pour permettre le jugement. Marquer une
-                                        photo comme coquine la floute côté membres et la
-                                        retire de la photo de profil.
+                                        Images affichées telles
+                                        qu&apos;envoyées, sans floutage, pour
+                                        permettre le jugement. Marquer une photo
+                                        comme coquine la floute côté membres et
+                                        la retire de la photo de profil.
                                     </p>
                                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                                         {user.photos.map((photo) => (
@@ -310,7 +316,11 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                                 <DetailStat
                                     label="Signalements reçus"
                                     value={stats.reports_received}
-                                    tone={stats.reports_received > 0 ? 'danger' : 'neutral'}
+                                    tone={
+                                        stats.reports_received > 0
+                                            ? 'danger'
+                                            : 'neutral'
+                                    }
                                     icon={Flag}
                                 />
                             </div>
@@ -343,7 +353,9 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                                 )}
                                 {!user.is_premium &&
                                     !user.is_verified &&
-                                    !user.is_banned && <AdminBadge>Standard</AdminBadge>}
+                                    !user.is_banned && (
+                                        <AdminBadge>Standard</AdminBadge>
+                                    )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
@@ -384,15 +396,23 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                                             : 'Jamais'
                                     }
                                 />
-                                <InfoRow label="E-mail" value={user.email} />
                                 {user.pseudo && (
-                                    <InfoRow label="Pseudo" value={`@${user.pseudo}`} />
+                                    <InfoRow
+                                        label="Pseudo"
+                                        value={`@${user.pseudo}`}
+                                    />
                                 )}
                                 {user.profile?.city && (
-                                    <InfoRow label="Ville" value={user.profile.city} />
+                                    <InfoRow
+                                        label="Ville"
+                                        value={user.profile.city}
+                                    />
                                 )}
                                 {user.profile?.age && (
-                                    <InfoRow label="Âge" value={`${user.profile.age} ans`} />
+                                    <InfoRow
+                                        label="Âge"
+                                        value={`${user.profile.age} ans`}
+                                    />
                                 )}
                                 <InfoRow
                                     label="Signalements faits"
@@ -405,30 +425,41 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
             </div>
 
             {/* ================= Dialogues ================= */}
-            <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}>
+            <Dialog
+                open={showPremiumDialog}
+                onOpenChange={setShowPremiumDialog}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="font-display text-2xl font-medium italic">
                             Accorder Premium
                         </DialogTitle>
                         <DialogDescription>
-                            Date de fin optionnelle. Laisser vide pour un Premium illimité.
+                            Date de fin optionnelle. Laisser vide pour un
+                            Premium illimité.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
-                        <Label htmlFor="premium_expires_at" className="editorial-caption">
+                        <Label
+                            htmlFor="premium_expires_at"
+                            className="editorial-caption"
+                        >
                             Date de fin
                         </Label>
                         <Input
                             id="premium_expires_at"
                             type="date"
                             value={premiumExpiresAt}
-                            onChange={(event) => setPremiumExpiresAt(event.target.value)}
+                            onChange={(event) =>
+                                setPremiumExpiresAt(event.target.value)
+                            }
                             min={minPremiumExpiresAt}
                         />
                     </div>
                     <DialogFooter>
-                        <AdminButton onClick={() => setShowPremiumDialog(false)}>
+                        <AdminButton
+                            onClick={() => setShowPremiumDialog(false)}
+                        >
                             Annuler
                         </AdminButton>
                         <AdminButton
@@ -449,8 +480,8 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                             Bannir {user.name}
                         </DialogTitle>
                         <DialogDescription>
-                            Le motif est enregistré au journal de modération et reste
-                            consultable.
+                            Le motif est enregistré au journal de modération et
+                            reste consultable.
                         </DialogDescription>
                     </DialogHeader>
                     <Textarea
@@ -468,7 +499,9 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                             onClick={handleBan}
                             disabled={isSubmitting || !banReason.trim()}
                         >
-                            {isSubmitting ? 'Bannissement…' : 'Confirmer le ban'}
+                            {isSubmitting
+                                ? 'Bannissement…'
+                                : 'Confirmer le ban'}
                         </AdminButton>
                     </DialogFooter>
                 </DialogContent>
@@ -477,13 +510,14 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle className="font-display text-2xl font-medium italic text-[color:var(--destructive)]">
+                        <DialogTitle className="font-display text-2xl font-medium text-[color:var(--destructive)] italic">
                             Supprimer définitivement {user.name}
                         </DialogTitle>
                         <DialogDescription>
-                            <strong>Action irréversible.</strong> Toutes les données —
-                            profil, photos, messages, matches — seront effacées. Préfère un
-                            bannissement si tu veux garder une trace.
+                            <strong>Action irréversible.</strong> Toutes les
+                            données — profil, photos, messages, matches — seront
+                            effacées. Préfère un bannissement si tu veux garder
+                            une trace.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -492,7 +526,9 @@ export default function Show({ user, stats }: { user: User; stats: Stats }) {
                         </AdminButton>
                         <AdminButton
                             variant="danger"
-                            onClick={() => router.delete(`/admin/users/${user.id}`)}
+                            onClick={() =>
+                                router.delete(`/admin/users/${user.id}`)
+                            }
                         >
                             Supprimer définitivement
                         </AdminButton>
@@ -567,7 +603,7 @@ function DetailStat({
                     {label}
                 </div>
                 <div
-                    className={`font-display mt-0.5 text-xl font-medium tracking-tight ${
+                    className={`mt-0.5 font-display text-xl font-medium tracking-tight ${
                         tone === 'danger' && value > 0
                             ? 'text-[color:var(--destructive)]'
                             : 'text-[color:var(--ink)]'
@@ -597,7 +633,13 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 /** Vignette de modération d'une photo depuis la fiche membre. */
-function AdminPhotoTile({ photo, userId }: { photo: AdminPhoto; userId: number }) {
+function AdminPhotoTile({
+    photo,
+    userId,
+}: {
+    photo: AdminPhoto;
+    userId: number;
+}) {
     const [busy, setBusy] = useState(false);
     const [showDelete, setShowDelete] = useState(false);
     const [reason, setReason] = useState('');
@@ -660,12 +702,16 @@ function AdminPhotoTile({ photo, userId }: { photo: AdminPhoto; userId: number }
                         />
                     )}
                     <div className="absolute inset-x-2 top-2 flex flex-wrap gap-1">
-                        {photo.is_primary && <AdminBadge tone="gold">Profil</AdminBadge>}
+                        {photo.is_primary && (
+                            <AdminBadge tone="gold">Profil</AdminBadge>
+                        )}
                         {photo.is_naughty && (
                             <AdminBadge tone="danger">Coquine</AdminBadge>
                         )}
                         {photo.avatar_requested && (
-                            <AdminBadge tone="warning">Demande avatar</AdminBadge>
+                            <AdminBadge tone="warning">
+                                Demande avatar
+                            </AdminBadge>
                         )}
                         {photo.moderation_status === 'rejected' && (
                             <AdminBadge tone="neutral">Retirée</AdminBadge>
@@ -705,7 +751,8 @@ function AdminPhotoTile({ photo, userId }: { photo: AdminPhoto; userId: number }
                             Supprimer cette photo
                         </DialogTitle>
                         <DialogDescription>
-                            Le motif est obligatoire et conservé au journal de modération.
+                            Le motif est obligatoire et conservé au journal de
+                            modération.
                         </DialogDescription>
                     </DialogHeader>
                     <Textarea

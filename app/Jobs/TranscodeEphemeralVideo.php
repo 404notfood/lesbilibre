@@ -47,8 +47,6 @@ class TranscodeEphemeralVideo implements ShouldQueue
                 'message' => $e->getMessage(),
             ]);
 
-            $media->update(['processing_status' => 'failed']);
-
             throw $e;
         }
     }

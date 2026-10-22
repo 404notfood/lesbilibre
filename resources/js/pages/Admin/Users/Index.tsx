@@ -28,7 +28,6 @@ import { useEffect, useRef, useState } from 'react';
 interface UserRow {
     id: number;
     name: string;
-    email: string;
     pseudo: string;
     is_premium: boolean;
     is_verified: boolean;
@@ -146,16 +145,21 @@ export default function Index({
                         ) : undefined
                     }
                 >
-                    <AdminField label="Recherche" className="min-w-[240px] flex-1">
+                    <AdminField
+                        label="Recherche"
+                        className="min-w-[240px] flex-1"
+                    >
                         <div className="relative">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
+                            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
                             <input
                                 type="search"
                                 autoFocus
-                                placeholder="nom, e-mail, pseudo…"
+                                placeholder="pseudo…"
                                 value={search}
-                                onChange={(event) => setSearch(event.target.value)}
-                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pl-9 pr-3 text-sm text-[color:var(--ink)] outline-none transition-colors placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pr-3 pl-9 text-sm text-[color:var(--ink)] transition-colors outline-none placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
                             />
                         </div>
                     </AdminField>
@@ -166,11 +170,13 @@ export default function Index({
                             onChange={(value) => visit({ status: value })}
                         >
                             <option value="">Toutes</option>
-                            {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                                <option key={value} value={value}>
-                                    {label}
-                                </option>
-                            ))}
+                            {Object.entries(STATUS_LABELS).map(
+                                ([value, label]) => (
+                                    <option key={value} value={value}>
+                                        {label}
+                                    </option>
+                                ),
+                            )}
                         </AdminSelect>
                     </AdminField>
                 </AdminToolbar>
@@ -204,8 +210,8 @@ export default function Index({
                             <AdminTable>
                                 <AdminThead>
                                     <AdminTh
-                                        onSort={() => sort('name')}
-                                        active={filters.sort_by === 'name'}
+                                        onSort={() => sort('pseudo')}
+                                        active={filters.sort_by === 'pseudo'}
                                         direction={filters.sort_direction}
                                     >
                                         Utilisatrice
@@ -214,14 +220,19 @@ export default function Index({
                                     <AdminTh align="right">Gemmes</AdminTh>
                                     <AdminTh
                                         onSort={() => sort('last_activity_at')}
-                                        active={filters.sort_by === 'last_activity_at'}
+                                        active={
+                                            filters.sort_by ===
+                                            'last_activity_at'
+                                        }
                                         direction={filters.sort_direction}
                                     >
                                         Dernière activité
                                     </AdminTh>
                                     <AdminTh
                                         onSort={() => sort('created_at')}
-                                        active={filters.sort_by === 'created_at'}
+                                        active={
+                                            filters.sort_by === 'created_at'
+                                        }
                                         direction={filters.sort_direction}
                                     >
                                         Inscription
@@ -236,17 +247,17 @@ export default function Index({
                                                     href={`/admin/users/${user.id}`}
                                                     className="block"
                                                 >
-                                                    <div className="font-display text-[15px] font-semibold leading-tight text-[color:var(--ink)]">
+                                                    <div className="font-display text-[15px] leading-tight font-semibold text-[color:var(--ink)]">
                                                         {user.name}
                                                     </div>
-                                                    <div className="mt-0.5 truncate text-xs text-[color:var(--ink-soft)]">
-                                                        {user.email}
-                                                    </div>
                                                     <div className="mt-0.5 text-[11px] text-[color:var(--ink-mute)]">
-                                                        {user.pseudo && `@${user.pseudo}`}
+                                                        {user.pseudo &&
+                                                            `@${user.pseudo}`}
                                                         {user.city &&
                                                             `${user.pseudo ? ' · ' : ''}${user.city}`}
-                                                        {user.age ? ` · ${user.age} ans` : ''}
+                                                        {user.age
+                                                            ? ` · ${user.age} ans`
+                                                            : ''}
                                                     </div>
                                                 </Link>
                                             </AdminTd>
@@ -277,29 +288,36 @@ export default function Index({
                                                             </span>
                                                         )}
                                                 </div>
-                                                {user.is_banned && user.ban_reason && (
-                                                    <p
-                                                        className="mt-1 max-w-[220px] truncate text-[11px] text-[color:var(--ink-mute)]"
-                                                        title={user.ban_reason}
-                                                    >
-                                                        {user.ban_reason}
-                                                    </p>
-                                                )}
+                                                {user.is_banned &&
+                                                    user.ban_reason && (
+                                                        <p
+                                                            className="mt-1 max-w-[220px] truncate text-[11px] text-[color:var(--ink-mute)]"
+                                                            title={
+                                                                user.ban_reason
+                                                            }
+                                                        >
+                                                            {user.ban_reason}
+                                                        </p>
+                                                    )}
                                             </AdminTd>
                                             <AdminTd align="right">
-                                                <span className="font-mono inline-flex items-center gap-1 text-xs text-[color:var(--ink-soft)]">
+                                                <span className="inline-flex items-center gap-1 font-mono text-xs text-[color:var(--ink-soft)]">
                                                     <Sparkles className="h-3 w-3 text-[color:var(--gold)]" />
-                                                    {user.gems_balance?.toLocaleString('fr-FR') ??
-                                                        '0'}
+                                                    {user.gems_balance?.toLocaleString(
+                                                        'fr-FR',
+                                                    ) ?? '0'}
                                                 </span>
                                             </AdminTd>
                                             <AdminTd>
                                                 <AdminMeta>
-                                                    {user.last_activity_at ?? 'jamais'}
+                                                    {user.last_activity_at ??
+                                                        'jamais'}
                                                 </AdminMeta>
                                             </AdminTd>
                                             <AdminTd>
-                                                <AdminMeta>{user.created_at}</AdminMeta>
+                                                <AdminMeta>
+                                                    {user.created_at}
+                                                </AdminMeta>
                                             </AdminTd>
                                             <AdminTd align="right">
                                                 <AdminButton

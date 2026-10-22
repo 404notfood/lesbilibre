@@ -250,12 +250,72 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /** Whether two users may see or contact each other. */
+    public function canUseCommunity(): bool
+    {
+        return ! $this->trashed() && ! $this->is_banned && ! $this->safety_restricted_at
+            && $this->data_processing_consent
+            && $this->is_verified && $this->hasVerifiedEmail()
+            && $this->community_charter_version === config('community.charter_version')
+            && $this->profile?->birth_date_declared_at !== null
+            && $this->profile?->date_of_birth !== null
+            && ! $this->profile->date_of_birth->isFuture()
+            && $this->profile->date_of_birth->age >= 18;
+    }
+
+    public function scopeCommunityEligible(Builder $query): Builder
+    {
+        return $query->where('is_banned', false)->where('is_verified', true)->where('data_processing_consent', true)
+            ->whereNotNull('email_verified_at')->whereNull('safety_restricted_at')
+            ->where('community_charter_version', config('community.charter_version'))
+            ->whereHas('profile', fn ($q) => $q->whereNotNull('birth_date_declared_at')->whereDate('date_of_birth', '<=', now()->subYears(18)->toDateString()));
+    }
+
     public function canInteractWith(User $other): bool
     {
         return $this->id !== $other->id
+            && $this->canUseCommunity() && $other->canUseCommunity()
             && ! $this->hasBlocked($other->id)
             && ! $this->isBlockedBy($other->id)
+            && ! $this->hasOpenConflictWith($other)
             && ! $other->is_banned;
+    }
+
+    public function hasOpenConflictWith(User $other): bool
+    {
+        return Report::whereIn('status', ['pending', 'reviewed'])->where(function ($query) use ($other) {
+            $query->where(fn ($pair) => $pair->where('reporter_id', $this->id)->where('reported_user_id', $other->id))
+                ->orWhere(fn ($pair) => $pair->where('reporter_id', $other->id)->where('reported_user_id', $this->id));
+        })->exists();
+    }
+
+    public function scopeWithoutOpenConflictWith(Builder $query, User $viewer): Builder
+    {
+        return $query->whereNotIn('users.id', Report::select('reported_user_id')->where('reporter_id', $viewer->id)->whereIn('status', ['pending', 'reviewed']))
+            ->whereNotIn('users.id', Report::select('reporter_id')->where('reported_user_id', $viewer->id)->whereIn('status', ['pending', 'reviewed']));
+    }
+
+    /** Data intended for another member, independent of owner/admin serialization. */
+    public function publicCommunityData(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->pseudo,
+            'pseudo' => $this->pseudo,
+            'is_verified' => $this->is_verified,
+            'is_premium' => $this->isPremium(),
+            'is_online' => $this->is_online,
+            'profile' => $this->profile?->publicData(),
+            'photos' => $this->photos->filter(fn (Photo $photo) => ! $photo->isVideo()
+                && $photo->is_approved && $photo->moderation_status === 'approved'
+                && ! $photo->is_private && ! $photo->is_naughty)
+                ->map(fn (Photo $photo) => [
+                    'id' => $photo->id,
+                    'url' => $photo->viewUrl(),
+                    'thumbnail_url' => $photo->viewUrl(thumbnail: true),
+                ])->values()->all(),
+            'distance' => $this->profile?->show_location && isset($this->distance) ? round((float) $this->distance, 1) : null,
+            'compatibility_score' => $this->compatibility_score,
+        ];
     }
 
     /**

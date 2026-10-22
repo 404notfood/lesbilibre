@@ -72,8 +72,8 @@ class DashboardController extends Controller
         $totalConversations = Conversation::count();
 
         // Content moderation
-        $pendingPhotos = Photo::where('is_approved', false)->whereNull('rejection_reason')->count();
-        $pendingVerifications = VerificationPhoto::where('status', 'pending')->count();
+        $pendingPhotos = Photo::whereHas('user')->whereIn('moderation_status', ['pending', 'quarantined'])->count();
+        $pendingVerifications = VerificationPhoto::whereHas('user')->where('status', 'pending')->count();
         $openReports = Report::where('status', 'pending')->count();
 
         // Revenue statistics
@@ -134,8 +134,8 @@ class DashboardController extends Controller
             ->get()
             ->map(fn ($report) => [
                 'id' => $report->id,
-                'reporter' => $report->reporter->name,
-                'reported' => $report->reportedUser->name,
+                'reporter' => $report->reporter?->pseudo ?: 'Compte indisponible',
+                'reported' => $report->reportedUser?->pseudo ?: 'Compte indisponible',
                 'reported_id' => $report->reported_user_id,
                 'reason' => $report->reason,
                 'created_at' => $report->created_at->diffForHumans(),
@@ -148,8 +148,7 @@ class DashboardController extends Controller
             ->get()
             ->map(fn ($user) => [
                 'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+                'name' => $user->pseudo ?: 'Membre',
                 'is_premium' => $user->is_premium,
                 'is_verified' => $user->is_verified,
                 'is_banned' => $user->is_banned,

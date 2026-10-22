@@ -23,13 +23,13 @@ class MatchScoreServiceTest extends TestCase
 
     // --- calculateScore ---
 
-    public function test_score_is_between_70_and_100(): void
+    public function test_score_is_between_0_and_100(): void
     {
         [$profile1, $profile2] = $this->createProfiles();
 
         $score = $this->service->calculateScore($profile1, $profile2);
 
-        $this->assertGreaterThanOrEqual(70, $score);
+        $this->assertGreaterThanOrEqual(0, $score);
         $this->assertLessThanOrEqual(100, $score);
     }
 
@@ -86,7 +86,7 @@ class MatchScoreServiceTest extends TestCase
 
         $score = $this->service->calculateScore($profile1, $profile2);
 
-        $this->assertGreaterThanOrEqual(70, $score);
+        $this->assertGreaterThanOrEqual(0, $score);
     }
 
     public function test_common_interests_increase_score(): void
@@ -153,7 +153,7 @@ class MatchScoreServiceTest extends TestCase
 
         $score = $this->service->calculateScore($p1, $p2);
 
-        $this->assertGreaterThanOrEqual(70, $score);
+        $this->assertGreaterThanOrEqual(0, $score);
     }
 
     // --- orientation score ---

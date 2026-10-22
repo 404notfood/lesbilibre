@@ -14,8 +14,8 @@ class GalleryAccessTest extends TestCase
 
     public function test_owner_sees_pending_requests_for_their_private_gallery(): void
     {
-        $owner = User::factory()->create();
-        $requester = User::factory()->create(['pseudo' => 'curieuse']);
+        $owner = User::factory()->communityMember()->create();
+        $requester = User::factory()->communityMember()->create(['pseudo' => 'curieuse']);
 
         GalleryAccessRequest::create([
             'requester_user_id' => $requester->id,
@@ -37,11 +37,11 @@ class GalleryAccessTest extends TestCase
 
     public function test_pending_requests_of_other_users_are_not_listed(): void
     {
-        $owner = User::factory()->create();
-        $someoneElse = User::factory()->create();
+        $owner = User::factory()->communityMember()->create();
+        $someoneElse = User::factory()->communityMember()->create();
 
         GalleryAccessRequest::create([
-            'requester_user_id' => User::factory()->create()->id,
+            'requester_user_id' => User::factory()->communityMember()->create()->id,
             'owner_user_id' => $someoneElse->id,
             'status' => 'pending',
             'gems_cost' => 50,
@@ -55,9 +55,9 @@ class GalleryAccessTest extends TestCase
 
     public function test_owner_sees_people_who_can_access_their_private_gallery(): void
     {
-        $owner = User::factory()->create();
-        $viewer = User::factory()->create(['pseudo' => 'invitee']);
-        $revokedViewer = User::factory()->create(['pseudo' => 'ancienne']);
+        $owner = User::factory()->communityMember()->create();
+        $viewer = User::factory()->communityMember()->create(['pseudo' => 'invitee']);
+        $revokedViewer = User::factory()->communityMember()->create(['pseudo' => 'ancienne']);
 
         GalleryAccessRequest::create([
             'requester_user_id' => $viewer->id,
@@ -86,10 +86,10 @@ class GalleryAccessTest extends TestCase
 
     public function test_pending_gallery_requests_count_is_shared_with_the_layout(): void
     {
-        $owner = User::factory()->create();
+        $owner = User::factory()->communityMember()->create();
 
         GalleryAccessRequest::create([
-            'requester_user_id' => User::factory()->create()->id,
+            'requester_user_id' => User::factory()->communityMember()->create()->id,
             'owner_user_id' => $owner->id,
             'status' => 'pending',
             'gems_cost' => 50,
@@ -105,9 +105,9 @@ class GalleryAccessTest extends TestCase
 
     public function test_manage_page_separates_granted_and_received_access(): void
     {
-        $user = User::factory()->create();
-        $viewer = User::factory()->create(['pseudo' => 'invitee']);
-        $otherOwner = User::factory()->create(['pseudo' => 'hotesse']);
+        $user = User::factory()->communityMember()->create();
+        $viewer = User::factory()->communityMember()->create(['pseudo' => 'invitee']);
+        $otherOwner = User::factory()->communityMember()->create(['pseudo' => 'hotesse']);
 
         GalleryAccessRequest::create([
             'requester_user_id' => $viewer->id,
@@ -142,8 +142,8 @@ class GalleryAccessTest extends TestCase
 
     public function test_requesting_access_deducts_gems_and_notifies_the_owner(): void
     {
-        $owner = User::factory()->create();
-        $requester = User::factory()->create(['gems' => 200]);
+        $owner = User::factory()->communityMember()->create();
+        $requester = User::factory()->communityMember()->create(['gems' => 200]);
 
         $this->actingAs($requester)
             ->post(route('gallery-access.request', $owner->id))
@@ -165,8 +165,8 @@ class GalleryAccessTest extends TestCase
 
     public function test_requesting_access_without_enough_gems_does_not_create_a_request(): void
     {
-        $owner = User::factory()->create();
-        $requester = User::factory()->create(['gems' => 10]);
+        $owner = User::factory()->communityMember()->create();
+        $requester = User::factory()->communityMember()->create(['gems' => 10]);
 
         $this->actingAs($requester)
             ->post(route('gallery-access.request', $owner->id))
@@ -178,8 +178,8 @@ class GalleryAccessTest extends TestCase
 
     public function test_accepting_a_request_notifies_the_requester(): void
     {
-        $owner = User::factory()->create();
-        $requester = User::factory()->create();
+        $owner = User::factory()->communityMember()->create();
+        $requester = User::factory()->communityMember()->create();
 
         $accessRequest = GalleryAccessRequest::create([
             'requester_user_id' => $requester->id,
@@ -202,8 +202,8 @@ class GalleryAccessTest extends TestCase
 
     public function test_rejecting_a_request_refunds_gems_and_notifies_the_requester(): void
     {
-        $owner = User::factory()->create();
-        $requester = User::factory()->create(['gems' => 0]);
+        $owner = User::factory()->communityMember()->create();
+        $requester = User::factory()->communityMember()->create(['gems' => 0]);
 
         $accessRequest = GalleryAccessRequest::create([
             'requester_user_id' => $requester->id,
@@ -227,8 +227,8 @@ class GalleryAccessTest extends TestCase
 
     public function test_granting_access_directly_notifies_the_beneficiary(): void
     {
-        $owner = User::factory()->create();
-        $beneficiary = User::factory()->create();
+        $owner = User::factory()->communityMember()->create();
+        $beneficiary = User::factory()->communityMember()->create();
 
         $this->actingAs($owner)
             ->post(route('gallery-access.grant', $beneficiary->id))
@@ -249,8 +249,8 @@ class GalleryAccessTest extends TestCase
 
     public function test_owner_can_revoke_access_to_their_private_gallery(): void
     {
-        $owner = User::factory()->create();
-        $viewer = User::factory()->create();
+        $owner = User::factory()->communityMember()->create();
+        $viewer = User::factory()->communityMember()->create();
 
         $access = GalleryAccessRequest::create([
             'requester_user_id' => $viewer->id,
@@ -270,9 +270,9 @@ class GalleryAccessTest extends TestCase
 
     public function test_user_cannot_revoke_someone_elses_gallery_access(): void
     {
-        $owner = User::factory()->create();
-        $viewer = User::factory()->create();
-        $unrelatedUser = User::factory()->create();
+        $owner = User::factory()->communityMember()->create();
+        $viewer = User::factory()->communityMember()->create();
+        $unrelatedUser = User::factory()->communityMember()->create();
 
         $access = GalleryAccessRequest::create([
             'requester_user_id' => $viewer->id,

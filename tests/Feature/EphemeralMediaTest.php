@@ -17,6 +17,12 @@ class EphemeralMediaTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local');
+    }
+
     private function storeFile(string $path): void
     {
         $image = imagecreatetruecolor(60, 80);
@@ -31,10 +37,10 @@ class EphemeralMediaTest extends TestCase
     /** A media addressed to $recipient, with its file actually on disk. */
     private function mediaFor(User $recipient, array $state = []): EphemeralMedia
     {
-        $sender = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
         $conversation = Conversation::factory()->between($sender, $recipient)->create();
 
-        $media = EphemeralMedia::factory()->create(array_merge([
+        $media = EphemeralMedia::factory()->approved()->create(array_merge([
             'conversation_id' => $conversation->id,
             'sender_id' => $sender->id,
             'recipient_id' => $recipient->id,
@@ -51,8 +57,8 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
         $conversation = Conversation::factory()->between($sender, $recipient)->create();
 
         $this->actingAs($sender)
@@ -66,6 +72,7 @@ class EphemeralMediaTest extends TestCase
             'recipient_id' => $recipient->id,
             'type' => 'photo',
             'processing_status' => 'ready',
+            'moderation_status' => 'pending',
         ]);
     }
 
@@ -74,8 +81,8 @@ class EphemeralMediaTest extends TestCase
         Storage::fake('local');
         Storage::fake('public');
 
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
         $conversation = Conversation::factory()->between($sender, $recipient)->create();
 
         $this->actingAs($sender)->post(route('ephemeral.store', $conversation), [
@@ -93,7 +100,7 @@ class EphemeralMediaTest extends TestCase
         Storage::fake('local');
 
         $conversation = Conversation::factory()->create();
-        $stranger = User::factory()->create();
+        $stranger = User::factory()->communityMember()->create();
 
         $this->actingAs($stranger)
             ->post(route('ephemeral.store', $conversation), [
@@ -107,8 +114,8 @@ class EphemeralMediaTest extends TestCase
         Storage::fake('local');
         Queue::fake();
 
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
         $conversation = Conversation::factory()->between($sender, $recipient)->create();
 
         $this->mock(\App\Services\VideoProcessingService::class, function ($mock) {
@@ -134,8 +141,8 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
         $conversation = Conversation::factory()->between($sender, $recipient)->create();
 
         $this->mock(\App\Services\VideoProcessingService::class, function ($mock) {
@@ -154,7 +161,7 @@ class EphemeralMediaTest extends TestCase
 
     public function test_first_view_is_free_and_opens_the_replay_window(): void
     {
-        $recipient = User::factory()->create(['gems' => 100]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 100]);
         $media = $this->mediaFor($recipient);
 
         $this->actingAs($recipient)
@@ -171,7 +178,7 @@ class EphemeralMediaTest extends TestCase
 
     public function test_an_unopened_media_never_expires(): void
     {
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
 
         // Envoyée il y a trois semaines, jamais ouverte : doit rester visible.
         $media = $this->mediaFor($recipient, ['created_at' => now()->subWeeks(3)]);
@@ -183,7 +190,7 @@ class EphemeralMediaTest extends TestCase
 
     public function test_the_sender_cannot_open_what_they_sent(): void
     {
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient);
 
         $this->actingAs($media->sender)
@@ -193,10 +200,10 @@ class EphemeralMediaTest extends TestCase
 
     public function test_a_third_party_cannot_open_it(): void
     {
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient);
 
-        $this->actingAs(User::factory()->create())
+        $this->actingAs(User::factory()->communityMember()->create())
             ->get(route('ephemeral.show', $media))
             ->assertForbidden();
     }
@@ -207,7 +214,7 @@ class EphemeralMediaTest extends TestCase
     {
         config(['media.ephemeral.replay_cost_gems' => 20]);
 
-        $recipient = User::factory()->create(['gems' => 50]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 50]);
         $media = $this->mediaFor($recipient, [
             'first_viewed_at' => now()->subHour(),
             'replay_available_until' => now()->addHours(23),
@@ -225,7 +232,7 @@ class EphemeralMediaTest extends TestCase
     {
         config(['media.ephemeral.replay_cost_gems' => 20]);
 
-        $recipient = User::factory()->create(['gems' => 5]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 5]);
         $media = $this->mediaFor($recipient, [
             'first_viewed_at' => now()->subHour(),
             'replay_available_until' => now()->addHours(23),
@@ -243,7 +250,7 @@ class EphemeralMediaTest extends TestCase
     {
         config(['media.ephemeral.replay_cost_gems' => 20]);
 
-        $recipient = User::factory()->create(['gems' => 50]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 50]);
         $recipient->is_premium = true;
         $recipient->premium_expires_at = now()->addMonth();
         $recipient->save();
@@ -276,7 +283,7 @@ class EphemeralMediaTest extends TestCase
 
     public function test_a_second_replay_is_refused(): void
     {
-        $recipient = User::factory()->create(['gems' => 500]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 500]);
         $media = $this->mediaFor($recipient, [
             'first_viewed_at' => now()->subHours(2),
             'replay_available_until' => now()->addHours(22),
@@ -290,7 +297,7 @@ class EphemeralMediaTest extends TestCase
 
     public function test_the_replay_window_closes_after_24_hours(): void
     {
-        $recipient = User::factory()->create(['gems' => 500]);
+        $recipient = User::factory()->communityMember()->create(['gems' => 500]);
         $media = $this->mediaFor($recipient, [
             'first_viewed_at' => now()->subDays(2),
             'replay_available_until' => now()->subDay(),
@@ -303,7 +310,7 @@ class EphemeralMediaTest extends TestCase
 
     public function test_a_video_still_processing_cannot_be_opened(): void
     {
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient, [
             'type' => 'video',
             'processing_status' => 'pending',
@@ -320,7 +327,7 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient);
 
         $response = $this->actingAs($recipient)
@@ -341,7 +348,7 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient);
 
         $this->actingAs($media->sender)
@@ -357,7 +364,7 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient, ['purged_at' => now()]);
 
         $this->actingAs($recipient)
@@ -372,7 +379,7 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient, ['purge_after' => now()->subDay()]);
 
         $this->artisan('ephemeral:prune')->assertSuccessful();
@@ -389,7 +396,7 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient, [
             'purge_after' => now()->subDay(),
             'is_flagged' => true,
@@ -405,7 +412,7 @@ class EphemeralMediaTest extends TestCase
     {
         Storage::fake('local');
 
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient, ['purge_after' => now()->addDays(10)]);
 
         $this->artisan('ephemeral:prune')->assertSuccessful();
@@ -415,7 +422,7 @@ class EphemeralMediaTest extends TestCase
 
     public function test_a_purged_media_cannot_be_opened(): void
     {
-        $recipient = User::factory()->create();
+        $recipient = User::factory()->communityMember()->create();
         $media = $this->mediaFor($recipient, ['purged_at' => now()]);
 
         $this->actingAs($recipient)

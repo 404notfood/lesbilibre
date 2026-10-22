@@ -18,12 +18,18 @@ import AdminLayout, {
     AdminTr,
 } from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import { Coins, Search, Sparkles, TrendingDown, TrendingUp, X } from 'lucide-react';
+import {
+    Coins,
+    Search,
+    Sparkles,
+    TrendingDown,
+    TrendingUp,
+    X,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface TransactionUser {
     id: number;
-    name: string;
     pseudo: string;
 }
 
@@ -191,15 +197,17 @@ export default function Index({
                                             href={`/admin/gems/${holder.id}`}
                                             className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-[color:var(--bg-soft)]"
                                         >
-                                            <span className="font-mono w-5 shrink-0 text-xs text-[color:var(--ink-mute)]">
+                                            <span className="w-5 shrink-0 font-mono text-xs text-[color:var(--ink-mute)]">
                                                 {index + 1}
                                             </span>
                                             <span className="min-w-0 flex-1 truncate text-sm font-medium text-[color:var(--ink)]">
                                                 {holder.pseudo}
                                             </span>
-                                            <span className="font-mono inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)]">
+                                            <span className="inline-flex shrink-0 items-center gap-1 font-mono text-sm font-semibold text-[color:var(--ink)]">
                                                 <Sparkles className="h-3 w-3 text-[color:var(--gold)]" />
-                                                {holder.gems.toLocaleString('fr-FR')}
+                                                {holder.gems.toLocaleString(
+                                                    'fr-FR',
+                                                )}
                                             </span>
                                         </Link>
                                     </li>
@@ -227,15 +235,20 @@ export default function Index({
                         ) : undefined
                     }
                 >
-                    <AdminField label="Recherche" className="min-w-[220px] flex-1">
+                    <AdminField
+                        label="Recherche"
+                        className="min-w-[220px] flex-1"
+                    >
                         <div className="relative">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
+                            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-mute)]" />
                             <input
                                 type="search"
-                                placeholder="pseudo, nom, e-mail…"
+                                placeholder="pseudo…"
                                 value={search}
-                                onChange={(event) => setSearch(event.target.value)}
-                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pl-9 pr-3 text-sm text-[color:var(--ink)] outline-none transition-colors placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                className="h-9 w-full rounded-lg border border-[color:var(--line)] bg-[color:var(--paper)] pr-3 pl-9 text-sm text-[color:var(--ink)] transition-colors outline-none placeholder:text-[color:var(--ink-mute)] focus:border-[color:var(--desire)]"
                             />
                         </div>
                     </AdminField>
@@ -291,11 +304,13 @@ export default function Index({
                                                         href={`/admin/gems/${transaction.user.id}`}
                                                         className="text-sm font-semibold text-[color:var(--ink)] hover:underline"
                                                     >
-                                                        {transaction.user.pseudo ||
-                                                            transaction.user.name}
+                                                        {
+                                                            transaction.user
+                                                                .pseudo
+                                                        }
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-sm italic text-[color:var(--ink-mute)]">
+                                                    <span className="text-sm text-[color:var(--ink-mute)] italic">
                                                         compte supprimé
                                                     </span>
                                                 )}
@@ -313,7 +328,8 @@ export default function Index({
                                             </AdminTd>
                                             <AdminTd>
                                                 <p className="max-w-xs truncate text-xs text-[color:var(--ink-soft)]">
-                                                    {transaction.description ?? '—'}
+                                                    {transaction.description ??
+                                                        '—'}
                                                 </p>
                                             </AdminTd>
                                             <AdminTd align="right">
@@ -324,7 +340,9 @@ export default function Index({
                                                             : 'text-[color:var(--destructive)]'
                                                     }`}
                                                 >
-                                                    {transaction.amount > 0 ? '+' : ''}
+                                                    {transaction.amount > 0
+                                                        ? '+'
+                                                        : ''}
                                                     {transaction.amount.toLocaleString(
                                                         'fr-FR',
                                                     )}
@@ -341,11 +359,14 @@ export default function Index({
                                                 <AdminMeta>
                                                     {new Date(
                                                         transaction.created_at,
-                                                    ).toLocaleDateString('fr-FR', {
-                                                        day: '2-digit',
-                                                        month: '2-digit',
-                                                        year: '2-digit',
-                                                    })}
+                                                    ).toLocaleDateString(
+                                                        'fr-FR',
+                                                        {
+                                                            day: '2-digit',
+                                                            month: '2-digit',
+                                                            year: '2-digit',
+                                                        },
+                                                    )}
                                                 </AdminMeta>
                                             </AdminTd>
                                         </AdminTr>

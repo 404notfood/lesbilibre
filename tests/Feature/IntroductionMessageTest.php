@@ -16,8 +16,8 @@ class IntroductionMessageTest extends TestCase
 
     public function test_a_conversation_cannot_be_started_without_a_like(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
 
         $this->actingAs($sender)
             ->post(route('conversations.store', $recipient->id))
@@ -29,8 +29,8 @@ class IntroductionMessageTest extends TestCase
 
     public function test_a_liked_user_can_start_a_conversation(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
         Like::create(['user_id' => $sender->id, 'liked_user_id' => $recipient->id]);
 
         $this->actingAs($sender)
@@ -42,8 +42,8 @@ class IntroductionMessageTest extends TestCase
 
     public function test_a_second_message_is_refused_before_a_reply(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
         Like::create(['user_id' => $sender->id, 'liked_user_id' => $recipient->id]);
 
         $conversation = Conversation::create([
@@ -65,8 +65,8 @@ class IntroductionMessageTest extends TestCase
 
     public function test_the_sender_can_write_again_once_the_recipient_replied(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
         Like::create(['user_id' => $sender->id, 'liked_user_id' => $recipient->id]);
 
         $conversation = Conversation::create([
@@ -78,12 +78,14 @@ class IntroductionMessageTest extends TestCase
             'conversation_id' => $conversation->id,
             'sender_id' => $sender->id,
             'content' => 'Salut !',
+            'moderation_status' => 'approved',
         ]);
 
         Message::create([
             'conversation_id' => $conversation->id,
             'sender_id' => $recipient->id,
             'content' => 'Coucou !',
+            'moderation_status' => 'approved',
         ]);
 
         $this->actingAs($sender)
@@ -95,8 +97,8 @@ class IntroductionMessageTest extends TestCase
 
     public function test_matched_users_are_not_limited_to_a_single_message(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = User::factory()->communityMember()->create();
+        $recipient = User::factory()->communityMember()->create();
 
         UserMatch::create([
             'user1_id' => min($sender->id, $recipient->id),

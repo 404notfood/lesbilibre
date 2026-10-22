@@ -17,7 +17,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -67,6 +66,12 @@ class DataPrivacyController extends Controller
                 'created_at' => $user->created_at->toISOString(),
                 'updated_at' => $user->updated_at->toISOString(),
             ],
+            'community' => [
+                'charter_version' => $user->community_charter_version,
+                'charter_accepted_at' => $user->community_charter_accepted_at,
+                'safety_restricted_at' => $user->safety_restricted_at,
+                'intimate_media_consents' => DB::table('intimate_media_consents')->where('user_id', $user->id)->get(),
+            ],
             'profile' => $this->exportProfile($user),
             'photos' => $this->exportPhotos($user),
             'messages' => $this->exportMessages($user),
@@ -101,92 +106,14 @@ class DataPrivacyController extends Controller
 
         $user = $request->user();
 
-        DB::transaction(function () use ($user) {
-            // 1. Delete photos from storage
-            $photos = $user->photos()->get();
-            foreach ($photos as $photo) {
-                if ($photo->path && Storage::disk('public')->exists($photo->path)) {
-                    Storage::disk('public')->delete($photo->path);
-                }
-                if ($photo->thumbnail_path && Storage::disk('public')->exists($photo->thumbnail_path)) {
-                    Storage::disk('public')->delete($photo->thumbnail_path);
-                }
-            }
-            $user->photos()->delete();
-
-            // 2. Delete verification photos from storage
-            $verificationPhotos = $user->verificationPhotos()->get();
-            foreach ($verificationPhotos as $vPhoto) {
-                if ($vPhoto->path && Storage::disk('local')->exists($vPhoto->path)) {
-                    Storage::disk('local')->delete($vPhoto->path);
-                }
-            }
-            $user->verificationPhotos()->delete();
-
-            // 3. Anonymize messages (replace content, keep structure for other users' conversation history)
-            Message::where('sender_id', $user->id)->update([
-                'content' => '[message supprimé]',
-            ]);
-
-            // 4. Delete likes (given and received)
-            Like::where('user_id', $user->id)->orWhere('liked_user_id', $user->id)->delete();
-
-            // 5. Delete matches
-            UserMatch::where('user1_id', $user->id)->orWhere('user2_id', $user->id)->delete();
-
-            // 6. Delete blocked users (both directions)
-            BlockedUser::where('blocker_id', $user->id)->orWhere('blocked_id', $user->id)->delete();
-
-            // 7. Delete notifications
-            $user->appNotifications()->delete();
-
-            // 8. Delete gem transactions
-            $user->gemTransactions()->delete();
-
-            // 9. Delete reports made by the user
-            Report::where('reporter_id', $user->id)->delete();
-
-            // 10. Delete profile and related data
-            if ($user->profile) {
-                $user->profile->naughtyInterests()->detach();
-                $user->profile->delete();
-            }
-
-            // 11. Detach badges
-            $user->badges()->detach();
-
-            // 12. Delete subscriptions
-            $user->subscriptions()->delete();
-
-            // Referral relationships are no longer needed after erasure.
-            Referral::where('referrer_id', $user->id)
-                ->orWhere('referred_user_id', $user->id)
-                ->delete();
-
-            // 13. Soft-delete user with anonymized data
-            $user->update([
-                'email' => "deleted_{$user->id}@deleted.local",
-                'name' => 'Utilisateur supprimé',
-                'pseudo' => "deleted_{$user->id}",
-                'password' => '',
-                'remember_token' => null,
-                'two_factor_secret' => null,
-                'two_factor_recovery_codes' => null,
-                'two_factor_confirmed_at' => null,
-                'data_processing_consent' => false,
-                'data_processing_consented_at' => null,
-                'marketing_consent' => false,
-            ]);
-
-            $user->delete();
-        });
+        app(\App\Services\AccountErasureService::class)->requestDeletion($user);
 
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('success', 'Votre compte a été supprimé avec succès.');
+        return redirect('/')->with('success', 'Votre compte est fermé. L’administration a été avertie pour effectuer l’effacement définitif.');
     }
 
     /**
@@ -251,6 +178,9 @@ class DataPrivacyController extends Controller
         return [
             'bio' => $profile->bio,
             'date_of_birth' => $profile->date_of_birth?->toDateString(),
+            'birth_date_declared_at' => $profile->birth_date_declared_at,
+            'meeting_intentions' => $profile->intentions(),
+            'boundaries' => $profile->boundaries,
             'city' => $profile->city,
             'postal_code' => $profile->postal_code,
             'country' => $profile->country,

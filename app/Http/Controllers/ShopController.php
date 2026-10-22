@@ -62,13 +62,13 @@ class ShopController extends Controller
             ->where('is_banned', false)
             ->find($recipientId);
 
-        if ($recipient === null) {
+        if ($recipient === null || ! $request->user()->canInteractWith($recipient)) {
             return null;
         }
 
         return [
             'id' => $recipient->id,
-            'name' => $recipient->name,
+            'name' => $recipient->pseudo,
             'pseudo' => $recipient->pseudo,
         ];
     }
@@ -156,6 +156,11 @@ class ShopController extends Controller
             return back()->with('error', 'Vous ne pouvez pas vous offrir un cadeau.');
         }
 
+        abort_unless($user->canInteractWith($recipient), 403, 'Cette interaction n’est pas disponible.');
+        if (filled($validated['message'] ?? null)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['message' => 'Envoyez votre texte dans la messagerie : chaque message doit être validé par l’administration.']);
+        }
+
         // Vérifier que l'utilisateur a assez de gemmes
         $gemService = app(\App\Services\GemService::class);
         $transaction = $gemService->deductGems(
@@ -163,12 +168,12 @@ class ShopController extends Controller
             $gift['price'],
             'spend',
             'gift_sent',
-            "Cadeau envoyé : {$gift['name']} à {$recipient->name}",
+            "Cadeau envoyé : {$gift['name']} à {$recipient->pseudo}",
             [
                 'gift_id' => $validated['gift_id'],
                 'gift_name' => $gift['name'],
                 'recipient_id' => $recipient->id,
-                'recipient_name' => $recipient->name,
+                'recipient_name' => $recipient->pseudo,
                 'message' => $validated['message'] ?? null,
             ]
         );
@@ -184,12 +189,12 @@ class ShopController extends Controller
             $recipientBonus,
             'earn',
             'gift_received',
-            "Cadeau reçu : {$gift['name']} de {$user->name}",
+            "Cadeau reçu : {$gift['name']} de {$user->pseudo}",
             [
                 'gift_id' => $validated['gift_id'],
                 'gift_name' => $gift['name'],
                 'sender_id' => $user->id,
-                'sender_name' => $user->name,
+                'sender_name' => $user->pseudo,
                 'message' => $validated['message'] ?? null,
             ]
         );
@@ -199,17 +204,17 @@ class ShopController extends Controller
             $recipient->id,
             'gift',
             'Nouveau cadeau reçu ! 🎁',
-            "{$user->name} vous a envoyé : {$gift['name']}",
+            "{$user->pseudo} vous a envoyé : {$gift['name']}",
             [
                 'gift_id' => $validated['gift_id'],
                 'gift_name' => $gift['name'],
                 'sender_id' => $user->id,
-                'sender_name' => $user->name,
+                'sender_name' => $user->pseudo,
                 'message' => $validated['message'] ?? null,
                 'gems_bonus' => $recipientBonus,
             ]
         );
 
-        return back()->with('success', "Cadeau envoyé à {$recipient->name} !");
+        return back()->with('success', "Cadeau envoyé à {$recipient->pseudo} !");
     }
 }

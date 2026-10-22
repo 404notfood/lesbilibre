@@ -17,6 +17,9 @@ class MatchScoreService
      */
     public function calculateScore(Profile $profile1, Profile $profile2): int
     {
+        if (! $profile1->acceptsIntentionsOf($profile2) || ! $profile2->acceptsIntentionsOf($profile1)) {
+            return 0;
+        }
         $score = 0;
 
         // Interest compatibility (30 points)
@@ -37,8 +40,8 @@ class MatchScoreService
         // Relationship goals compatibility (10 points)
         $score += $this->calculateRelationshipScore($profile1, $profile2);
 
-        // Ensure score is between 70-100 for better UX
-        return max(70, min(100, $score));
+        // Report the actual score; never inflate incompatible profiles.
+        return max(0, min(100, $score));
     }
 
     protected function calculateInterestScore(Profile $profile1, Profile $profile2): int
@@ -160,18 +163,6 @@ class MatchScoreService
 
     protected function calculateRelationshipScore(Profile $profile1, Profile $profile2): int
     {
-        if ($profile1->looking_for === $profile2->looking_for) {
-            return 10;
-        }
-
-        // Compatible if both are open or casual
-        $casual = ['casual', 'amitié', 'friendship'];
-
-        if (in_array(strtolower($profile1->looking_for ?? ''), $casual) &&
-            in_array(strtolower($profile2->looking_for ?? ''), $casual)) {
-            return 7;
-        }
-
-        return 4;
+        return $profile1->acceptsIntentionsOf($profile2) && $profile2->acceptsIntentionsOf($profile1) ? 10 : 0;
     }
 }

@@ -23,8 +23,17 @@ class MessageSent implements ShouldBroadcastNow
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
+    public function broadcastWhen(): bool
+    {
+        return $this->mayBroadcast();
+    }
+
     public function broadcastOn(): array
     {
+        if (! $this->mayBroadcast()) {
+            return [];
+        }
+
         return [
             new PrivateChannel('conversation.'.$this->message->conversation_id),
         ];
@@ -47,12 +56,20 @@ class MessageSent implements ShouldBroadcastNow
             'id' => $this->message->id,
             'conversation_id' => $this->message->conversation_id,
             'sender_id' => $this->message->sender_id,
-            'content' => $this->message->content,
+            'content' => $this->message->publicContent(),
+            'moderation_status' => 'approved',
             'created_at' => $this->message->created_at->toISOString(),
             'sender' => [
                 'id' => $this->message->sender->id,
-                'name' => $this->message->sender->name,
+                'name' => $this->message->sender->pseudo,
             ],
         ];
+    }
+
+    private function mayBroadcast(): bool
+    {
+        $conversation = $this->message->conversation()->with(['user1.profile', 'user2.profile'])->first();
+
+        return $this->message->fresh()?->moderation_status === 'approved' && $conversation?->user1 && $conversation->user2 && $conversation->user1->canInteractWith($conversation->user2);
     }
 }

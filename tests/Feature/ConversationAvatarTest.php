@@ -50,8 +50,8 @@ class ConversationAvatarTest extends TestCase
 
     public function test_an_ineligible_media_is_never_used_as_a_conversation_avatar(): void
     {
-        $viewer = User::factory()->create();
-        $other = User::factory()->create();
+        $viewer = User::factory()->communityMember()->create();
+        $other = User::factory()->communityMember()->create();
         $conversation = Conversation::factory()->between($viewer, $other)->create();
 
         Photo::factory()->primary()->create([
@@ -72,8 +72,8 @@ class ConversationAvatarTest extends TestCase
      */
     private function conversationWithAvatar(): array
     {
-        $viewer = User::factory()->create();
-        $other = User::factory()->create();
+        $viewer = User::factory()->communityMember()->create();
+        $other = User::factory()->communityMember()->create();
         $conversation = Conversation::factory()->between($viewer, $other)->create();
         $avatar = Photo::factory()->primary()->create([
             'user_id' => $other->id,

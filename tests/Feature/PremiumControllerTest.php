@@ -15,7 +15,7 @@ class PremiumControllerTest extends TestCase
 
     public function test_premium_index_shows_plans(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->communityMember()->create();
         PremiumPlan::factory()->count(3)->create();
 
         $response = $this->actingAs($user)->get(route('premium.index'));
@@ -23,7 +23,7 @@ class PremiumControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page
             ->component('Premium/Index')
-            ->has('features', 8)
+            ->missing('testimonials')
             ->has('plans', 3)
             ->where('isPremium', false)
         );
@@ -31,7 +31,7 @@ class PremiumControllerTest extends TestCase
 
     public function test_user_can_subscribe_to_premium(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => false,
             'gems' => 0,
         ]);
@@ -59,14 +59,14 @@ class PremiumControllerTest extends TestCase
 
     public function test_premium_user_status_method(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->addDays(30),
         ]);
 
         $this->assertTrue($user->isPremium());
 
-        $expiredUser = User::factory()->create([
+        $expiredUser = User::factory()->communityMember()->create([
             'is_premium' => true,
             'premium_expires_at' => now()->subDays(1),
         ]);

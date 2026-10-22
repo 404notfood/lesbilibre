@@ -11,15 +11,14 @@ import AdminLayout, {
     AdminThead,
     AdminTr,
 } from '@/layouts/admin-layout';
+import { cn } from '@/lib/utils';
 import { Head, Link, router } from '@inertiajs/react';
 import { Ban, Flag } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 type ReportStatus = 'pending' | 'reviewed' | 'actioned' | 'dismissed';
 
 interface ReportUser {
     id: number;
-    name: string;
     pseudo: string;
     is_banned?: boolean;
 }
@@ -58,6 +57,10 @@ const STATUS_TABS: { value: ReportStatus; label: string }[] = [
 const REASON_LABELS: Record<string, string> = {
     spam: 'Spam',
     harassment: 'Harcèlement',
+    suspected_minor: 'Personne potentiellement mineure',
+    impersonation: 'Usurpation d’identité',
+    hidden_shared_account: 'Compte partagé dissimulé',
+    unwanted_sexual_contact: 'Sollicitation sexuelle non souhaitée',
     fake_profile: 'Faux profil',
     inappropriate_content: 'Contenu inapproprié',
     other: 'Autre',
@@ -121,7 +124,7 @@ export default function Index({ reports, status, counts }: Props) {
                                 {tab.label}
                                 <span
                                     className={cn(
-                                        'font-mono grid h-5 min-w-[20px] place-items-center rounded px-1 text-[10px] font-bold',
+                                        'grid h-5 min-w-[20px] place-items-center rounded px-1 font-mono text-[10px] font-bold',
                                         active
                                             ? 'bg-white/20 text-white'
                                             : 'bg-[color:var(--bg-soft)] text-[color:var(--ink-mute)]',
@@ -166,13 +169,15 @@ export default function Index({ reports, status, counts }: Props) {
                                                         className="block min-w-0"
                                                     >
                                                         <div className="flex items-center gap-1.5">
-                                                            <span className="font-display truncate text-[15px] font-semibold text-[color:var(--ink)]">
-                                                                {report.reported_user
-                                                                    .pseudo ||
-                                                                    report.reported_user
-                                                                        .name}
+                                                            <span className="truncate font-display text-[15px] font-semibold text-[color:var(--ink)]">
+                                                                {
+                                                                    report
+                                                                        .reported_user
+                                                                        .pseudo
+                                                                }
                                                             </span>
-                                                            {report.reported_user
+                                                            {report
+                                                                .reported_user
                                                                 .is_banned && (
                                                                 <AdminBadge tone="danger">
                                                                     <Ban className="h-2.5 w-2.5" />
@@ -182,7 +187,7 @@ export default function Index({ reports, status, counts }: Props) {
                                                         </div>
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-sm italic text-[color:var(--ink-mute)]">
+                                                    <span className="text-sm text-[color:var(--ink-mute)] italic">
                                                         compte supprimé
                                                     </span>
                                                 )}
@@ -190,8 +195,9 @@ export default function Index({ reports, status, counts }: Props) {
 
                                             <AdminTd>
                                                 <AdminBadge tone="warning">
-                                                    {REASON_LABELS[report.reason] ??
-                                                        report.reason}
+                                                    {REASON_LABELS[
+                                                        report.reason
+                                                    ] ?? report.reason}
                                                 </AdminBadge>
                                                 {report.description && (
                                                     <p className="mt-1 max-w-xs truncate text-xs text-[color:var(--ink-soft)]">
@@ -206,11 +212,10 @@ export default function Index({ reports, status, counts }: Props) {
                                                         href={`/admin/users/${report.reporter.id}`}
                                                         className="text-sm text-[color:var(--ink-soft)] hover:underline"
                                                     >
-                                                        {report.reporter.pseudo ||
-                                                            report.reporter.name}
+                                                        {report.reporter.pseudo}
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-sm italic text-[color:var(--ink-mute)]">
+                                                    <span className="text-sm text-[color:var(--ink-mute)] italic">
                                                         compte supprimé
                                                     </span>
                                                 )}
@@ -218,9 +223,17 @@ export default function Index({ reports, status, counts }: Props) {
 
                                             <AdminTd>
                                                 <AdminBadge
-                                                    tone={STATUS_TONES[report.status]}
+                                                    tone={
+                                                        STATUS_TONES[
+                                                            report.status
+                                                        ]
+                                                    }
                                                 >
-                                                    {STATUS_LABELS[report.status]}
+                                                    {
+                                                        STATUS_LABELS[
+                                                            report.status
+                                                        ]
+                                                    }
                                                 </AdminBadge>
                                             </AdminTd>
 
@@ -228,7 +241,9 @@ export default function Index({ reports, status, counts }: Props) {
                                                 <AdminMeta>
                                                     {new Date(
                                                         report.created_at,
-                                                    ).toLocaleDateString('fr-FR')}
+                                                    ).toLocaleDateString(
+                                                        'fr-FR',
+                                                    )}
                                                 </AdminMeta>
                                             </AdminTd>
 
@@ -236,7 +251,8 @@ export default function Index({ reports, status, counts }: Props) {
                                                 <AdminButton
                                                     size="sm"
                                                     variant={
-                                                        report.status === 'pending'
+                                                        report.status ===
+                                                        'pending'
                                                             ? 'wine'
                                                             : 'default'
                                                     }

@@ -1,9 +1,29 @@
+<IfModule mod_headers.c>
+    # Static PWA files bypass Laravel's middleware. Revalidate the worker so an
+    # installed app discovers security and offline-page updates promptly.
+    <Files "sw.js">
+        Header always set Cache-Control "no-cache, no-store, must-revalidate"
+        Header always set Service-Worker-Allowed "/"
+        Header always set X-Content-Type-Options "nosniff"
+    </Files>
+    <Files "manifest.json">
+        Header set Content-Type "application/manifest+json"
+        Header set Cache-Control "public, max-age=0, must-revalidate"
+    </Files>
+    <Files "offline.html">
+        Header set Cache-Control "public, max-age=0, must-revalidate"
+    </Files>
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
 
     RewriteEngine On
+
+    # Original member photos must only be served through authorized media routes.
+    RewriteRule ^storage(/|$) - [F,L,NC]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

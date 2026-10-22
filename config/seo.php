@@ -16,13 +16,17 @@ return [
 
     'public_routes' => [
         'home', 'about', 'faq', 'contact', 'terms', 'privacy',
-        'how-it-works', 'safety', 'features', 'pricing', 'guides.index', 'guides.show',
+        'how-it-works', 'safety', 'features', 'pricing', 'guides.index', 'guides.show', 'install',
     ],
 
     'pages' => [
         'home' => [
-            'title' => 'Rencontres lesbiennes sincères | LesbiLibre',
-            'description' => 'Rencontrez des femmes qui partagent vos envies dans un espace confidentiel, modéré et pensé pour des échanges sincères.',
+            'title' => 'Des rencontres près de chez toi, à ton rythme | LesbiLibre',
+            'description' => 'Des rencontres entre femmes et personnes queer, avec des intentions claires. Un premier pilote se prépare à Laval (53).',
+        ],
+        'install' => [
+            'title' => 'Installer LesbiLibre sur ton téléphone',
+            'description' => 'Ajoute LesbiLibre à ton écran d’accueil et découvre comment régler les notifications de ton application web.',
         ],
         'about' => [
             'title' => 'À propos de LesbiLibre',

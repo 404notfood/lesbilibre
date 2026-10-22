@@ -24,7 +24,15 @@ createInertiaApp({
         root.render(
             <StrictMode>
                 <App {...props} />
-                <PwaManager />
+                <PwaManager
+                    initialUserId={
+                        (
+                            props.initialPage.props.auth as
+                                | { user?: { id?: number } | null }
+                                | undefined
+                        )?.user?.id ?? null
+                    }
+                />
                 <Toaster />
                 <CookieConsent />
             </StrictMode>,

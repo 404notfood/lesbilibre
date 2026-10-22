@@ -105,7 +105,7 @@ export default function Show({ user }: { user: UserData }) {
                                     }}
                                 >
                                     <BadgeCheck className="h-3.5 w-3.5" />
-                                    Vérifiée par selfie
+                                    Photos vérifiées
                                 </span>
                             ) : (
                                 <Link

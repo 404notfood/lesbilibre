@@ -23,6 +23,7 @@ class SendMessageRequest extends FormRequest
     {
         return [
             'content' => ['required', 'string', 'max:5000'],
+            'client_uuid' => ['nullable', 'uuid'],
         ];
     }
 

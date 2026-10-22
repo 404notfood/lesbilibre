@@ -1,3 +1,4 @@
+import { Input } from '@/components/ui/input';
 import AdminLayout, {
     AdminButton,
     AdminCard,
@@ -6,14 +7,12 @@ import AdminLayout, {
     AdminSelect,
 } from '@/layouts/admin-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Input } from '@/components/ui/input';
 import { User as UserIcon } from 'lucide-react';
 import { FormEvent } from 'react';
 
 interface User {
     id: number;
     name: string;
-    email: string;
 }
 
 interface Subscription {
@@ -68,11 +67,8 @@ export default function Edit({ subscription }: { subscription: Subscription }) {
                                 <UserIcon className="h-4 w-4" />
                             </span>
                             <div className="min-w-0">
-                                <p className="font-display truncate text-lg font-medium text-[color:var(--ink)]">
+                                <p className="truncate font-display text-lg font-medium text-[color:var(--ink)]">
                                     {subscription.user.name}
-                                </p>
-                                <p className="truncate text-sm text-[color:var(--ink-mute)]">
-                                    {subscription.user.email}
                                 </p>
                             </div>
                         </div>
@@ -99,7 +95,10 @@ export default function Edit({ subscription }: { subscription: Subscription }) {
                                 </AdminSelect>
                             </AdminField>
 
-                            <AdminField label="Montant (€)" error={errors.amount}>
+                            <AdminField
+                                label="Montant (€)"
+                                error={errors.amount}
+                            >
                                 <Input
                                     type="number"
                                     step="0.01"
@@ -114,7 +113,10 @@ export default function Edit({ subscription }: { subscription: Subscription }) {
                                 />
                             </AdminField>
 
-                            <AdminField label="Date de début" error={errors.starts_at}>
+                            <AdminField
+                                label="Date de début"
+                                error={errors.starts_at}
+                            >
                                 <Input
                                     type="date"
                                     value={data.starts_at}
@@ -133,15 +135,19 @@ export default function Edit({ subscription }: { subscription: Subscription }) {
                                     type="date"
                                     value={data.expires_at}
                                     onChange={(event) =>
-                                        setData('expires_at', event.target.value)
+                                        setData(
+                                            'expires_at',
+                                            event.target.value,
+                                        )
                                     }
                                 />
                             </AdminField>
                         </div>
 
                         <div className="rounded-lg bg-[color:var(--bg-soft)] px-3 py-2.5 text-xs text-[color:var(--ink-mute)]">
-                            Enregistrer réactive le statut Premium du compte et aligne sa
-                            date d&apos;expiration sur la date de fin choisie ici.
+                            Enregistrer réactive le statut Premium du compte et
+                            aligne sa date d&apos;expiration sur la date de fin
+                            choisie ici.
                         </div>
 
                         <div className="flex flex-wrap gap-2">

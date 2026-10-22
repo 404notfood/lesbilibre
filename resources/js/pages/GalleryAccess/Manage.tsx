@@ -1,24 +1,19 @@
-import DatingLayout from '@/layouts/dating-layout';
-import { Head, router } from '@inertiajs/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Lock, Unlock, X, Eye, UserCheck } from 'lucide-react';
-import { useState } from 'react';
+import DatingLayout from '@/layouts/dating-layout';
+import { Head, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-interface Photo {
-    path: string;
-}
+import { Eye, Lock, Unlock, UserCheck, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface UserData {
     id: number;
-    name: string;
-    pseudo?: string;
-    photos: Photo[];
+    pseudo: string;
+    avatar_url: string | null;
 }
 
 interface GalleryAccess {
@@ -40,7 +35,12 @@ interface AccessCardProps {
     onRevoke: (requestId: number) => void;
 }
 
-function AccessCard({ access, type, processing, onRevoke }: AccessCardProps): JSX.Element {
+function AccessCard({
+    access,
+    type,
+    processing,
+    onRevoke,
+}: AccessCardProps): JSX.Element {
     const user = type === 'granted' ? access.requester : access.owner;
     const isGranted = type === 'granted';
 
@@ -50,27 +50,47 @@ function AccessCard({ access, type, processing, onRevoke }: AccessCardProps): JS
                 <div className="flex items-center gap-4 p-4">
                     <div className="relative flex-shrink-0">
                         <Avatar className="h-16 w-16 border-2 border-primary/20">
-                            {user.photos?.[0] ? (
-                                <AvatarImage src={`/storage/${user.photos[0].path}`} alt={user.pseudo || user.name} />
+                            {user.avatar_url ? (
+                                <AvatarImage
+                                    src={user.avatar_url}
+                                    alt={user.pseudo}
+                                />
                             ) : (
                                 <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-400 text-xl text-white">
-                                    {(user.pseudo || user.name).slice(0, 2).toUpperCase()}
+                                    {user.pseudo.slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                             )}
                         </Avatar>
-                        <div className={`absolute -bottom-1 -right-1 rounded-full p-1 ${isGranted ? 'bg-green-500' : 'bg-blue-500'}`}>
-                            {isGranted ? <Unlock className="h-3 w-3 text-white" /> : <Eye className="h-3 w-3 text-white" />}
+                        <div
+                            className={`absolute -right-1 -bottom-1 rounded-full p-1 ${isGranted ? 'bg-green-500' : 'bg-blue-500'}`}
+                        >
+                            {isGranted ? (
+                                <Unlock className="h-3 w-3 text-white" />
+                            ) : (
+                                <Eye className="h-3 w-3 text-white" />
+                            )}
                         </div>
                     </div>
 
                     <div className="flex-1 overflow-hidden">
-                        <h3 className="text-lg font-semibold text-foreground">{user.pseudo || user.name}</h3>
+                        <h3 className="text-lg font-semibold text-foreground">
+                            {user.pseudo}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                            {isGranted ? 'Peut voir ta galerie privee' : 'Tu peux voir sa galerie privee'}
+                            {isGranted
+                                ? 'Peut voir ta galerie privee'
+                                : 'Tu peux voir sa galerie privee'}
                         </p>
                         <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                             <UserCheck className="h-3 w-3" />
-                            <span>Depuis le {format(new Date(access.created_at), 'dd MMM yyyy', { locale: fr })}</span>
+                            <span>
+                                Depuis le{' '}
+                                {format(
+                                    new Date(access.created_at),
+                                    'dd MMM yyyy',
+                                    { locale: fr },
+                                )}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -96,16 +116,22 @@ function EmptyState({ type }: { type: 'granted' | 'received' }): JSX.Element {
         <div className="flex flex-col items-center justify-center px-4 py-16">
             <div className="relative mb-6">
                 <div className="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20">
-                    {type === 'granted' ? <Unlock className="h-16 w-16 text-primary/40" /> : <Eye className="h-16 w-16 text-primary/40" />}
+                    {type === 'granted' ? (
+                        <Unlock className="h-16 w-16 text-primary/40" />
+                    ) : (
+                        <Eye className="h-16 w-16 text-primary/40" />
+                    )}
                 </div>
             </div>
             <h3 className="mb-2 text-2xl font-bold text-foreground">
-                {type === 'granted' ? 'Aucun acces accorde' : 'Aucun acces recu'}
+                {type === 'granted'
+                    ? 'Aucun acces accorde'
+                    : 'Aucun acces recu'}
             </h3>
             <p className="max-w-md text-center text-muted-foreground">
                 {type === 'granted'
-                    ? "Tu n as accorde l acces a ta galerie privee a personne pour le moment."
-                    : "Tu n as acces a aucune galerie privee pour le moment."}
+                    ? 'Tu n as accorde l acces a ta galerie privee a personne pour le moment.'
+                    : 'Tu n as acces a aucune galerie privee pour le moment.'}
             </p>
         </div>
     );
@@ -135,7 +161,8 @@ export default function Manage({ accessGranted, accessReceived }: ManageProps) {
                         Gerer les acces galerie
                     </h2>
                     <p className="text-muted-foreground">
-                        Controle qui peut voir ta galerie privee et les galeries auxquelles tu as acces.
+                        Controle qui peut voir ta galerie privee et les galeries
+                        auxquelles tu as acces.
                     </p>
                 </div>
 
@@ -163,7 +190,13 @@ export default function Manage({ accessGranted, accessReceived }: ManageProps) {
                         {accessGranted.length > 0 ? (
                             <div className="grid gap-4 md:grid-cols-2">
                                 {accessGranted.map((access) => (
-                                    <AccessCard key={access.id} access={access} type="granted" processing={processing} onRevoke={handleRevoke} />
+                                    <AccessCard
+                                        key={access.id}
+                                        access={access}
+                                        type="granted"
+                                        processing={processing}
+                                        onRevoke={handleRevoke}
+                                    />
                                 ))}
                             </div>
                         ) : (
@@ -175,7 +208,13 @@ export default function Manage({ accessGranted, accessReceived }: ManageProps) {
                         {accessReceived.length > 0 ? (
                             <div className="grid gap-4 md:grid-cols-2">
                                 {accessReceived.map((access) => (
-                                    <AccessCard key={access.id} access={access} type="received" processing={processing} onRevoke={handleRevoke} />
+                                    <AccessCard
+                                        key={access.id}
+                                        access={access}
+                                        type="received"
+                                        processing={processing}
+                                        onRevoke={handleRevoke}
+                                    />
                                 ))}
                             </div>
                         ) : (
@@ -191,12 +230,26 @@ export default function Manage({ accessGranted, accessReceived }: ManageProps) {
                                 <Lock className="h-5 w-5 text-pink-600 dark:text-pink-400" />
                             </div>
                             <div className="flex-1">
-                                <h4 className="mb-1 font-semibold text-pink-900 dark:text-pink-100">A propos de la gestion des acces</h4>
+                                <h4 className="mb-1 font-semibold text-pink-900 dark:text-pink-100">
+                                    A propos de la gestion des acces
+                                </h4>
                                 <ul className="space-y-1 text-sm text-pink-800 dark:text-pink-200">
-                                    <li>Revoquer un acces accorde coupe immediatement la galerie privee.</li>
-                                    <li>Revoquer un acces recu coupe aussi ton acces.</li>
-                                    <li>Aucun remboursement n est effectue lors de la revocation.</li>
-                                    <li>Tu peux accorder ou revoquer l acces a tout moment.</li>
+                                    <li>
+                                        Revoquer un acces accorde coupe
+                                        immediatement la galerie privee.
+                                    </li>
+                                    <li>
+                                        Revoquer un acces recu coupe aussi ton
+                                        acces.
+                                    </li>
+                                    <li>
+                                        Aucun remboursement n est effectue lors
+                                        de la revocation.
+                                    </li>
+                                    <li>
+                                        Tu peux accorder ou revoquer l acces a
+                                        tout moment.
+                                    </li>
                                 </ul>
                             </div>
                         </div>

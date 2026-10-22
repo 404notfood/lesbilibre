@@ -13,10 +13,9 @@ class PremiumSharedStateTest extends TestCase
 
     protected function createMember(array $attributes = []): User
     {
-        $user = User::factory()->create($attributes);
+        $user = User::factory()->communityMember()->create($attributes);
 
-        Profile::create([
-            'user_id' => $user->id,
+        Profile::updateOrCreate(['user_id' => $user->id], [
             'date_of_birth' => now()->subYears(30),
         ]);
 

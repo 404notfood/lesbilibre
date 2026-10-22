@@ -7,7 +7,7 @@ return [
         'pansexual' => 'Pansexuelle',
         'queer' => 'Queer',
         'questioning' => 'En questionnement',
-        'other' => 'Autre',
+        'other' => 'Sans étiquette / non précisée',
     ],
 
     'relationship_status' => [
@@ -21,9 +21,9 @@ return [
     'looking_for' => [
         'relationship' => 'Relation sérieuse',
         'friendship' => 'Amitié',
-        'casual' => 'Rencontres légères',
+        'casual' => 'Rencontre sexuelle sans engagement',
         'dating' => 'Rencontres amoureuses',
-        'open' => 'Ouverte à tout',
+        'open' => 'Découvrir à mon rythme',
     ],
 
     'body_type' => [

@@ -28,7 +28,9 @@ class PruneVerificationPhotos extends Command
                     continue;
                 }
 
-                Storage::disk('local')->delete($photo->path);
+                if (! Storage::disk('local')->delete($photo->path)) {
+                    throw new \RuntimeException('La suppression d’un selfie a été refusée par le stockage.');
+                }
                 $photo->update(['path' => null]);
             }
         });

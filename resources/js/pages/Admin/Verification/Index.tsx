@@ -12,9 +12,7 @@ import { useState } from 'react';
 
 interface VerificationUser {
     id: number;
-    name: string;
     pseudo: string;
-    email: string;
     is_verified: boolean;
 }
 
@@ -22,6 +20,7 @@ interface Verification {
     id: number;
     image_url: string;
     challenge_code: string | null;
+    primary_photo_url: string | null;
     created_at: string;
     user: VerificationUser | null;
 }
@@ -49,7 +48,9 @@ export default function Index({ verifications }: Props) {
             ]}
             hideSearch
             actions={
-                <AdminBadge tone={verifications.total > 0 ? 'warning' : 'success'}>
+                <AdminBadge
+                    tone={verifications.total > 0 ? 'warning' : 'success'}
+                >
                     {verifications.total} en attente
                 </AdminBadge>
             }
@@ -64,16 +65,17 @@ export default function Index({ verifications }: Props) {
                     </span>
                     <div className="min-w-0 flex-1 space-y-2">
                         <p className="text-sm text-[color:var(--ink-soft)]">
-                            Vérifie que le code affiché sous chaque photo correspond bien
-                            à celui écrit sur la feuille tenue par la personne. Un code
-                            absent ou différent signale une photo qui n&apos;a pas été
-                            prise pour cette demande — refuse-la.
+                            Vérifie que le code affiché sous chaque photo
+                            correspond bien à celui écrit sur la feuille tenue
+                            par la personne. Un code absent ou différent signale
+                            une photo qui n&apos;a pas été prise pour cette
+                            demande — refuse-la.
                         </p>
                         <p className="text-sm text-[color:var(--ink-mute)]">
-                            Ces selfies sont des données d&apos;identité sensibles. Ils
-                            sont servis uniquement à la modération, jamais publiés, et ne
-                            doivent pas être téléchargés ni partagés hors de cette
-                            console.
+                            Ces selfies sont des données d&apos;identité
+                            sensibles. Ils sont servis uniquement à la
+                            modération, jamais publiés, et ne doivent pas être
+                            téléchargés ni partagés hors de cette console.
                         </p>
                     </div>
                 </div>
@@ -122,12 +124,13 @@ function VerificationCard({ verification }: { verification: Verification }) {
     const [processing, setProcessing] = useState(false);
     const [rejecting, setRejecting] = useState(false);
     const [reason, setReason] = useState('');
+    const [photosMatch, setPhotosMatch] = useState(false);
 
     const approve = () => {
         setProcessing(true);
         router.post(
             `/admin/verifications/${verification.id}/approve`,
-            {},
+            { photos_match_confirmed: photosMatch },
             { preserveScroll: true, onFinish: () => setProcessing(false) },
         );
     };
@@ -147,6 +150,29 @@ function VerificationCard({ verification }: { verification: Verification }) {
 
     return (
         <AdminCard padded={false}>
+            <div className="space-y-2 p-4 text-sm">
+                {verification.primary_photo_url ? (
+                    <img
+                        src={verification.primary_photo_url}
+                        alt="Photo principale à comparer au selfie"
+                        className="h-40 w-32 rounded object-cover"
+                    />
+                ) : (
+                    <p>
+                        Une photo principale doit être validée avant la
+                        vérification.
+                    </p>
+                )}
+                <label className="flex gap-2">
+                    <input
+                        type="checkbox"
+                        checked={photosMatch}
+                        onChange={(e) => setPhotosMatch(e.target.checked)}
+                    />
+                    J’ai comparé les visages et vérifié le code manuscrit. Cette
+                    décision ne certifie ni la majorité ni le genre.
+                </label>
+            </div>
             <div className="aspect-[4/5] overflow-hidden bg-[color:var(--bg-soft)]">
                 <img
                     src={verification.image_url}
@@ -163,7 +189,7 @@ function VerificationCard({ verification }: { verification: Verification }) {
                             href={`/admin/users/${verification.user.id}`}
                             className="block truncate text-sm font-semibold text-[color:var(--ink)] underline decoration-dotted underline-offset-2"
                         >
-                            {verification.user.pseudo || verification.user.name}
+                            {verification.user.pseudo}
                         </Link>
                     ) : (
                         <span className="text-sm font-semibold text-[color:var(--ink-mute)]">
@@ -171,13 +197,16 @@ function VerificationCard({ verification }: { verification: Verification }) {
                         </span>
                     )}
                     <AdminMeta>
-                        {new Date(verification.created_at).toLocaleString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                        })}
+                        {new Date(verification.created_at).toLocaleString(
+                            'fr-FR',
+                            {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                            },
+                        )}
                     </AdminMeta>
                 </div>
 
@@ -192,7 +221,7 @@ function VerificationCard({ verification }: { verification: Verification }) {
                         Code attendu
                     </div>
                     {verification.challenge_code ? (
-                        <p className="font-mono break-all text-lg font-bold tracking-[0.2em] text-[color:var(--ink)]">
+                        <p className="font-mono text-lg font-bold tracking-[0.2em] break-all text-[color:var(--ink)]">
                             {verification.challenge_code}
                         </p>
                     ) : (
@@ -242,7 +271,11 @@ function VerificationCard({ verification }: { verification: Verification }) {
                             variant="success"
                             icon={Check}
                             className="flex-1"
-                            disabled={processing}
+                            disabled={
+                                processing ||
+                                !photosMatch ||
+                                !verification.primary_photo_url
+                            }
                             onClick={approve}
                         >
                             Vérifier

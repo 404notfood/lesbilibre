@@ -42,6 +42,7 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         $user = $request->user()->load('profile.naughtyInterests');
+        $user->profile?->makeVisible(['date_of_birth', 'birth_date_declared_at']);
 
         $naughtyInterests = \App\Models\NaughtyInterest::orderBy('category')
             ->orderBy('name')
@@ -67,6 +68,23 @@ class ProfileController extends Controller
         $profile = $user->profile;
 
         $validated = $request->validated();
+        if (isset($validated['date_of_birth'])) {
+            $validated['birth_date_declared_at'] = now();
+        }
+        if (isset($validated['meeting_intentions'])) {
+            $validated['looking_for'] = $validated['meeting_intentions'][0] === 'ongoing' ? 'casual' : $validated['meeting_intentions'][0];
+        }
+        if (in_array('friendship_only', $validated['boundaries'] ?? [], true)) {
+            $validated['meeting_intentions'] = ['friendship'];
+            $validated['looking_for'] = 'friendship';
+        }
+        if ($request->boolean('data_processing_consent')) {
+            $user->forceFill(['data_processing_consent' => true, 'data_processing_consented_at' => now()])->save();
+        }
+        unset($validated['data_processing_consent']);
+        if (array_key_exists('sexual_orientation', $validated)) {
+            $validated['sexual_orientation'] = $validated['sexual_orientation'] ?? 'other';
+        }
         $naughtyInterestIds = $validated['naughty_interest_ids'] ?? [];
         unset($validated['naughty_interest_ids']);
 
@@ -100,7 +118,7 @@ class ProfileController extends Controller
         // floutées si la visiteuse n'a pas consenti, plutôt que de les masquer.
         $user = \App\Models\User::with(['profile', 'photos' => function ($query) {
             $query->where('is_approved', true)
-                ->where('moderation_status', '!=', 'rejected')
+                ->where('moderation_status', 'approved')
                 ->orderBy('order');
         }])->findOrFail($userId);
 
@@ -146,14 +164,16 @@ class ProfileController extends Controller
             $matchScore = app(MatchScoreService::class)->calculateScore($currentUserProfile, $profile);
         }
 
+        $publicProfile = $profile?->publicData();
+
         return Inertia::render('Profile/View', [
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'name' => $user->pseudo,
                 'pseudo' => $user->pseudo,
                 'is_verified' => $user->is_verified,
                 'is_premium' => $user->is_premium,
-                'profile' => $profile,
+                'profile' => $publicProfile,
             ],
             'photos' => $user->photos->map(fn (\App\Models\Photo $photo) => [
                 'id' => $photo->id,
