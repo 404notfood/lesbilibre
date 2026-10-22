@@ -1,0 +1,7 @@
+*.zip
+*.tar.gz
+*.tar
+SHA256SUMS
+SHA256SUMS-REPRISE
+__pycache__/
+SHA256SUMS-CORRECTIFS

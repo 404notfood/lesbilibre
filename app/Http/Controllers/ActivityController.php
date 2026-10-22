@@ -145,13 +145,13 @@ class ActivityController extends Controller
             ->toArray();
 
         // Temple de la renommée (top utilisateurs par nombre de likes)
-        $hallOfFame = User::select('users.*')
-            ->selectRaw('COUNT(likes.id) as likes_count')
+        // Count in a subquery so selecting users.* also works with MySQL's ONLY_FULL_GROUP_BY.
+        $hallOfFame = User::query()
+            ->withCount('likesReceived as likes_count')
             ->with(['profile', 'avatarPhoto'])
-            ->join('likes', 'users.id', '=', 'likes.liked_user_id')
+            ->has('likesReceived')
             ->where('users.id', '!=', $userId)
             ->communityEligible()
-            ->groupBy('users.id', 'users.name', 'users.pseudo')
             ->orderByDesc('likes_count')
             ->limit(5)
             ->get()

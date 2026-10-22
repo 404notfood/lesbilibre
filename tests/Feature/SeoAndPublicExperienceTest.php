@@ -11,10 +11,10 @@ class SeoAndPublicExperienceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_home_describes_the_laval_pilot_without_unverified_social_proof(): void
+    public function test_home_loads_without_pilot_or_unverified_social_proof(): void
     {
         $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->component('home')->where('pilot.city', 'Laval')->where('pilot.department', '53')
+            ->component('home')->missing('pilot')
             ->missing('stats')->missing('testimonials'));
         $this->get('/installer')->assertOk()->assertInertia(fn (Assert $page) => $page->component('StaticPages/Install'));
     }

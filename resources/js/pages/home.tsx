@@ -48,11 +48,7 @@ const questions = [
         text: 'Tu choisis à qui donner accès à ta galerie et peux retirer cet accès. Les contenus intimes demandent un consentement distinct, révocable. Les paramètres permettent aussi de gérer ta visibilité et de demander la suppression de ton compte.',
     },
 ];
-export default function Home({
-    pilot,
-}: {
-    pilot: { city: string; department: string };
-}): JSX.Element {
+export default function Home(): JSX.Element {
     return (
         <PublicLayout>
             <Head title="Des rencontres près de chez toi, à ton rythme" />
@@ -96,15 +92,6 @@ export default function Home({
                         <p className="mt-4 text-sm text-muted-foreground">
                             Inscription sans carte bancaire · Réservé aux 18 ans
                             et plus
-                        </p>
-                        <p className="mt-4 max-w-xl rounded-xl border border-border bg-card/70 p-3 text-sm leading-relaxed">
-                            Le pilote se prépare à{' '}
-                            <strong>
-                                {pilot.city} ({pilot.department})
-                            </strong>
-                            . Nous commençons localement, avec des retours
-                            d’usage. La présence de profils compatibles dépendra
-                            des inscriptions.
                         </p>
                     </div>
                     <aside

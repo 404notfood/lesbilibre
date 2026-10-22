@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\BlockedUser;
 use App\Models\Like;
 use App\Models\Profile;
 use App\Models\User;
@@ -11,6 +12,37 @@ use Tests\TestCase;
 class ActivityBadgeTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_the_hall_of_fame_counts_likes_and_excludes_inaccessible_and_unliked_members(): void
+    {
+        $viewer = $this->createMember();
+        $popular = $this->createMember();
+        $lessPopular = $this->createMember();
+        $blocked = $this->createMember();
+        $this->createMember();
+        $ineligible = User::factory()->create();
+        $likers = User::factory()->communityMember()->count(4)->create();
+        BlockedUser::create(['blocker_id' => $viewer->id, 'blocked_id' => $blocked->id]);
+
+        foreach ($likers as $index => $liker) {
+            foreach ([$viewer, $blocked, $ineligible] as $recipient) {
+                Like::create(['user_id' => $liker->id, 'liked_user_id' => $recipient->id]);
+            }
+            if ($index < 3) {
+                Like::create(['user_id' => $liker->id, 'liked_user_id' => $popular->id]);
+            }
+            if ($index === 0) {
+                Like::create(['user_id' => $liker->id, 'liked_user_id' => $lessPopular->id]);
+            }
+        }
+
+        $topUsers = $this->actingAs($viewer)->get(route('activity'))->assertOk()
+            ->viewData('page')['props']['top_users'];
+
+        $this->assertSame([$popular->id, $lessPopular->id], array_column($topUsers, 'id'));
+        $this->assertEquals([3, 1], array_column($topUsers, 'likes_count'));
+        $this->assertSame([1, 2], array_column($topUsers, 'rank'));
+    }
 
     protected function createMember(): User
     {

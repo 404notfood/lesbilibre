@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "generatorVersion": "1.3.0",
+  "templateVersion": "1.3.0",
+  "generator": {
+    "name": "VPS Project Generator",
+    "version": "1.3.0"
+  },
+  "project": {
+    "name": "lesbilibre",
+    "type": "laravel-react",
+    "user": "lesbilibre"
+  },
+  "domains": [
+    {
+      "name": "lesbi-libre.fr",
+      "role": "application"
+    }
+  ],
+  "mail": {
+    "enabled": false,
+    "domain": null,
+    "provider": "shared native Postfix/Dovecot/Roundcube installed separately",
+    "mailboxPasswords": "interactive-on-vps-only",
+    "rollback": "mail domains, DKIM keys and mailboxes preserved"
+  },
+  "databaseAdmin": {
+    "enabled": false,
+    "paths": [
+      "/phpmyadmin/",
+      "/pgadmin/"
+    ],
+    "authentication": "per-project HTTP Basic over HTTPS plus each tool login",
+    "password": "/var/lib/vps-projects/lesbilibre/admin-password",
+    "isolation": "URL and Basic credentials per project; DB permissions still enforced by SQL accounts and pgAdmin users"
+  },
+  "serverContract": {
+    "os": "Debian 13",
+    "webServer": {
+      "nginx": true
+    },
+    "php": {
+      "versions": [
+        "8.2",
+        "8.3",
+        "8.4",
+        "8.5",
+        "8.6"
+      ],
+      "defaults": [
+        "8.2",
+        "8.3",
+        "8.4",
+        "8.5"
+      ]
+    },
+    "node": {
+      "manager": "nvm",
+      "root": "/opt/nvm",
+      "versions": [
+        "20",
+        "22",
+        "24"
+      ],
+      "defaults": [
+        "22",
+        "24"
+      ]
+    },
+    "databases": [
+      "none",
+      "mariadb",
+      "postgresql"
+    ],
+    "redis": true,
+    "composer": true,
+    "certbot": true,
+    "systemd": true,
+    "firewall": "nftables",
+    "confirmedPhp": [
+      "8.4"
+    ],
+    "confirmedNode": [
+      "24"
+    ]
+  },
+  "runtime": {
+    "php": "8.4",
+    "node": "24",
+    "nodeManager": "nvm",
+    "packageManager": "npm",
+    "nextMode": null,
+    "reactMode": "build",
+    "bind": null,
+    "port": null
+  },
+  "database": {
+    "engine": "mariadb",
+    "name": "lesbilibre",
+    "host": "127.0.0.1",
+    "credentials": "generated-on-vps; existing secrets preserved",
+    "provisionedBeforeSources": true,
+    "envConfiguredAfterSources": true
+  },
+  "redis": {
+    "enabled": true,
+    "mode": "dedicated",
+    "isolation": "dedicated local instance using preinstalled binary",
+    "bind": "127.0.0.1",
+    "port": "auto (16379–17379)",
+    "memoryMB": 256,
+    "persistence": "AOF everysec",
+    "maxmemoryPolicy": "noeviction",
+    "configuredAfterEnv": true
+  },
+  "capabilities": {
+    "nextDir": ".",
+    "nextOutput": "standard",
+    "standaloneDir": ".next/standalone",
+    "envFile": ".env",
+    "envExample": ".env.example",
+    "supervisor": "systemd",
+    "webProcessName": "lesbilibre",
+    "ecosystemFile": null,
+    "processes": [],
+    "routes": [],
+    "prismaDir": null,
+    "prismaMigrate": false,
+    "databaseUrl": false,
+    "requiredEnv": [
+      "REVERB_APP_KEY",
+      "REVERB_APP_SECRET",
+      "MODERATION_API_TOKEN",
+      "VITE_REVERB_APP_KEY"
+    ],
+    "originKeys": [],
+    "secretKeys": [],
+    "hexSecretKeys": [
+      "REVERB_APP_KEY",
+      "REVERB_APP_SECRET",
+      "MODERATION_API_TOKEN"
+    ],
+    "envDefaults": {
+      "APP_NAME": "LesbiLibre",
+      "APP_LOCALE": "fr",
+      "APP_FALLBACK_LOCALE": "fr",
+      "SUPPORT_EMAIL": "contact@lesbi-libre.fr",
+      "SEO_INDEXING_ENABLED": "false",
+      "INERTIA_SSR_ENABLED": "true",
+      "SESSION_SECURE_COOKIE": "true",
+      "BROADCAST_CONNECTION": "reverb",
+      "DB_QUEUE_RETRY_AFTER": "660",
+      "REDIS_QUEUE_RETRY_AFTER": "660",
+      "MAIL_MAILER": "log",
+      "MAIL_FROM_ADDRESS": "contact@lesbi-libre.fr",
+      "REVERB_APP_ID": "lesbilibre",
+      "REVERB_HOST": "127.0.0.1",
+      "REVERB_PORT": "18080",
+      "REVERB_SCHEME": "http",
+      "REVERB_SERVER_HOST": "127.0.0.1",
+      "REVERB_SERVER_PORT": "18080",
+      "VITE_REVERB_HOST": "lesbi-libre.fr",
+      "VITE_REVERB_PORT": "443",
+      "VITE_REVERB_SCHEME": "https",
+      "VITE_APP_NAME": "LesbiLibre",
+      "MODERATION_SERVICE_URL": "http://127.0.0.1:18000",
+      "HUSKY": "0"
+    },
+    "checkScripts": [],
+    "hooks": [],
+    "browsers": {
+      "playwright": false,
+      "puppeteer": false,
+      "sandbox": "enabled; application-user smoke check required"
+    },
+    "backup": {
+      "enabled": false,
+      "encryption": "AES-256-GCM",
+      "command": [],
+      "remote": null,
+      "retentionDays": 14,
+      "schedule": "daily 02:15",
+      "key": "generated-on-VPS; keep independent external recovery copy"
+    },
+    "monitoring": {
+      "command": [],
+      "port": 0,
+      "path": "",
+      "schedule": "every 5 minutes; errors in journald"
+    },
+    "logRetention": 14
+  },
+  "evidence": {
+    "interface": "configured",
+    "generated": true,
+    "installed": "not observed by browser",
+    "verified": "local static validation only; verify on VPS"
+  },
+  "services": {
+    "units": [
+      "nginx",
+      "php8.4-fpm",
+      "lesbilibre-redis",
+      "lesbilibre-queue@1",
+      "lesbilibre-queue@2",
+      "lesbilibre-scheduler.timer"
+    ],
+    "queue": {
+      "driver": "redis",
+      "workers": 2,
+      "timeout": 600,
+      "tries": 3,
+      "retryAfterMinimum": 630
+    },
+    "scheduler": true,
+    "horizon": false
+  },
+  "ssl": {
+    "enabled": true,
+    "provider": "letsencrypt",
+    "email": "contact@lesbi-libre.fr",
+    "challenge": "webroot",
+    "dnsVerification": "compare all resolved addresses to local interfaces"
+  },
+  "ssh": {
+    "enabled": true,
+    "sftp": true,
+    "shell": "/bin/bash",
+    "authentication": "password",
+    "publicKey": null,
+    "password": "interactive-on-vps-only",
+    "policy": "validated per-user sshd settings; administrator policy preserved",
+    "provisionedBeforeSources": true
+  },
+  "deployment": {
+    "source": "present",
+    "repository": null,
+    "branch": null,
+    "archive": null,
+    "layout": "simple",
+    "migrations": true,
+    "paths": {
+      "home": "/home/lesbilibre",
+      "app": "/home/lesbilibre/app",
+      "shared": "/home/lesbilibre/shared",
+      "nginx": "/etc/nginx/sites-available/lesbilibre.conf",
+      "state": "/var/lib/vps-projects/lesbilibre",
+      "log": "/var/log/vps-projects/lesbilibre.log"
+    },
+    "services": [
+      "nginx",
+      "php8.4-fpm",
+      "lesbilibre-redis",
+      "lesbilibre-queue@1",
+      "lesbilibre-queue@2",
+      "lesbilibre-scheduler.timer"
+    ],
+    "uploadMB": 100,
+    "timeout": 120,
+    "ipv6": true,
+    "phpChildren": 4,
+    "flags": {
+      "--preflight": "read-only server prerequisite checks",
+      "--provision": "prepare hosting and database, then exit successfully before sources/dependencies/build/processes"
+    },
+    "phases": {
+      "provisioning": [
+        "setup_user",
+        "setup_ssh",
+        "setup_php",
+        "reserve_application_ports",
+        "setup_initial_nginx",
+        "setup_initial_https",
+        "setup_database"
+      ],
+      "application": [
+        "prepare_source",
+        "setup_env",
+        "check_application",
+        "configure_database_env",
+        "setup_redis",
+        "configure_env",
+        "configure_deployment_env",
+        "validate_project_env",
+        "setup_operations",
+        "setup_browser_dependencies",
+        "deploy_application",
+        "finish_deployment",
+        "setup_services",
+        "setup_nginx",
+        "setup_https",
+        "activate_services",
+        "activate_deployment"
+      ]
+    },
+    "configurationCheckpoints": [
+      "setup_ssh",
+      "setup_initial_nginx",
+      "setup_initial_https",
+      "setup_database"
+    ],
+    "provision": {
+      "stopsAfter": "setup_database",
+      "requiresSources": false,
+      "automaticSuccessWhenPresentSourceEmpty": true,
+      "resume": "sudo ./install.sh without flags after SFTP upload or when Git/archive is ready",
+      "existingApplication": "previous deployed vhost and application remain served",
+      "pendingNginx": {
+        "beforeSources": true,
+        "applicationStatus": 503,
+        "routesAndProtectionsPreserved": true,
+        "proxyStatusWhenBackendAbsent": 502
+      }
+    },
+    "sourceUpdates": "explicit manual updates; never automatic git pull",
+    "rollback": "managed configuration files restored to latest successful checkpoint; application/database changes not rolled back"
+  }
+}

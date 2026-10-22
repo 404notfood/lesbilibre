@@ -1,3 +1,4 @@
+import AppLogoIcon from '@/components/app-logo-icon';
 import PresencePanel, {
     type PresenceUser,
 } from '@/components/discovery/PresencePanel';
@@ -201,17 +202,7 @@ export default function DatingLayout({
                         href="/"
                         className="flex items-center gap-2.5 px-1.5 pt-1 pb-4"
                     >
-                        <div
-                            className="grid h-9 w-9 place-items-center text-white"
-                            style={{
-                                borderRadius: '50% 50% 50% 8px',
-                                background:
-                                    'linear-gradient(135deg, var(--desire), var(--wine))',
-                                transform: 'rotate(-8deg)',
-                            }}
-                        >
-                            <Heart className="h-4 w-4 fill-current" />
-                        </div>
+                        <AppLogoIcon className="size-9 rounded-lg" alt="" />
                         <div>
                             <div className="font-display text-[22px] leading-none font-semibold">
                                 LesbiLibre

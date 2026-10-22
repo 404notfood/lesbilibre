@@ -1,5 +1,5 @@
+import AppLogoIcon from '@/components/app-logo-icon';
 import { Link } from '@inertiajs/react';
-import { Heart } from 'lucide-react';
 
 interface PublicLayoutProps {
     children: React.ReactNode;
@@ -24,7 +24,10 @@ export default function PublicLayout({
             <header className="border-b border-border/50">
                 <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
                     <Link href="/" className="group flex items-center gap-2">
-                        <Heart className="h-6 w-6 fill-current text-primary transition-transform group-hover:scale-110" />
+                        <AppLogoIcon
+                            className="size-9 rounded-lg transition-transform group-hover:scale-110"
+                            alt=""
+                        />
                         <span className="font-display text-xl font-bold text-foreground">
                             LesbiLibre
                         </span>

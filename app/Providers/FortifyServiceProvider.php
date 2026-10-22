@@ -42,6 +42,12 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureAuthentication(): void
     {
+        // "login" accepts email or pseudo; it is not a column on the users table.
+        // Confirm against the authenticated user's hash instead of querying it.
+        Fortify::confirmPasswordsUsing(function (User $user, ?string $password): bool {
+            return $password !== null && Hash::check($password, $user->getAuthPassword());
+        });
+
         Fortify::authenticateUsing(function (Request $request) {
             $login = $request->input('login');
             $password = $request->input('password');

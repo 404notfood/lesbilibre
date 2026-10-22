@@ -1,0 +1,29 @@
+{
+  "preparedOn": "2026-10-22",
+  "sourceRevision": "27b034dc8a74a96b3f6ab128e086e2afaec0c330",
+  "applicationArchive": "lesbilibre-app.tar.gz",
+  "sourceFiles": 691,
+  "generatorUrl": "https://404notfood.fr/generateur/project.html",
+  "generatorVersion": "1.3.0",
+  "entrypoint": "deploy.sh",
+  "remoteDeploymentPerformed": false,
+  "excludes": [
+    "private environment files",
+    "database data",
+    "user media",
+    "installed dependencies",
+    "local tooling configuration"
+  ],
+  "sourceOverrides": [
+    "app/Http/Controllers/ActivityController.php",
+    "app/Providers/FortifyServiceProvider.php",
+    "database/seeders/DatabaseSeeder.php",
+    "database/seeders/ProductionSeeder.php",
+    "deploy/vps/init-production.sh",
+    "deploy/vps/CORRECTIFS_500.md"
+  ],
+  "validation": [
+    "25 targeted application tests passed",
+    "5 activity tests passed on isolated MySQL with ONLY_FULL_GROUP_BY"
+  ]
+}

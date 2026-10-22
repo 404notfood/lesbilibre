@@ -1,0 +1,59 @@
+# Aperçu du vhost final : /etc/nginx/sites-available/lesbilibre.conf
+# install.sh prépare HTTP/HTTPS, les routes et les interfaces DB sélectionnées avant les sources.
+# L’application répond 503 pendant sa préparation ; ce vhost applicatif la remplace après le build.
+# Ne pas copier ce modèle dans sites-enabled avant l'installation.
+# Les certificats référencés doivent exister ; install.sh crée d’abord un vhost HTTP pour ACME.
+
+# Managed by VPS Project Generator : lesbilibre
+log_format lesbilibre_dashboard '$host $remote_addr - $remote_user [$time_local] "$request_method $uri $server_protocol" $status $body_bytes_sent';
+server {
+    listen 80;
+    listen [::]:80;
+    server_name lesbi-libre.fr;
+    access_log /var/log/nginx/lesbilibre-access.log lesbilibre_dashboard;
+    error_log /var/log/nginx/lesbilibre-error.log;
+    error_log /var/log/nginx/error.log warn;
+    client_max_body_size 102m;
+    client_body_timeout 120s;
+    send_timeout 120s;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    location ^~ /.well-known/acme-challenge/ { root /var/www/vps-project-acme/lesbilibre; try_files $uri =404; }
+    location / { return 301 https://lesbi-libre.fr$request_uri; }
+}
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name lesbi-libre.fr;
+    ssl_certificate /etc/letsencrypt/live/lesbilibre/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/lesbilibre/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:lesbilibre_SSL:10m;
+    access_log /var/log/nginx/lesbilibre-access.log lesbilibre_dashboard;
+    error_log /var/log/nginx/lesbilibre-error.log;
+    error_log /var/log/nginx/error.log warn;
+    client_max_body_size 102m;
+    client_body_timeout 120s;
+    send_timeout 120s;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    location ^~ /.well-known/acme-challenge/ { root /var/www/vps-project-acme/lesbilibre; try_files $uri =404; }
+    location ~ /\.(?!well-known(?:/|$)) { deny all; }
+    location ~* (?:^|/)(?:composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|pnpm-lock\.yaml|README\.md|manifest\.json|install\.sh)$ { deny all; }
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    root /home/lesbilibre/app/public;
+    disable_symlinks if_not_owner from=$document_root;
+    index index.php index.html;
+    location / { try_files $uri $uri/ /index.php?$query_string; }
+    location ~* \.(?:css|js|mjs|png|jpe?g|gif|svg|ico|webp|woff2?)$ { expires 7d; add_header Cache-Control "public"; try_files $uri =404; }
+    location = /index.php {
+        try_files $uri =404;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_pass unix:/run/php/php8.4-fpm-lesbilibre.sock;
+        fastcgi_read_timeout 120s;
+    }
+    location ~ \.php$ { return 404; }
+}

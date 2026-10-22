@@ -1,5 +1,14 @@
 # Déploiement VPS LesbiLibre
 
+## Installation avec VPS Project Generator
+
+Pour la préparation Debian 13 de `lesbi-libre.fr`, voir
+[`deploy/vps/INSTALLATION.md`](../deploy/vps/INSTALLATION.md).
+Le dossier contient la configuration importable dans le générateur et son bundle,
+avec les compléments SSR, Reverb, PWA et modération. Utiliser `deploy.sh` pour
+ces compléments. Les instructions Hestia ci-dessous décrivent la préproduction
+historique et ses chemins, distincts de cette nouvelle installation.
+
 Le VPS de préproduction est l'environnement de référence. Il utilise PHP 8.4 et le projet attend Node.js 24 pour le build et le rendu Inertia SSR.
 
 ## Variables de préproduction

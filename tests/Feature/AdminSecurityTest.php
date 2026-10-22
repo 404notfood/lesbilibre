@@ -10,6 +10,25 @@ class AdminSecurityTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_can_confirm_password_before_enrolling_two_factor(): void
+    {
+        config(['admin-security.require_two_factor' => true]);
+        $admin = User::factory()->withoutTwoFactor()->create(['is_admin' => true]);
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertRedirect(route('two-factor.show'));
+        $this->get(route('two-factor.show'))->assertRedirect(route('password.confirm'));
+        $this->get(route('password.confirm'))->assertOk();
+
+        $this->post(route('password.confirm.store'), ['password' => 'password'])
+            ->assertRedirect(route('two-factor.show'))
+            ->assertSessionHas('auth.password_confirmed_at');
+
+        $this->get(route('two-factor.show'))->assertOk();
+        // Confirming the password must not bypass the two-factor enrollment requirement.
+        $this->get(route('admin.dashboard'))->assertRedirect(route('two-factor.show'));
+    }
+
     public function test_admin_without_confirmed_two_factor_is_sent_to_enrollment(): void
     {
         config(['admin-security.require_two_factor' => true]);

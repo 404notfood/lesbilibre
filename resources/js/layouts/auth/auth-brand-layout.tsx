@@ -1,5 +1,6 @@
+import AppLogoIcon from '@/components/app-logo-icon';
 import { Link } from '@inertiajs/react';
-import { Heart, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface AuthBrandLayoutProps {
     children: React.ReactNode;
@@ -25,7 +26,10 @@ export default function AuthBrandLayout({
                 <div className="relative z-10 flex w-full flex-col justify-between p-12 text-foreground">
                     {/* Logo */}
                     <Link href="/" className="group flex items-center gap-3">
-                        <Heart className="h-8 w-8 fill-current text-primary transition-transform group-hover:scale-110" />
+                        <AppLogoIcon
+                            className="size-12 rounded-xl transition-transform group-hover:scale-110"
+                            alt=""
+                        />
                         <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-2xl font-bold text-transparent">
                             LesbiLibre
                         </span>
@@ -92,7 +96,7 @@ export default function AuthBrandLayout({
                             href="/"
                             className="inline-flex items-center gap-2"
                         >
-                            <Heart className="h-6 w-6 fill-current text-primary" />
+                            <AppLogoIcon className="size-9 rounded-lg" alt="" />
                             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-xl font-bold text-transparent">
                                 LesbiLibre
                             </span>

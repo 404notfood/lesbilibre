@@ -25,7 +25,9 @@ function pwaBuildRevision(): Plugin {
                 );
             }
         },
-        closeBundle() {
+        // Only revise the worker after Vite has successfully written its manifest.
+        // closeBundle also runs on failure and would hide the original build error.
+        writeBundle() {
             if (clientManifest) buildPwaRevision(root, clientManifest);
         },
     };

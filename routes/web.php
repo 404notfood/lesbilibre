@@ -11,7 +11,6 @@ Route::get('/indexnow-key.txt', [\App\Http\Controllers\SeoController::class, 'in
 Route::get('/', function () {
     return Inertia::render('home', [
         'canRegister' => Features::enabled(Features::registration()),
-        'pilot' => config('community.pilot'),
     ]);
 })->name('home');
 
