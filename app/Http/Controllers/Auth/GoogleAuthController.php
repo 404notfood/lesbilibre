@@ -80,6 +80,7 @@ class GoogleAuthController extends Controller
             if ($user->trashed() || $user->is_banned) {
                 return $this->failure('Ce compte est indisponible. Contacte le support.');
             }
+            $user->notify(new \App\Notifications\NewLoginNotification((string) $request->ip(), (string) $request->userAgent()));
             $request->session()->regenerate();
             if (Features::enabled(Features::twoFactorAuthentication()) && filled($user->two_factor_secret) && $user->two_factor_confirmed_at) {
                 $request->session()->put(['login.id' => $user->id, 'login.remember' => false]);
@@ -113,5 +114,12 @@ class GoogleAuthController extends Controller
     private function failure(string $message): RedirectResponse
     {
         return redirect()->route('login')->with('error', $message);
+    }
+
+    public function cancel(Request $request): RedirectResponse
+    {
+        $request->session()->forget(['google_registration', 'google_oauth']);
+
+        return redirect()->route(Features::enabled(Features::registration()) ? 'register' : 'login');
     }
 }

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Admin;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
-use App\Models\Setting;
 use App\Models\IntegrationCredential;
+use App\Models\Setting;
+use App\Models\User;
 use App\Services\IntegrationSettings;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -36,7 +36,6 @@ class SeoSettingsTest extends TestCase
         $this->get('/robots.txt')->assertOk()->assertSee("Disallow: /essai\n", false);
         $this->get('/')->assertHeader('X-Robots-Tag', 'index, follow');
         $this->get('/admin/seo')->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
-        $this->put('/admin/seo/robots', $this->robots() + [])->assertRedirect();
         $this->put('/admin/seo/robots', array_replace($this->robots(), ['indexing_enabled' => false]))->assertRedirect();
         $this->get('/robots.txt')->assertSee("User-agent: *\nDisallow: /\n", false)->assertDontSee('/essai');
         $this->get('/')->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');

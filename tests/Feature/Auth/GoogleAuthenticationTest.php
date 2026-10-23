@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Auth;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
 use App\Models\Setting;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -125,6 +125,25 @@ class GoogleAuthenticationTest extends TestCase
         Setting::set('google_login_enabled', false, 'boolean');
         $this->get('/auth/google')->assertNotFound();
         $this->get('/login')->assertOk()->assertInertia(fn ($page) => $page->where('googleEnabled', false));
+    }
+
+    public function test_external_email_still_needs_local_email_verification(): void
+    {
+        $this->fakeIdentity(['email' => 'person@example.net']);
+        $this->startCallback()->assertRedirect('/register');
+        $this->post('/register', $this->registration())->assertRedirect('/dashboard');
+        $this->assertNull(User::query()->firstOrFail()->email_verified_at);
+    }
+
+    public function test_google_registration_can_be_cancelled_or_expire_without_creating_an_account(): void
+    {
+        $this->fakeIdentity();
+        $this->startCallback()->assertRedirect('/register');
+        $this->post('/auth/google/cancel')->assertRedirect('/register')->assertSessionMissing('google_registration');
+        $this->startCallback();
+        $this->travel(21)->minutes();
+        $this->post('/register', $this->registration())->assertSessionHasErrors('email');
+        $this->assertDatabaseCount('users', 0);
     }
 
     private function fakeIdentity(array $overrides = []): void

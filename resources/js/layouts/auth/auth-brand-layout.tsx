@@ -67,7 +67,14 @@ export default function AuthBrandLayout({
                         <h1>{title}</h1>
                         <p>{description}</p>
                     </div>
-                    {flash?.error && <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{flash.error}</p>}
+                    {flash?.error && (
+                        <p
+                            role="alert"
+                            className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+                        >
+                            {flash.error}
+                        </p>
+                    )}
                     {children}
                 </div>
                 <footer className="auth-mobile-footer">

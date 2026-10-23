@@ -2,10 +2,10 @@ import {
     CommunityCharter,
     IntentionCheckboxes,
 } from '@/components/community-fields';
-import { login } from '@/routes';
 import GoogleAuthButton from '@/components/google-auth-button';
+import { login } from '@/routes';
 import { store } from '@/routes/register';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, router } from '@inertiajs/react';
 
 import { CityAutocomplete } from '@/components/city-autocomplete';
 import InputError from '@/components/input-error';
@@ -44,7 +44,21 @@ export default function Register({
         >
             <Head title="Inscription" />
             {googleEnabled && !googleProfile && <GoogleAuthButton />}
-            {googleProfile && <p className="mb-5 rounded-lg bg-primary/5 p-4 text-sm">Ton compte Google est confirmé. Complète ton profil et tes consentements pour terminer l’inscription.</p>}
+            {googleProfile && (
+                <div className="mb-5 rounded-lg bg-primary/5 p-4 text-sm">
+                    <p>
+                        Ton compte Google est confirmé. Complète ton profil et
+                        tes consentements pour terminer l’inscription.
+                    </p>
+                    <button
+                        type="button"
+                        className="mt-2 underline"
+                        onClick={() => router.post('/auth/google/cancel')}
+                    >
+                        Utiliser une autre méthode d’inscription
+                    </button>
+                </div>
+            )}
 
             <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
                 <div className="flex items-start gap-3">
@@ -141,7 +155,9 @@ export default function Register({
                                         </Label>
                                         <Input
                                             id="name"
-                                            defaultValue={googleProfile?.name ?? ''}
+                                            defaultValue={
+                                                googleProfile?.name ?? ''
+                                            }
                                             type="text"
                                             required
                                             autoComplete="name"
@@ -312,54 +328,58 @@ export default function Register({
                                 <InputError message={errors.email} />
                             </div>
 
-                            {!googleProfile && <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label
-                                        htmlFor="password"
-                                        className="text-sm font-medium"
-                                    >
-                                        Mot de passe{' '}
-                                        <span className="text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    <PasswordInput
-                                        id="password"
-                                        required
-                                        autoComplete="new-password"
-                                        name="password"
-                                        placeholder="••••••••"
-                                        className="h-11"
-                                    />
-                                    <p className="text-xs text-muted-foreground">
-                                        Minimum 8 caractères
-                                    </p>
-                                    <InputError message={errors.password} />
-                                </div>
+                            {!googleProfile && (
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label
+                                            htmlFor="password"
+                                            className="text-sm font-medium"
+                                        >
+                                            Mot de passe{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
+                                        <PasswordInput
+                                            id="password"
+                                            required
+                                            autoComplete="new-password"
+                                            name="password"
+                                            placeholder="••••••••"
+                                            className="h-11"
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Minimum 8 caractères
+                                        </p>
+                                        <InputError message={errors.password} />
+                                    </div>
 
-                                <div className="space-y-2">
-                                    <Label
-                                        htmlFor="password_confirmation"
-                                        className="text-sm font-medium"
-                                    >
-                                        Confirmation{' '}
-                                        <span className="text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    <PasswordInput
-                                        id="password_confirmation"
-                                        required
-                                        autoComplete="new-password"
-                                        name="password_confirmation"
-                                        placeholder="••••••••"
-                                        className="h-11"
-                                    />
-                                    <InputError
-                                        message={errors.password_confirmation}
-                                    />
+                                    <div className="space-y-2">
+                                        <Label
+                                            htmlFor="password_confirmation"
+                                            className="text-sm font-medium"
+                                        >
+                                            Confirmation{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
+                                        </Label>
+                                        <PasswordInput
+                                            id="password_confirmation"
+                                            required
+                                            autoComplete="new-password"
+                                            name="password_confirmation"
+                                            placeholder="••••••••"
+                                            className="h-11"
+                                        />
+                                        <InputError
+                                            message={
+                                                errors.password_confirmation
+                                            }
+                                        />
+                                    </div>
                                 </div>
-                            </div>}
+                            )}
                         </div>
 
                         <Separator />

@@ -6,6 +6,7 @@ use Inertia\Inertia;
 Route::middleware(['guest', 'throttle:10,1'])->group(function () {
     Route::get('/auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('google.redirect');
     Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('google.callback');
+    Route::post('/auth/google/cancel', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'cancel'])->name('google.cancel');
 });
 use Laravel\Fortify\Features;
 
