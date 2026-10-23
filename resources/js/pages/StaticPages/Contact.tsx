@@ -1,11 +1,10 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { HelpCircle, Mail, Shield } from 'lucide-react';
 
 export default function Contact({ supportEmail }: { supportEmail: string }) {
     return (
         <PublicLayout>
-            <Head title="Contact" />
             <main className="mx-auto max-w-4xl px-4 py-14 sm:py-20">
                 <header>
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">

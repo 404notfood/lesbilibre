@@ -1,5 +1,5 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
@@ -83,7 +83,6 @@ export default function Faq() {
 
     return (
         <PublicLayout>
-            <Head title="FAQ" />
             <main className="mx-auto max-w-4xl px-4 py-14 sm:py-20">
                 <header>
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Services\IntegrationSettings;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateIntegrationSettingsRequest extends FormRequest
 {

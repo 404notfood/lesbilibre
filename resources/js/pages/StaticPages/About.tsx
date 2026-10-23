@@ -1,5 +1,5 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Eye, HeartHandshake, LockKeyhole, ShieldCheck } from 'lucide-react';
 
 const commitments = [
@@ -28,7 +28,6 @@ const commitments = [
 export default function About() {
     return (
         <PublicLayout>
-            <Head title="À propos" />
             <main className="mx-auto max-w-5xl px-4 py-14 sm:py-20">
                 <header className="max-w-3xl">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">

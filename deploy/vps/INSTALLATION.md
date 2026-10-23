@@ -156,6 +156,34 @@ Pour ouvrir le référencement, modifier le `.env` du VPS (`/home/lesbilibre/app
 `config:cache` avec la commande ci-dessus. Ne pas créer de `public/robots.txt` :
 `SeoController` génère `/robots.txt` et `/sitemap.xml` à partir de cette configuration.
 
+L’administration propose aussi **SEO et intégrations** (`/admin/seo`) : son réglage
+d’indexation, une fois enregistré, est prioritaire sur le `.env`. Il met à jour
+ensemble le robots.txt et les directives des pages publiques. L’éditeur permet
+un contenu personnalisé, un aperçu du contenu publié et le retour au modèle
+automatique. Les espaces membres restent `noindex`, même en mode public.
+
+Appliquer les deux migrations du 23 octobre 2026 avant d’utiliser les intégrations.
+Les clés Google PageSpeed et Semrush, le JSON du compte de service Search Console
+et les identifiants Google OAuth se renseignent dans cette même page. Les valeurs
+sont chiffrées en base avec l’APP_KEY, jamais réaffichées ni conservées dans les
+anciennes saisies après une erreur. Conserver l’APP_KEY avec les sauvegardes.
+Ces réglages stockent les accès ; ils n’effectuent pas d’appel d’analyse payant.
+
+Pour l’inscription Google, créer un client OAuth **application Web** dans Google
+Cloud, configurer l’écran de consentement puis autoriser l’URI affichée dans
+l’administration : `https://lesbi-libre.fr/auth/google/callback`. Enregistrer
+Client ID et Client secret avant d’activer le bouton. En mode de test Google,
+ajouter les comptes testeurs autorisés ; vérifier le statut de publication avant
+l’ouverture générale. Aucun jeton Google n’est stocké durablement.
+
+Le compte de service Search Console est distinct du client OAuth de connexion :
+lui donner accès à la propriété choisie dans Search Console. PageSpeed emploie
+une clé API, Search Console un JSON de compte de service et Semrush sa propre
+clé. La portée de connexion Google reste limitée à l’identité (openid, email,
+profile), sans accès aux données de rencontre. Un e-mail existant n’est jamais
+rattaché automatiquement ; l’inscription complète, la modération et la 2FA
+restent requises selon les règles du site.
+
 Après transfert des corrections du code, reconstruire avec `npm run build:ssr`,
 vider les vues compilées (`php artisan view:clear`) et redémarrer `lesbilibre-ssr`.
 Pour la configuration Nginx, mettre aussi à jour le fichier

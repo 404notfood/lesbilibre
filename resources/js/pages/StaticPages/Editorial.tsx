@@ -1,5 +1,5 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
 interface Section {
@@ -24,8 +24,6 @@ export default function Editorial({
 }: Props) {
     return (
         <PublicLayout>
-            <Head title={title} />
-
             <article className="mx-auto max-w-5xl px-4 py-14 sm:py-20">
                 <header className="max-w-3xl">
                     <p className="mb-3 text-sm font-semibold tracking-[0.18em] text-primary uppercase">

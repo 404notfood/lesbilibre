@@ -1,5 +1,5 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Check, Gem, Heart } from 'lucide-react';
 
 interface Plan {
@@ -29,7 +29,6 @@ export default function Pricing({
 }) {
     return (
         <PublicLayout>
-            <Head title="Tarifs" />
             <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
                 <header className="mx-auto max-w-3xl text-center">
                     <p className="text-sm font-semibold tracking-[0.18em] text-primary uppercase">

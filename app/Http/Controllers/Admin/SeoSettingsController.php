@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\UpdateSeoSettingsRequest;
 use App\Http\Requests\Admin\UpdateIntegrationSettingsRequest;
+use App\Http\Requests\Admin\UpdateSeoSettingsRequest;
 use App\Models\IntegrationCredential;
 use App\Models\Setting;
 use App\Services\IntegrationSettings;

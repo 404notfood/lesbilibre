@@ -81,6 +81,37 @@ class SeoSettingsTest extends TestCase
         $this->assertDatabaseCount('integration_credentials', 0);
     }
 
+    public function test_google_and_seo_credentials_can_be_configured_together(): void
+    {
+        $testConfig = tempnam(sys_get_temp_dir(), 'google-test-openssl-');
+        file_put_contents($testConfig, "[req]\ndistinguished_name=req_dn\n[req_dn]\n");
+        try {
+            $privateKey = openssl_pkey_new(['config' => $testConfig, 'private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+            openssl_pkey_export($privateKey, $privatePem, null, ['config' => $testConfig]);
+        } finally {
+            unlink($testConfig);
+        }
+        $serviceAccount = json_encode([
+            'type' => 'service_account', 'client_email' => 'seo@test-project.iam.gserviceaccount.com', 'private_key' => $privatePem,
+        ], JSON_THROW_ON_ERROR);
+
+        $this->actingAs(User::factory()->create(['is_admin' => true]))->put('/admin/seo/integrations', [
+            'google_login_enabled' => true,
+            'google_client_id' => 'test.apps.googleusercontent.com',
+            'google_client_secret' => 'oauth-test-secret',
+            'google_pagespeed_api_key' => 'pagespeed-test-key',
+            'google_search_console_credentials' => $serviceAccount,
+            'google_search_console_property' => 'sc-domain:lesbi-libre.fr',
+            'semrush_api_key' => 'semrush-test-key',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertTrue(app(IntegrationSettings::class)->googleEnabled());
+        $this->assertSame('sc-domain:lesbi-libre.fr', Setting::get('google_search_console_property'));
+        $this->assertSame($serviceAccount, app(IntegrationSettings::class)->get('google_search_console_credentials'));
+        $this->assertStringNotContainsString('PRIVATE KEY', IntegrationCredential::query()->where('name', 'google_search_console_credentials')->firstOrFail()->getRawOriginal('value'));
+        $this->get('/admin/seo')->assertOk()->assertDontSee('oauth-test-secret')->assertDontSee('pagespeed-test-key')->assertDontSee('semrush-test-key')->assertDontSee('PRIVATE KEY');
+    }
+
     public function test_changing_integrations_requires_recent_password_when_enabled(): void
     {
         config(['admin-security.require_recent_password' => true]);

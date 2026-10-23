@@ -1,6 +1,6 @@
 import PublicLayout from '@/layouts/public-layout';
 import { type SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowDown,
     ArrowRight,
@@ -94,7 +94,6 @@ export default function Home({
 
     return (
         <PublicLayout>
-            <Head title="Des rencontres près de chez toi, à ton rythme" />
             <section className="home-hero" aria-labelledby="hero-title">
                 <div className="public-container home-hero-grid">
                     <div className="home-hero-copy">

@@ -1,11 +1,8 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head } from '@inertiajs/react';
 
 export default function Terms() {
     return (
         <PublicLayout>
-            <Head title="Conditions d'utilisation" />
-
             <div className="mx-auto max-w-4xl px-4 py-12">
                 <h1 className="mb-8 text-4xl font-bold text-gray-900 dark:text-white">
                     Conditions d'utilisation

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { usePwaInstall } from '@/hooks/use-pwa-install';
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     Bell,
     CheckCircle2,
@@ -41,7 +41,6 @@ export default function Install() {
 
     return (
         <PublicLayout>
-            <Head title="Installer LesbiLibre sur téléphone et ordinateur" />
             <article className="mx-auto max-w-4xl space-y-8 px-5 py-10 sm:py-14">
                 <header className="max-w-2xl">
                     <p className="text-xs font-semibold tracking-[0.16em] text-[color:var(--wine)] uppercase">

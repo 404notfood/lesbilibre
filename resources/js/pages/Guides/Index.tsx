@@ -1,5 +1,5 @@
 import PublicLayout from '@/layouts/public-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { ArrowRight, BookOpen } from 'lucide-react';
 
 interface Guide {
@@ -13,7 +13,6 @@ interface Guide {
 export default function GuidesIndex({ guides }: { guides: Guide[] }) {
     return (
         <PublicLayout>
-            <Head title="Guides" />
             <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
                 <header className="max-w-3xl">
                     <div className="flex items-center gap-2 text-primary">
