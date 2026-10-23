@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <link rel="describedby" href="/llms.txt" type="text/plain">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>

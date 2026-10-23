@@ -1,0 +1,43 @@
+# LesbiLibre
+
+> LesbiLibre est une plateforme francophone de rencontres amoureuses, d'amitiés et de liens locaux entre femmes et personnes queer, réservée aux personnes de 18 ans et plus.
+
+Site officiel : https://lesbi-libre.fr/
+Langue principale : français.
+
+La communauté accueille les femmes cis et trans et les personnes non binaires qui se reconnaissent dans cet espace. Chaque compte représente une seule personne.
+
+La création du profil, la découverte, les matchs et les conversations sont accessibles gratuitement, avec des limites d'usage indiquées dans le service. Les options Premium et les éventuels achats sont présentés sur la page des tarifs.
+
+L'accès aux interactions nécessite la validation des étapes requises. Les photos sont examinées avec un selfie privé. Le badge photo ne prouve ni l'identité, ni la majorité, ni le genre et ne garantit pas le comportement d'une personne. Le blocage, le signalement et les contrôles de confidentialité permettent aux membres de gérer leurs échanges.
+
+Les ressources ci-dessous sont publiques. Les profils des membres, leurs messages, leurs galeries et les interfaces d'administration ne font pas partie de ce document.
+
+## Découvrir le service
+
+- [Accueil](https://lesbi-libre.fr/): Présentation des rencontres, des amitiés et des intentions partagées.
+- [Comment ça marche](https://lesbi-libre.fr/comment-ca-marche): Parcours d'inscription, préparation du profil et premiers échanges.
+- [Fonctionnalités](https://lesbi-libre.fr/fonctionnalites): Recherche, matchs, messagerie et contrôles des contenus partagés.
+- [Sécurité](https://lesbi-libre.fr/securite): Modération, vérification des photos, consentement, blocage et signalement.
+- [Tarifs](https://lesbi-libre.fr/tarifs): Fonctions gratuites, limites d'usage et options payantes. Référence pour les tarifs en vigueur.
+- [À propos](https://lesbi-libre.fr/about): Présentation du projet et de ses engagements.
+- [Questions fréquentes](https://lesbi-libre.fr/faq): Réponses sur le compte, les rencontres et le fonctionnement du service.
+
+## Guides de rencontre et de sécurité
+
+- [Tous les guides](https://lesbi-libre.fr/guides): Conseils pratiques pour préparer son profil et faire connaissance.
+- [Créer un profil qui vous ressemble](https://lesbi-libre.fr/guides/creer-un-profil-qui-vous-ressemble): Photos, présentation et intentions de rencontre.
+- [Premier message après un match](https://lesbi-libre.fr/guides/premier-message-apres-un-match): Amorces de conversation personnalisées et respectueuses.
+- [Reconnaître un faux profil](https://lesbi-libre.fr/guides/reconnaitre-un-faux-profil): Repères pour identifier les tentatives d'arnaque et utiliser le signalement.
+- [Première rencontre en sécurité](https://lesbi-libre.fr/guides/premiere-rencontre-en-securite): Préparer une rencontre et conserver ses propres limites.
+- [Protéger ses photos en ligne](https://lesbi-libre.fr/guides/proteger-ses-photos-en-ligne): Confidentialité et partage des images.
+- [Régler ses critères de recherche](https://lesbi-libre.fr/guides/mieux-regler-ses-criteres-de-recherche): Ajuster ses préférences de rencontre et sa recherche locale.
+
+## Optional
+
+- [Installer l'application](https://lesbi-libre.fr/installer): Installation de l'application web sur téléphone et ordinateur.
+- [Contact](https://lesbi-libre.fr/contact): Contacter l'équipe au sujet du service.
+- [Conditions générales](https://lesbi-libre.fr/terms): Conditions d'utilisation applicables.
+- [Confidentialité](https://lesbi-libre.fr/privacy): Traitement des données personnelles et droits des membres.
+- [Sitemap](https://lesbi-libre.fr/sitemap.xml): Liste des pages publiques du site.
+- [Robots.txt](https://lesbi-libre.fr/robots.txt): Règles d'exploration publiées par le site.
