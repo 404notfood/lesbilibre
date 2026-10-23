@@ -1,4 +1,8 @@
 <IfModule mod_headers.c>
+    <Files "llms.txt">
+        Header set Content-Type "text/plain; charset=UTF-8"
+    </Files>
+
     # Static PWA files bypass Laravel's middleware. Revalidate the worker so an
     # installed app discovers security and offline-page updates promptly.
     <Files "sw.js">

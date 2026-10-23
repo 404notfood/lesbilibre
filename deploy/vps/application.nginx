@@ -2,6 +2,13 @@
 fastcgi_buffer_size 16k;
 fastcgi_buffers 8 16k;
 
+location = /llms.txt {
+    try_files $uri =404;
+    types { }
+    default_type text/plain;
+    charset utf-8;
+}
+
 location = /sw.js {
     try_files $uri =404;
     types { }

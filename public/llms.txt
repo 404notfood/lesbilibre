@@ -1,4 +1,4 @@
-# LesbiLibre
+﻿# LesbiLibre
 
 > LesbiLibre est une plateforme francophone de rencontres amoureuses, d'amitiés et de liens locaux entre femmes et personnes queer, réservée aux personnes de 18 ans et plus.
 
