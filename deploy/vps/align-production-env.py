@@ -47,6 +47,13 @@ def align(path):
     original = path.read_bytes()
     lines = original.decode("utf-8").splitlines(keepends=True)
     updates = dict(EXPECTED)
+    # Publication is a deliberate choice; never reset an existing site's choice.
+    indexing_values = [line.partition('=')[2].strip().strip("\"'")
+                       for line in lines if line.startswith('SEO_INDEXING_ENABLED=')]
+    if indexing_values:
+        if indexing_values[-1] not in ('true', 'false'):
+            raise ValueError('SEO_INDEXING_ENABLED doit valoir true ou false.')
+        updates['SEO_INDEXING_ENABLED'] = indexing_values[-1]
     for line in lines:
         if line.startswith("REVERB_APP_KEY="):
             public_key = line.partition("=")[2].strip().strip("\"'")

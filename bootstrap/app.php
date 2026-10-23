@@ -31,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\TrackUserPresence::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class,
+            AddLinkHeadersForPreloadedAssets::using(5),
         ]);
 
         // Rate limiting aliases
@@ -42,5 +42,5 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->dontFlash(\App\Services\IntegrationSettings::FIELDS);
     })->create();

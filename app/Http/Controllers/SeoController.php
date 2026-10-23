@@ -16,10 +16,7 @@ class SeoController extends Controller
 
     public function robots(): Response
     {
-        $siteUrl = rtrim(config('app.url'), '/');
-        $content = config('seo.indexing_enabled')
-            ? "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /settings\nDisallow: /dashboard\nDisallow: /profile\nDisallow: /conversations\n\nUser-agent: OAI-SearchBot\nAllow: /\nDisallow: /admin\nDisallow: /settings\nDisallow: /dashboard\nDisallow: /profile\nDisallow: /conversations\n\nSitemap: {$siteUrl}/sitemap.xml\n"
-            : "User-agent: *\nDisallow: /\n";
+        $content = app(\App\Services\SeoSettings::class)->robots();
 
         return response($content, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
     }

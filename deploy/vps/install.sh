@@ -512,7 +512,7 @@ configure_deployment_env() {
     env_require 'APP_LOCALE' 'fr'; env_set 'APP_LOCALE' 'fr'
     env_require 'APP_FALLBACK_LOCALE' 'fr'; env_set 'APP_FALLBACK_LOCALE' 'fr'
     env_require 'SUPPORT_EMAIL' 'contact@lesbi-libre.fr'; env_set 'SUPPORT_EMAIL' 'contact@lesbi-libre.fr'
-    env_require 'SEO_INDEXING_ENABLED' 'false'; env_set 'SEO_INDEXING_ENABLED' 'false'
+    env_set 'SEO_INDEXING_ENABLED' 'false'
     env_require 'INERTIA_SSR_ENABLED' 'true'; env_set 'INERTIA_SSR_ENABLED' 'true'
     env_require 'SESSION_SECURE_COOKIE' 'true'; env_set 'SESSION_SECURE_COOKIE' 'true'
     env_require 'BROADCAST_CONNECTION' 'reverb'; env_set 'BROADCAST_CONNECTION' 'reverb'

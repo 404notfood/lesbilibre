@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import GoogleAuthButton from '@/components/google-auth-button';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { Form, Head } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 
 interface LoginProps {
+    googleEnabled?: boolean;
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
@@ -24,6 +26,7 @@ export default function Login({
     status,
     canResetPassword,
     canRegister,
+    googleEnabled = false,
 }: LoginProps): JSX.Element {
     return (
         <AuthLayout
@@ -31,6 +34,7 @@ export default function Login({
             description="Retrouve tes matchs, tes conversations et les liens qui comptent."
         >
             <Head title="Connexion" />
+            {googleEnabled && <GoogleAuthButton />}
 
             {status && (
                 <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">

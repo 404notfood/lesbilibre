@@ -2,21 +2,29 @@ import { createInertiaApp } from '@inertiajs/react';
 import createServer from '@inertiajs/react/server';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import ReactDOMServer from 'react-dom/server';
-
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+import SeoHead, { pageTitle, type SeoMetadata } from './components/seo-head';
 
 createServer((page) =>
     createInertiaApp({
         page,
         render: ReactDOMServer.renderToString,
-        title: (title) => (title ? `${title} - ${appName}` : appName),
+        title: pageTitle,
         resolve: (name) =>
             resolvePageComponent(
                 `./pages/${name}.tsx`,
                 import.meta.glob('./pages/**/*.tsx'),
             ),
         setup: ({ App, props }) => {
-            return <App {...props} />;
+            return (
+                <App {...props}>
+                    {({ Component, key, props: pageProps }) => (
+                        <>
+                            <Component key={key} {...pageProps} />
+                            <SeoHead seo={pageProps.seo as SeoMetadata} />
+                        </>
+                    )}
+                </App>
+            );
         },
     }),
 );

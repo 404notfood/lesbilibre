@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
@@ -25,6 +27,16 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        $request = app(Request::class);
+        $google = $request->session()->get('google_registration');
+        if (is_array($google)) {
+            if (($google['expires_at'] ?? 0) < now()->timestamp) {
+                $request->session()->forget('google_registration');
+                throw ValidationException::withMessages(['email' => 'La session Google a expiré. Recommence avec Google.']);
+            }
+            $input['email'] = $google['email'];
+            $input['password'] = $input['password_confirmation'] = Str::password(64);
+        }
         if (isset($input['referral_code'])) {
             $input['referral_code'] = mb_strtoupper(trim($input['referral_code']));
         }
@@ -79,7 +91,7 @@ class CreateNewUser implements CreatesNewUsers
 
         app(AntiAbuseService::class)->assertRegistrationAllowed($input['email'], app(Request::class));
 
-        return DB::transaction(function () use ($input) {
+        $user = DB::transaction(function () use ($input, $google) {
             $user = User::create([
                 'pseudo' => $input['pseudo'],
                 'name' => $input['name'],
@@ -90,6 +102,12 @@ class CreateNewUser implements CreatesNewUsers
             ]);
 
             $user->forceFill(['community_charter_accepted_at' => now(), 'community_charter_version' => config('community.charter_version')])->save();
+            if (is_array($google)) {
+                $user->forceFill([
+                    'google_id' => $google['sub'],
+                    'email_verified_at' => ($google['authoritative_email'] ?? false) ? now() : null,
+                ])->save();
+            }
 
             // Keep the exact, privately declared birth date.
             $dateOfBirth = \Illuminate\Support\Carbon::parse($input['date_of_birth']);
@@ -114,5 +132,9 @@ class CreateNewUser implements CreatesNewUsers
 
             return $user;
         });
+
+        $request->session()->forget('google_registration');
+
+        return $user;
     }
 }

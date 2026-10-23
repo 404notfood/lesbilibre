@@ -52,6 +52,15 @@ class AlignProductionEnvTest(unittest.TestCase):
             self.assertEqual(target.read_bytes(), original)
             self.assertEqual(list(target.parent.iterdir()), [target])
 
+    def test_preserves_enabled_indexing_and_defaults_new_sites_to_preview(self):
+        for value in ('true', 'false', None):
+            with self.subTest(indexing=value), tempfile.TemporaryDirectory() as directory:
+                target = Path(directory) / '.env'
+                target.write_text('REVERB_APP_KEY=public-key\n' +
+                                  (f'SEO_INDEXING_ENABLED={value}\n' if value else ''))
+                align_env.align(target)
+                self.assertIn(f'SEO_INDEXING_ENABLED={value or "false"}\n', target.read_text())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2,6 +2,14 @@
 
 return [
 
+    'integrations' => [
+        'google_pagespeed_api_key' => env('GOOGLE_PAGESPEED_API_KEY'),
+        'google_search_console_credentials' => env('GOOGLE_SEARCH_CONSOLE_CREDENTIALS'),
+        'semrush_api_key' => env('SEMRUSH_API_KEY'),
+        'google_client_id' => env('GOOGLE_CLIENT_ID'),
+        'google_client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    ],
+
     'indexnow' => [
         'key' => env('INDEXNOW_KEY'),
     ],

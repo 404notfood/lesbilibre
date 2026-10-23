@@ -139,6 +139,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'seo' => fn () => app(\App\Services\SeoMetadata::class)->forRequest($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [

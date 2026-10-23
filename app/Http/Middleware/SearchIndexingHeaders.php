@@ -13,7 +13,7 @@ class SearchIndexingHeaders
         $response = $next($request);
         $routeName = $request->route()?->getName();
         $isPublic = in_array($routeName, config('seo.public_routes', []), true);
-        $indexable = config('seo.indexing_enabled', false) && $isPublic;
+        $indexable = app(\App\Services\SeoSettings::class)->indexingEnabled() && $isPublic;
 
         $response->headers->set(
             'X-Robots-Tag',

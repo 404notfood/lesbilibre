@@ -1,4 +1,7 @@
 # Managed through deploy.sh; included inside the application server block.
+fastcgi_buffer_size 16k;
+fastcgi_buffers 8 16k;
+
 location = /sw.js {
     try_files $uri =404;
     types { }

@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::middleware(['guest', 'throttle:10,1'])->group(function () {
+    Route::get('/auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('google.redirect');
+    Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('google.callback');
+});
 use Laravel\Fortify\Features;
 
 Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('seo.robots');
@@ -241,6 +246,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('static-pages', [\App\Http\Controllers\Admin\StaticPageAdminController::class, 'index'])->name('static-pages.index');
 
         // Settings
+        Route::get('seo', [\App\Http\Controllers\Admin\SeoSettingsController::class, 'index'])->name('seo.index');
+        Route::put('seo/robots', [\App\Http\Controllers\Admin\SeoSettingsController::class, 'updateRobots'])->name('seo.robots.update');
+        Route::put('seo/integrations', [\App\Http\Controllers\Admin\SeoSettingsController::class, 'updateIntegrations'])->name('seo.integrations.update');
         Route::get('settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');
     });
 });

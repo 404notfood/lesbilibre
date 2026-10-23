@@ -43,6 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $hidden = [
+        'google_id',
         'password',
         'referral_code',
         'two_factor_secret',

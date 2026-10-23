@@ -21,8 +21,8 @@ return [
 
     'pages' => [
         'home' => [
-            'title' => 'Des rencontres près de chez toi, à ton rythme | LesbiLibre',
-            'description' => 'Des rencontres entre femmes et personnes queer, avec des intentions claires. Un premier pilote se prépare à Laval (53).',
+            'title' => 'Rencontres entre femmes et personnes queer | LesbiLibre',
+            'description' => 'Rencontres amoureuses, amitiés et liens locaux entre femmes et personnes queer. Découvre LesbiLibre, ses outils de sécurité et son inscription gratuite.',
         ],
         'install' => [
             'title' => 'Installer LesbiLibre sur ton téléphone',

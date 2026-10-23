@@ -133,6 +133,8 @@ Le fichier `/home/lesbilibre/app/.env` est créé par le script et reste privé.
   renseigner `VAPID_PUBLIC_KEY` et `VAPID_PRIVATE_KEY`.
 - **SEO** : `SEO_INDEXING_ENABLED=false` pendant la validation. Passer à `true`
   lors de l'ouverture du domaine définitif ; renseigner `INDEXNOW_KEY` si utilisé.
+  Le déploiement et `align-production-env.py` conservent désormais ce choix
+  lorsqu'il existe déjà. Le local et les nouvelles installations restent en `false`.
 - **Sauvegardes** : prévoir une sauvegarde MariaDB, `storage/app` et une copie
   privée de l'APP_KEY hors du VPS. L'option automatique du générateur est réservée
   à PostgreSQL et n'est donc pas activée ici.
@@ -149,12 +151,42 @@ avec Node 24 et `npm run build:ssr`, puis redémarrer SSR.
 
 ## 6. Contrôler l'installation
 
+Pour ouvrir le référencement, modifier le `.env` du VPS (`/home/lesbilibre/app/.env`) :
+`APP_URL=https://lesbi-libre.fr` et `SEO_INDEXING_ENABLED=true`, puis exécuter
+`config:cache` avec la commande ci-dessus. Ne pas créer de `public/robots.txt` :
+`SeoController` génère `/robots.txt` et `/sitemap.xml` à partir de cette configuration.
+
+Après transfert des corrections du code, reconstruire avec `npm run build:ssr`,
+vider les vues compilées (`php artisan view:clear`) et redémarrer `lesbilibre-ssr`.
+Pour la configuration Nginx, mettre aussi à jour le fichier
+`/etc/vps-projects/lesbilibre/application.nginx` depuis `deploy/vps/application.nginx`,
+puis valider avec `sudo nginx -t` avant `sudo systemctl reload nginx`.
+Le préchargement HTTP est limité à cinq ressources ; le complément Nginx réserve
+16 Ko pour les en-têtes FastCGI. En cas de 502, vérifier
+`/var/log/nginx/lesbilibre-error.log` pour confirmer ou écarter
+`upstream sent too big header` avant toute autre modification.
+
+Les accès directs à `/login` et `/register` doivent répondre 200, même sans
+navigation préalable. Sur les pages publiques, attendre `X-Robots-Tag: index, follow`,
+une seule balise `title`, une seule URL canonique et un JSON-LD dont la clé
+`@context` vaut `https://schema.org`. `/login` et les espaces membres restent `noindex`.
+Le robots public doit autoriser l'exploration et référencer le sitemap. Soumettre
+ensuite ce sitemap dans Google Search Console et demander l'inspection de l'accueil.
+
+Le domaine `www` est absent de cette configuration. Pour le prendre en charge,
+prévoir son DNS, un certificat qui le couvre et une redirection HTTPS 301 vers
+`https://lesbi-libre.fr`. Une redirection seule ne corrige pas un certificat invalide.
+
 ```bash
 systemctl --no-pager status lesbilibre-queue@1 lesbilibre-queue@2 lesbilibre-scheduler.timer lesbilibre-ssr lesbilibre-reverb lesbilibre-moderation
 sudo -u lesbilibre /usr/bin/php8.4 /home/lesbilibre/app/artisan migrate:status
 sudo -u lesbilibre /usr/bin/php8.4 /home/lesbilibre/app/artisan inertia:check-ssr
 curl --fail http://127.0.0.1:18000/health
 curl -I https://lesbi-libre.fr/
+curl --fail -o /dev/null https://lesbi-libre.fr/login
+curl --fail -o /dev/null https://lesbi-libre.fr/register
+curl https://lesbi-libre.fr/robots.txt
+curl --fail https://lesbi-libre.fr/sitemap.xml
 curl -I https://lesbi-libre.fr/manifest.json
 curl -I https://lesbi-libre.fr/sw.js
 journalctl -u lesbilibre-reverb -u lesbilibre-moderation -n 50 --no-pager

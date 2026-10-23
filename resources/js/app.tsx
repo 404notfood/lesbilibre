@@ -6,13 +6,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CookieConsent } from './components/cookie-consent';
 import { PwaManager } from './components/pwa-manager';
+import SeoHead, { pageTitle, type SeoMetadata } from './components/seo-head';
 import { Toaster } from './components/ui/toaster';
 import { initializeTheme } from './hooks/use-appearance';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-
 createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: pageTitle,
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.tsx`,
@@ -23,7 +22,14 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <App {...props} />
+                <App {...props}>
+                    {({ Component, key, props: pageProps }) => (
+                        <>
+                            <Component key={key} {...pageProps} />
+                            <SeoHead seo={pageProps.seo as SeoMetadata} />
+                        </>
+                    )}
+                </App>
                 <PwaManager
                     initialUserId={
                         (

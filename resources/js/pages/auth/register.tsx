@@ -3,6 +3,7 @@ import {
     IntentionCheckboxes,
 } from '@/components/community-fields';
 import { login } from '@/routes';
+import GoogleAuthButton from '@/components/google-auth-button';
 import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/react';
 
@@ -26,11 +27,15 @@ import AuthLayout from '@/layouts/auth-layout';
 import { Heart, Sparkles } from 'lucide-react';
 
 interface RegisterProps {
+    googleEnabled?: boolean;
+    googleProfile?: { email: string; name: string } | null;
     referralCode?: string;
 }
 
 export default function Register({
     referralCode = '',
+    googleEnabled = false,
+    googleProfile = null,
 }: RegisterProps): JSX.Element {
     return (
         <AuthLayout
@@ -38,6 +43,8 @@ export default function Register({
             description="Un profil, tes envies, et la liberté de faire connaissance à ton rythme."
         >
             <Head title="Inscription" />
+            {googleEnabled && !googleProfile && <GoogleAuthButton />}
+            {googleProfile && <p className="mb-5 rounded-lg bg-primary/5 p-4 text-sm">Ton compte Google est confirmé. Complète ton profil et tes consentements pour terminer l’inscription.</p>}
 
             <div className="mb-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
                 <div className="flex items-start gap-3">
@@ -134,6 +141,7 @@ export default function Register({
                                         </Label>
                                         <Input
                                             id="name"
+                                            defaultValue={googleProfile?.name ?? ''}
                                             type="text"
                                             required
                                             autoComplete="name"
@@ -292,6 +300,8 @@ export default function Register({
                                 </Label>
                                 <Input
                                     id="email"
+                                    defaultValue={googleProfile?.email ?? ''}
+                                    readOnly={Boolean(googleProfile)}
                                     type="email"
                                     required
                                     autoComplete="email"
@@ -302,7 +312,7 @@ export default function Register({
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            {!googleProfile && <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
                                     <Label
                                         htmlFor="password"
@@ -349,7 +359,7 @@ export default function Register({
                                         message={errors.password_confirmation}
                                     />
                                 </div>
-                            </div>
+                            </div>}
                         </div>
 
                         <Separator />

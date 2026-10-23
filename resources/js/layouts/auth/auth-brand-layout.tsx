@@ -1,5 +1,5 @@
 import Brand from '@/components/brand';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 
 interface AuthBrandLayoutProps {
@@ -13,6 +13,7 @@ export default function AuthBrandLayout({
     title,
     description,
 }: AuthBrandLayoutProps): JSX.Element {
+    const { flash } = usePage<{ flash: { error?: string } }>().props;
     return (
         <div className="auth-page">
             <aside className="auth-story" aria-label="Bienvenue sur LesbiLibre">
@@ -66,6 +67,7 @@ export default function AuthBrandLayout({
                         <h1>{title}</h1>
                         <p>{description}</p>
                     </div>
+                    {flash?.error && <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{flash.error}</p>}
                     {children}
                 </div>
                 <footer className="auth-mobile-footer">

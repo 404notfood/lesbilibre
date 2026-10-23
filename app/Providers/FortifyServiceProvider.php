@@ -86,6 +86,7 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
+            'googleEnabled' => app(\App\Services\IntegrationSettings::class)->googleEnabled(),
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
@@ -105,6 +106,12 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::registerView(fn (Request $request) => Inertia::render('auth/register', [
+            'googleEnabled' => app(\App\Services\IntegrationSettings::class)->googleEnabled(),
+            'googleProfile' => ($request->session()->get('google_registration.expires_at', 0) >= now()->timestamp)
+                ? [
+                    'email' => $request->session()->get('google_registration.email'),
+                    'name' => $request->session()->get('google_registration.name'),
+                ] : null,
             'referralCode' => $request->string('ref')->trim()->upper()->value(),
         ]));
 

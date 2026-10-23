@@ -39,6 +39,7 @@ printf 'server {\n    location / { return 503; }\n}\n' > "$TMP/input"
 managed_write /etc/nginx/sites-available/lesbilibre.conf < "$TMP/input"
 ! grep -q 'include ' "$TMP/rendered.conf"
 
+original_configure=$(declare -f vps_base_configure_deployment_env)
 vps_base_configure_deployment_env() { :; }
 ENV_NEW=1
 env_value() { printf 'server-generated-test-value'; }
@@ -47,6 +48,13 @@ env_set() { printf '%s=%s\n' "$1" "$2" >> "$TEST_TEMP/env-changes"; }
 configure_deployment_env
 grep -qx 'VITE_REVERB_APP_KEY=server-generated-test-value' "$TEST_TEMP/env-changes"
 grep -qx 'STRIPE_SECRET=' "$TEST_TEMP/env-changes"
+
+# The base installer accepts a published site's indexing choice on redeploy.
+eval "$original_configure"
+env_require() { [[ $1 != SEO_INDEXING_ENABLED ]]; }
+ENV_NEW=0
+vps_base_configure_deployment_env
+grep -qx 'SEO_INDEXING_ENABLED=false' "$TEST_TEMP/env-changes"
 
 vps_base_reserve_application_ports() { :; }
 select_port() { printf '%s\n' "$2" >> "$TEST_TEMP/ports"; }
@@ -91,6 +99,8 @@ printf 'Bundle checks passed: syntax, nginx, rollback tracking, environment, por
     assert(snippet.includes('location = /manifest.json'));
     assert(snippet.includes('location = /sw.js'));
     assert(snippet.includes('proxy_set_header Upgrade $http_upgrade;'));
+    assert(snippet.includes('fastcgi_buffer_size 16k;'));
+    assert(snippet.includes('fastcgi_buffers 8 16k;'));
     console.log('All deployment bundle checks passed. No server commands executed.');
 } finally {
     fs.rmSync(temporary, { recursive: true, force: true });

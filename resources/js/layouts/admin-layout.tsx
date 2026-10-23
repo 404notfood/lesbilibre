@@ -242,6 +242,13 @@ export default function AdminLayout({
                         hint: 'CGU, mentions légales…',
                     },
                     {
+                        href: '/admin/seo',
+                        label: 'SEO et intégrations',
+                        icon: SettingsIcon,
+                        matchPrefix: '/admin/seo',
+                        hint: 'Robots.txt, Google et Semrush',
+                    },
+                    {
                         href: '/admin/settings',
                         label: 'Réglages',
                         icon: SettingsIcon,

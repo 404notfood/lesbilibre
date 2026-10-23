@@ -135,10 +135,6 @@ class StaticPageController extends Controller
                 ->take(3)
                 ->map(fn (array $item, string $relatedSlug) => Arr::only($item, ['title', 'description']) + ['slug' => $relatedSlug])
                 ->values(),
-            'seo' => [
-                'title' => $guide['title'].' | LesbiLibre',
-                'description' => $guide['description'],
-            ],
             'structuredData' => [
                 '@type' => 'Article',
                 'headline' => $guide['title'],

@@ -39,77 +39,10 @@
             }
         </style>
 
-        @php
-            $siteUrl = rtrim(config('app.url', 'https://steff.404notfood.fr'), '/');
-            $routeName = request()->route()?->getName();
-            $isPublicRoute = in_array($routeName, config('seo.public_routes', []), true);
-            $isIndexable = config('seo.indexing_enabled', false) && $isPublicRoute;
-            $routeSeo = config("seo.pages.{$routeName}", config('seo.default'));
-            $pageSeo = $page['props']['seo'] ?? [];
-            $seoTitle = $pageSeo['title'] ?? $routeSeo['title'] ?? config('seo.default.title');
-            $brandDescription = $pageSeo['description'] ?? $routeSeo['description'] ?? config('seo.default.description');
-            $canonicalUrl = $siteUrl . request()->getPathInfo();
-            $socialImage = $siteUrl . '/images/branding/lesbilibre-social-1200x630.png';
-
-            $schemaGraph = [
-                [
-                    '@type' => 'Organization',
-                    '@id' => $siteUrl . '/#organization',
-                    'name' => 'LesbiLibre',
-                    'url' => $siteUrl,
-                    'logo' => $siteUrl . '/images/branding/icon-512.png',
-                    'description' => config('seo.default.description'),
-                ],
-                [
-                    '@type' => 'WebSite',
-                    '@id' => $siteUrl . '/#website',
-                    'name' => 'LesbiLibre',
-                    'url' => $siteUrl,
-                    'inLanguage' => 'fr-FR',
-                    'publisher' => ['@id' => $siteUrl . '/#organization'],
-                ],
-            ];
-
-            if ($routeName === 'home') {
-                $schemaGraph[] = [
-                    '@type' => 'SoftwareApplication',
-                    'name' => 'LesbiLibre',
-                    'applicationCategory' => 'LifestyleApplication',
-                    'operatingSystem' => 'Web',
-                    'url' => $siteUrl,
-                    'description' => $brandDescription,
-                ];
-            }
-
-            if (isset($page['props']['structuredData'])) {
-                $schemaGraph[] = $page['props']['structuredData'] + [
-                    'url' => $canonicalUrl,
-                    'inLanguage' => 'fr-FR',
-                    'publisher' => ['@id' => $siteUrl . '/#organization'],
-                ];
-            }
-        @endphp
-
-        <title inertia>{{ $seoTitle }}</title>
-        <meta name="robots" content="{{ $isIndexable ? 'index, follow' : 'noindex, nofollow, noarchive' }}">
-        <meta name="description" content="{{ $brandDescription }}">
-        @if ($isPublicRoute)
-            <link rel="canonical" href="{{ $canonicalUrl }}">
-        @endif
-        <meta property="og:locale" content="fr_FR">
-        <meta property="og:type" content="website">
-        <meta property="og:site_name" content="LesbiLibre">
-        <meta property="og:title" content="{{ $seoTitle }}">
-        <meta property="og:description" content="{{ $brandDescription }}">
-        <meta property="og:url" content="{{ $canonicalUrl }}">
-        <meta property="og:image" content="{{ $socialImage }}">
-        <meta property="og:image:width" content="1200">
-        <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="LesbiLibre — Aimer une femme, sans détour.">
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ $seoTitle }}">
-        <meta name="twitter:description" content="{{ $brandDescription }}">
-        <meta name="twitter:image" content="{{ $socialImage }}">
+        @inertiaHead
+        @unless ($__inertiaSsrResponse)
+            @include('seo', ['seo' => $page['props']['seo']])
+        @endunless
 
         <link rel="icon" href="/favicon-lesbilibre.ico" sizes="any">
         <link rel="icon" href="/images/branding/icon-32.png" type="image/png" sizes="32x32">
@@ -123,19 +56,11 @@
         <link rel="manifest" href="/manifest.json">
         <meta name="theme-color" content="#170b10">
 
-        <script type="application/ld+json">
-            {!! json_encode([
-                '@context' => 'https://schema.org',
-                '@graph' => $schemaGraph,
-            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-        </script>
-
         <link rel="preload" href="/fonts/fraunces-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
         <link rel="preload" href="/fonts/inter-tight-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
-        @inertiaHead
     </head>
     <body class="font-sans antialiased">
         @inertia
